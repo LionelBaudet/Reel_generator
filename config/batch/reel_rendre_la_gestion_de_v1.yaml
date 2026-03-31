@@ -1,0 +1,68 @@
+# Reel : rendre la gestion de projet ultra simple
+# Généré automatiquement par generate.py — 2026-03-31 13:56
+
+reel:
+  template: prompt_reveal
+  duration: 20
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/meeting_prep.mp4"
+  duration: 3
+  start_at: 0
+  text: "T'as encore passé 2h sur un truc qui prend 10 min"
+  subtext: "C'est pas toi. C'est ton process."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Ta réunion de projet ? Une blague."
+  highlight: "une blague"
+  duration: 3
+
+prompt:
+  title: "Plan de projet en 30 secondes"
+  text: |
+    génère-moi un plan de projet pour lancer une newsletter b2b, avec les étapes, les responsables et les deadlines sur 4 semaines
+  output_preview: |
+    PROJECT PLAN — B2B Newsletter Launch (4 weeks)
+    
+    WEEK 1 — Strategy & Setup
+    • Define target audience & content pillars → Owner: Marketing Lead
+    • Set up email tool (Beehiiv / Substack) → Owner: Ops
+    • Deadline: Day 5
+    
+    WEEK 2 — Content Creation
+    • Write first 3 newsletter issues → Owner: Content Writer
+    • Design email template → Owner: Designer
+    • Deadline: Day 12
+    
+    WEEK 3 — List Building
+    • Import existing contacts + LinkedIn outreach → Owner: Growth
+    • Set up welcome sequence (3 emails) → Owner: Marketing Lead
+    • Deadline: Day 19
+    
+    WEEK 4 — Launch & Iterate
+    • Send issue #1 to full list → Owner: Marketing Lead
+    • Track open rate, CTR, unsubscribes → Owner: Ops
+    • Debrief & adjust cadence → Full team
+    • Deadline: Day 28
+    
+    KPI targets: 40% open rate / 5% CTR / <2% unsubscribe
+  saves: "45 min/jour"
+  duration: 11
+
+cta:
+  headline: "Stop galérer"
+  subtext: "Le lien est en bio pour tester gratuitement ⚡"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_am.wav"
+  volume: 0.28
+  typing_sound: "assets/audio/typing.mp3"
+  typing_volume: 0.5

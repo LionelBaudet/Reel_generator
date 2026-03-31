@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x \"F:/reels_generator/setup.sh\")",
+      "Bash(pip install:*)",
+      "Bash(python main.py --config config/reel_config.yaml --output output/ --preview)",
+      "Bash(python -c \":*)",
+      "Bash(python main.py --config config/reel_config.yaml --output output/reel.mp4 --remotion)",
+      "Bash(python scripts/download_sample_video.py --api-key SKGwyISFb1u3B2d8vO89gh8OB6SblgiBIsMnfTMgm0gg08oqX7sTQJse)",
+      "Bash(python main.py --config config/reel_config.yaml --output output/reel.mp4)",
+      "Bash(python main.py --config config/reel_config.yaml --output output/reel_v2.mp4)",
+      "Bash(python scripts/setup_batch.py --skip-video)",
+      "Bash(ls -la F:/reels_generator/output/batch/*.mp4)",
+      "Bash(ls -la F:/reels_generator/assets/audio/lofi_beat_*.wav)",
+      "Bash(python -c \"import streamlit as st; help\\(st.image\\)\")",
+      "Bash(curl -s http://localhost:8501/)",
+      "Bash(python generate.py \"automatiser reporting\")",
+      "Bash(pip show:*)",
+      "Bash(python -c \"from generate import generate_variants, build_yaml, BROLL_CATEGORIES; print\\(''imports OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''app.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''generate.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''app.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''app.py OK''\\)\")",
+      "Bash(icacls \"F:/reels_generator/.git/config\")"
+    ]
+  }
+}

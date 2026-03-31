@@ -1,0 +1,62 @@
+# Reel : automatiser reporting
+# Généré automatiquement par generate.py — 2026-03-31 13:42
+
+reel:
+  template: prompt_reveal
+  duration: 20
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/report_screen.mp4"
+  duration: 3
+  start_at: 0
+  text: "Mon manager croit que je passe des heures dessus."
+  subtext: "En vrai, l'IA le fait seule."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Ton reporting automatisé en 30 secondes."
+  highlight: "30 secondes"
+  duration: 3
+
+prompt:
+  title: "Rapport hebdomadaire"
+  text: |
+    génère mon rapport hebdo à partir de ces données : [colle tes chiffres bruts]. format : résumé exécutif, points clés, alertes, recommandations. ton professionnel mais concis, max 1 page
+  output_preview: |
+    📊 WEEKLY PERFORMANCE REPORT — W23
+    
+    **Executive Summary**
+    Revenue reached €142K (+8% vs last week), driven by Enterprise segment. Churn rate stable at 1.2%.
+    
+    **Key Highlights**
+    • New MRR: €18,400 (+12%)
+    • Active users: 3,841 (+6%)
+    • Support tickets resolved: 94% SLA met
+    
+    **⚠️ Alerts**
+    • CAC increased by 18% — paid campaigns underperforming
+    • 3 enterprise accounts flagged for renewal risk
+    
+    **Recommendations**
+    1. Pause Google Ads until creative refresh
+    2. Schedule QBR with at-risk accounts this week
+    3. A/B test onboarding flow to improve activation rate
+  saves: "45 min/jour"
+  duration: 11
+
+cta:
+  headline: "Save THIS."
+  subtext: "Tu vas en avoir besoin lundi matin 🫡"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_am.wav"
+  volume: 0.28
+  typing_sound: "assets/audio/typing.mp3"
+  typing_volume: 0.5

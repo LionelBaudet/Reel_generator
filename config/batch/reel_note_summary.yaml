@@ -1,0 +1,64 @@
+# Reel : Résumé structuré de notes de call
+# Notes brutes → compte-rendu professionnel
+
+reel:
+  template: prompt_reveal
+  duration: 23
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/notes_writing.mp4"
+  duration: 3
+  start_at: 0
+  text: "J'envoie mon CR avant la fin de la reunion."
+  subtext: "En 2 lignes. Voila comment."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Mon CR de meeting part avant que tu aies fini de noter."
+  highlight: "avant que tu aies fini"
+  duration: 3
+
+prompt:
+  title: "Call Summary"
+  text: |
+    notes call ce matin: budget coupe,
+    recrutement gele, roadmap a revoir,
+    Marie gere la comm.
+  output_preview: |
+    Call Summary - Q2 Planning Session
+
+    Context:
+    Full team sync - Q2 planning.
+    Attendees: full leadership team.
+
+    Key Decisions:
+    1. Q2 budget reduced - adjust plan
+    2. Hiring freeze until Q3
+    3. Product roadmap needs full revision
+    4. Marie owns all external communications
+
+    Action Items:
+    - Revise Q2 roadmap     Product    Friday
+    - Update budget forecast Finance    Monday
+    - Brief all teams        Marie      Today
+    - Schedule roadmap review All leads  This week
+
+    Next Steps:
+    Review revised roadmap at next all-hands.
+  saves: "20 min/call"
+  duration: 14
+
+cta:
+  headline: "Save THIS."
+  subtext: "10 free prompts \u2192 link in bio \U0001F381"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_gm.wav"
+  volume: 0.28

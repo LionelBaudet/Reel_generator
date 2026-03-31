@@ -1,0 +1,20 @@
+# Secrets
+.env
+.env*.example
+.env - Copy*
+.claude/
+
+# Output généré
+output/*.mp4
+output/*.png
+output/_*.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Streamlit cache local
+.streamlit/cache/
+.env* 

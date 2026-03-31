@@ -1,0 +1,64 @@
+# Reel : Preparation de reunion client
+# Prompt court → agenda complet
+
+reel:
+  template: prompt_reveal
+  duration: 23
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/meeting_prep.mp4"
+  duration: 3
+  start_at: 0
+  text: "T'as une reunion dans 1h ?"
+  subtext: "30 secondes suffisent. Regarde."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "0 prep. Reunion client. J'ai epate tout le monde."
+  highlight: "0 prep"
+  duration: 3
+
+prompt:
+  title: "Meeting Prep"
+  text: |
+    reunion client demain 9h.
+    budget Q2. premier call avec eux.
+  output_preview: |
+    Meeting Prep - Client Call Q2
+
+    Context:
+    First call. Topic: Q2 budget review.
+    Recommended duration: 45-60 min.
+
+    Your 3 Objectives:
+    1. Understand their Q2 priorities
+    2. Identify budget constraints
+    3. Agree on timeline and next steps
+
+    5 Smart Questions to Ask:
+    - What is your main priority for Q2?
+    - What does success look like for you?
+    - What is your current budget range?
+    - Who are the key decision-makers?
+    - What are your biggest blockers?
+
+    After the Call:
+    - Send recap email within 2 hours
+    - Propose next meeting within 1 week
+  saves: "30 min/meeting"
+  duration: 14
+
+cta:
+  headline: "Save THIS."
+  subtext: "10 free prompts \u2192 link in bio \U0001F381"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_am.wav"
+  volume: 0.28

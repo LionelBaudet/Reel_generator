@@ -1,0 +1,25 @@
+{
+  "name": "ownyourtime-reels-remotion",
+  "version": "1.0.0",
+  "description": "Composants Remotion pour les reels @ownyourtime.ai",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render src/index.tsx PromptReveal output/remotion_render.mp4",
+    "render": "remotion render src/index.tsx PromptReveal",
+    "preview": "remotion studio"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "remotion": {
+    "entryPoint": "src/index.tsx"
+  }
+}

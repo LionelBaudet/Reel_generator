@@ -1,0 +1,59 @@
+# Reel : Relance email professionnel
+# Prompt court → email complet en 2 lignes
+
+reel:
+  template: prompt_reveal
+  duration: 25
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/typing_person.mp4"
+  duration: 3
+  start_at: 0
+  text: "Je n'ai pas ecrit cet email."
+  subtext: "Mais tout le monde le croit."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Mon chef croit que c'est moi qui ecris ca."
+  highlight: "c'est moi"
+  duration: 3
+
+prompt:
+  title: "Relance client — 30 secondes"
+  text: |
+    relance sarah pour le retard
+    sur le projet. pro mais sympa. Anglais.
+  output_preview: |
+    Subject: Quick follow-up - Project Timeline
+
+    Hi Sarah,
+
+    Hope you are doing well! I just wanted to
+    check in on the project timeline - we are
+    getting close to the deadline and I want
+    to make sure we are aligned on next steps.
+
+    Would it be possible to sync this week?
+    Even a quick 15-min call would help.
+
+    Looking forward to hearing from you!
+
+    Best,
+    Alex
+  saves: "20 min/day"
+  duration: 15
+
+cta:
+  headline: "Save THIS."
+  subtext: "10 free prompts \u2192 link in bio \U0001F381"
+  handle: "@ownyourtime.ai"
+  duration: 4
+
+audio:
+  background_music: "assets/audio/lofi_beat_dm.wav"
+  volume: 0.28

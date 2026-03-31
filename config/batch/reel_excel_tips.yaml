@@ -1,0 +1,63 @@
+# Reel : Astuce Excel - Top N par catégorie
+# Prompt court → formule complète expliquée
+
+reel:
+  template: prompt_reveal
+  duration: 23
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/excel_work.mp4"
+  duration: 3
+  start_at: 0
+  text: "Ton collegue finit ses tableaux en 5 min."
+  subtext: "Maintenant tu sais pourquoi."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Pourquoi lui finit en 5 min et toi en 2h ?"
+  highlight: "5 min"
+  duration: 3
+
+prompt:
+  title: "Excel Formula"
+  text: |
+    top 3 vendeurs par CA dans
+    mon tableau excel. formule simple.
+  output_preview: |
+    Top 3 Sellers by Revenue - Excel Formula
+
+    Setup:
+    Col A = Seller names  (A2:A20)
+    Col B = Revenue       (B2:B20)
+
+    Step 1 - Get the top 3 values in D2:D4:
+    =LARGE($B$2:$B$20, ROW()-1)
+
+    Step 2 - Get the matching names in E2:E4:
+    =INDEX($A$2:$A$20,
+      MATCH(D2, $B$2:$B$20, 0))
+
+    Copy both formulas to rows 2, 3 and 4.
+
+    Result: Rank 1, 2, 3 with names + revenue.
+
+    Bonus tip:
+    Wrap in IFERROR() to handle ties cleanly.
+    Works in Excel and Google Sheets.
+  saves: "1 hour/week"
+  duration: 14
+
+cta:
+  headline: "Save THIS."
+  subtext: "10 free prompts \u2192 link in bio \U0001F381"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_em.wav"
+  volume: 0.28

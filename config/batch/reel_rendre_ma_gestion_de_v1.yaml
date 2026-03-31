@@ -1,0 +1,63 @@
+# Reel : rendre ma gestion de projet ultra simple avec 3 outils
+# Généré automatiquement par generate.py — 2026-03-31 14:12
+
+reel:
+  template: prompt_reveal
+  duration: 20
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/meeting_prep.mp4"
+  duration: 3
+  start_at: 0
+  text: "T'as encore perdu 2h en réunion inutile"
+  subtext: "Pour un projet qui avance pas"
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.55
+
+hook:
+  text: "Ta gestion de projet est un chaos déguisé"
+  highlight: "chaos déguisé"
+  duration: 3
+
+prompt:
+  title: "Simplifier un projet qui part dans tous les sens"
+  text: |
+    j'ai un projet avec 6 personnes, tout le monde fait des trucs dans son coin, personne sait qui fait quoi. donne-moi un système simple en 3 outils pour que ça arrête
+  output_preview: |
+    Here's your 3-tool system to stop the chaos:
+    
+    1. NOTION — Single source of truth
+    - One project page = tasks, owners, deadlines, status
+    - No more 'where is the brief?' questions
+    - Template: Project Hub with Kanban + Table view
+    
+    2. SLACK (organized, not chaotic)
+    - One channel per project, not per person
+    - Pin the Notion link at the top
+    - Daily standup thread: 3 lines, async, no meeting needed
+    
+    3. LOOM — Kill 80% of your update meetings
+    - Record a 2-min video instead of scheduling a call
+    - Share progress without interrupting anyone
+    - Your team watches when they want
+    
+    Result: everyone knows what to do, when, and why.
+    No more 'can we jump on a quick call?' ever again.
+  saves: "45 min/jour"
+  duration: 11
+
+cta:
+  headline: "Stop le chaos"
+  subtext: "Sauvegarde ce reel avant ta prochaine réunion inutile 🔥"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat_em.wav"
+  volume: 0.28
+  typing_sound: "assets/audio/typing.mp3"
+  typing_volume: 0.5

@@ -1,0 +1,67 @@
+# Configuration du Reel Instagram @ownyourtime.ai
+# Modifiez ce fichier pour personnaliser votre reel
+
+reel:
+  template: prompt_reveal
+  duration: 23          # 3s intro + 3s hook + 14s prompt + 3s CTA
+  fps: 30
+  width: 1080
+  height: 1920
+
+# ── Segment 0 : Vidéo d'accroche ──────────────────────────────────────────
+# Placez une vidéo stock (ex: personne qui tape sur un clavier) dans assets/video/
+# Sources gratuites: https://www.pexels.com/videos/, https://pixabay.com/videos/
+#
+# Si 'video' est vide ou le fichier absent, une animation de remplacement
+# est générée automatiquement (écran de terminal animé).
+intro:
+  video: "assets/video/typing_person.mp4"   # chemin vers votre vidéo stock
+  duration: 3                                # durée du segment (secondes)
+  start_at: 0                               # offset de départ dans la vidéo source
+  text: "Stop copy-pasting the same emails."
+  subtext: "There's a faster way."
+  fade_in: 0.4                              # fondu à l'entrée (secondes)
+  fade_out: 0.5                             # fondu à la sortie
+  overlay_opacity: 0.50                     # opacité du gradient sombre (0–1)
+
+hook:
+  text: "Stop writing emails from scratch."
+  highlight: "emails from scratch"
+  duration: 3
+
+prompt:
+  title: "Follow-up Email"
+  text: |
+    relance sarah pour le retard
+    sur le projet. pro mais sympa.
+  output_preview: |
+    Subject: Quick follow-up - Project Timeline
+
+    Hi Sarah,
+
+    Hope you are doing well! I just wanted to
+    check in on the project timeline - we are
+    getting close to the deadline and I want
+    to make sure we are aligned on next steps.
+
+    Would it be possible to sync this week?
+    Even a quick 15-min call would help.
+
+    Looking forward to hearing from you!
+
+    Best,
+    Alex
+  saves: "20 min/day"
+  duration: 14
+
+cta:
+  headline: "Save THIS."
+  subtext: "10 free prompts \u2192 link in bio \U0001F381"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat.wav"
+  volume: 0.28
+  typing_sound: "assets/audio/typing.mp3"
+  typing_volume: 0.5
