@@ -28,8 +28,15 @@ load_dotenv()  # charge F:/reels_generator/.env si présent
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-CLIENT = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 MODEL = "claude-sonnet-4-6"
+
+
+def _client() -> anthropic.Anthropic:
+    """Crée le client à la demande pour lire la clé au bon moment."""
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        raise ValueError("ANTHROPIC_API_KEY non définie.")
+    return anthropic.Anthropic(api_key=key)
 
 BROLL_CATEGORIES = {
     "night_work":  "assets/video/night_work.mp4",
@@ -101,7 +108,7 @@ def _parse_json(raw: str) -> object:
 
 
 def call_claude(idea: str) -> dict:
-    message = CLIENT.messages.create(
+    message = _client().messages.create(
         model=MODEL,
         max_tokens=1500,
         system=SYSTEM_PROMPT,
@@ -153,7 +160,7 @@ Règles absolues :
 def generate_variants(idea: str) -> list:
     """Génère 3 variantes de concept reel pour une même idée (un seul appel API)."""
     slug_base = re.sub(r"[^\w]", "_", idea.lower().strip())[:20]
-    message = CLIENT.messages.create(
+    message = _client().messages.create(
         model=MODEL,
         max_tokens=3500,
         system=SYSTEM_PROMPT,
