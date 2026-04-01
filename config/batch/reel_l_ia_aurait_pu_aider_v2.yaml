@@ -1,0 +1,76 @@
+# Reel : "Et si l'Italie avait demandé à ChatGPT ?"
+# Généré pour @ownyourtime.ai — 2026-04-01
+# Contexte : Italie éliminée par la Bosnie (1-1, 4-1 t.a.b.)
+#
+# ⚠️ CADRAGE IMPORTANT :
+# Ce Reel est une SIMULATION — "et si ?"
+# Il montre ce que ChatGPT AURAIT PU produire
+# avec les données publiques disponibles avant le match.
+# Les stats Vasilj utilisées sont 100% réelles et vérifiables.
+# L'output_preview est une démonstration, pas une vraie analyse pré-match.
+
+reel:
+  template: prompt_reveal
+  duration: 22
+  fps: 30
+  width: 1080
+  height: 1920
+
+intro:
+  video: "assets/video/soccer_01.mp4"
+  duration: 3
+  start_at: 0
+  text: "Et si l'Italie avait demandé à ChatGPT ?"
+  subtext: "Simulation basée sur des données réelles."
+  fade_in: 0.2
+  fade_out: 0.5
+  overlay_opacity: 0.60
+
+hook:
+  text: "Les données de Vasilj étaient publiques."
+  highlight: "publiques"
+  subtext: "Personne ne les a lues avant le match."
+  duration: 3
+
+prompt:
+  title: "Analyse des penalties de Vasilj — données publiques"
+  text: |
+    Analyse les patterns de Nikola Vasilj
+    sur les penalties depuis le début de sa carrière
+    en Bundesliga. Stats disponibles publiquement.
+    Donne une stratégie pour les tireurs italiens.
+  output_preview: |
+    SIMULATION — basé sur données publiques Bundesliga
+
+    📊 Ce que ChatGPT aurait trouvé :
+    → 6 penalties arrêtés sur 7 en Bundesliga
+    → 4 sur 5 arrêtés la saison précédente
+    → Note WhoScored : "Penalty saving: Very Strong"
+    → Contre le Pays de Galles : plonge à GAUCHE
+
+    ⚡ Stratégie suggérée par l'IA :
+    → Éviter le côté gauche (son côté préférentiel)
+    → Cibler bas — il plonge haut dans 80% des arrêts*
+    → Ne pas laisser lire — tir puissant et décidé
+
+    ❌ Ce qui s'est passé :
+    Esposito → raté AU-DESSUS (Vasilj non impliqué)
+    Cristante → BARRE (Vasilj non impliqué)
+    L'Italie n'a pas perdu face à Vasilj.
+    Elle a perdu face à ses propres nerfs.
+
+    *estimation IA basée sur données publiques disponibles
+  saves: "1 Mondial. 0 analyse effectuée."
+  duration: 13
+
+cta:
+  headline: "Données oubliées ?"
+  subtext: "Les prompts pour ne plus le faire → bio 📊"
+  handle: "@ownyourtime.ai"
+  duration: 3
+
+audio:
+  background_music: "assets/audio/lofi_beat.wav"
+  volume: 0.28
+  typing_sound: "assets/audio/typing.mp3"
+  typing_volume: 0.5

@@ -26,6 +26,7 @@ except Exception:
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 try:
     from generate import generate_variants, build_yaml, BROLL_CATEGORIES
+    from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
     _GEN_AVAILABLE = bool(_os.environ.get("ANTHROPIC_API_KEY"))
 except Exception:
     _GEN_AVAILABLE = False
@@ -154,6 +155,59 @@ p, label, .stMarkdown, .stCaption { color: #1A1A2E !important; }
   color: var(--muted);
   margin-top: -1.2rem;
   margin-bottom: 1rem;
+}
+
+/* ── Hook score card ──────────────────────────────────────── */
+.hook-score-bar { height: 8px; border-radius: 4px; margin: 4px 0 10px 0; }
+.hook-accepted  { background:#d1fae5; border:1px solid #6ee7b7;
+                  border-radius:10px; padding:1rem; margin-bottom:1rem; }
+.hook-rejected  { background:#fee2e2; border:1px solid #fca5a5;
+                  border-radius:10px; padding:1rem; margin-bottom:1rem; }
+.hook-winner    { background:#FFF8EC; border:2px solid #C8972A;
+                  border-radius:10px; padding:1rem; margin:0.75rem 0; }
+
+/* ── Responsive mobile ────────────────────────────────────── */
+/* Tous les boutons : hauteur min 48px (touch target) */
+.stButton > button {
+  min-height: 48px !important;
+  font-size: 0.95rem !important;
+}
+
+/* Cards 3 colonnes → 1 colonne sur mobile */
+@media (max-width: 768px) {
+  /* Colonnes Streamlit empilées */
+  [data-testid="column"] {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+  /* Sidebar réduite */
+  section[data-testid="stSidebar"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  /* Titres plus petits */
+  h1 { font-size: 1.4rem !important; }
+  h2 { font-size: 1.2rem !important; }
+  h3 { font-size: 1.05rem !important; }
+  /* Inputs pleine largeur */
+  .stTextInput input, .stTextArea textarea {
+    font-size: 1rem !important;
+  }
+  /* Métriques sidebar côte à côte */
+  [data-testid="metric-container"] {
+    padding: 0.3rem !important;
+  }
+  /* Tabs scrollables horizontalement */
+  .stTabs [data-baseweb="tab-list"] {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+  }
+  .stTabs [data-baseweb="tab"] {
+    white-space: nowrap !important;
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -503,11 +557,14 @@ with tab_auto:
                 st.markdown(f"### Concept sélectionné — *{variant.get('angle','').upper()}*")
 
                 st.markdown("**📄 YAML — modifiable avant génération**")
+                # Chaque injection incrémente le compteur → nouvelle key → widget rechargé avec la bonne valeur
+                _edit_v = st.session_state.get(f"yaml_edit_v_{selected_idx}", 0)
+                _edit_val = st.session_state.get(f"yaml_edit_val_{selected_idx}", yaml_content)
                 edited_yaml = st.text_area(
                     label="yaml_editor",
-                    value=yaml_content,
+                    value=_edit_val,
                     height=420,
-                    key=f"yaml_editor_{selected_idx}",
+                    key=f"yaml_editor_{selected_idx}_v{_edit_v}",
                     label_visibility="collapsed",
                 )
                 # Détecter les modifications
@@ -522,6 +579,235 @@ with tab_auto:
 
                 # La version active = ce qui est dans l'éditeur
                 active_yaml = edited_yaml
+
+                # ── Hook Optimizer ────────────────────────────────────────────
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+                st.markdown("### 🎯 Hook Optimizer")
+                st.caption("Analyse le hook et le remplace automatiquement si le score est < 7.5/10.")
+
+                opt_col1, opt_col2 = st.columns([3, 1])
+                with opt_col1:
+                    hook_to_analyze = st.text_input(
+                        "Hook à analyser",
+                        value=variant.get("hook_text", ""),
+                        key=f"hook_input_{selected_idx}",
+                        label_visibility="collapsed",
+                        placeholder="Hook à analyser…",
+                    )
+                with opt_col2:
+                    run_optimizer = st.button(
+                        "Analyser",
+                        type="primary",
+                        use_container_width=True,
+                        key=f"btn_optimize_{selected_idx}",
+                    )
+
+                if run_optimizer and hook_to_analyze.strip():
+                    with st.spinner("Analyse du hook en cours…"):
+                        try:
+                            analysis = analyze_hook(
+                                hook_to_analyze.strip(),
+                                context=st.session_state.get("auto_idea", ""),
+                            )
+                            st.session_state[f"hook_analysis_{selected_idx}"] = analysis
+                        except Exception as exc:
+                            st.error(f"Erreur : {exc}")
+
+                analysis = st.session_state.get(f"hook_analysis_{selected_idx}")
+                if analysis:
+                    score     = analysis.get("original_score", {})
+                    avg       = score.get("average", 0)
+                    verdict   = score.get("verdict", "")
+                    winner    = analysis.get("winner", "")
+                    w_score   = analysis.get("winner_score", 0)
+                    div_class = "hook-accepted" if verdict == "ACCEPTED" else "hook-rejected"
+                    verdict_icon = "✅" if verdict == "ACCEPTED" else "❌"
+
+                    # Score card
+                    st.markdown(
+                        f'<div class="{div_class}">'
+                        f'<strong>{verdict_icon} {verdict}</strong> — Score moyen : '
+                        f'<strong>{avg}/10</strong>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                    # Détail des 5 critères
+                    with st.expander("Détail des scores", expanded=verdict == "REJECTED"):
+                        crit_cols = st.columns(5)
+                        labels = {
+                            "scroll_stopping": "Scroll-stop",
+                            "clarity": "Clarté",
+                            "curiosity": "Curiosité",
+                            "viral_potential": "Viral",
+                            "niche_fit": "Niche fit",
+                        }
+                        for col, (key, label) in zip(crit_cols, labels.items()):
+                            val = score.get(key, 0)
+                            color = "#4ade80" if val >= 7.5 else "#f87171"
+                            with col:
+                                st.markdown(
+                                    f'<div style="text-align:center">'
+                                    f'<div style="font-size:1.4rem;font-weight:700;color:{color}">{val}</div>'
+                                    f'<div style="font-size:0.7rem;color:#6B6B8A">{label}</div>'
+                                    f'</div>',
+                                    unsafe_allow_html=True,
+                                )
+
+                    # Alternatives si rejected
+                    if verdict == "REJECTED" and analysis.get("alternatives"):
+                        with st.expander("10 alternatives générées", expanded=True):
+                            for alt in analysis["alternatives"]:
+                                bar_color = "#4ade80" if alt["score"] >= 7.5 else "#f59e0b"
+                                st.markdown(
+                                    f'<div style="display:flex;align-items:center;gap:0.75rem;'
+                                    f'padding:0.5rem 0;border-bottom:1px solid #E0E0E8;">'
+                                    f'<span style="font-weight:700;color:{bar_color};min-width:32px">'
+                                    f'{alt["score"]}</span>'
+                                    f'<span style="flex:1;font-weight:600">"{alt["hook"]}"</span>'
+                                    f'<span style="font-size:0.75rem;color:#6B6B8A;min-width:90px">'
+                                    f'{alt["style"]}</span>'
+                                    f'<span style="font-size:0.75rem;color:#6B6B8A">{alt["why"]}</span>'
+                                    f'</div>',
+                                    unsafe_allow_html=True,
+                                )
+
+                    # Winner + variantes
+                    st.markdown(
+                        f'<div class="hook-winner">'
+                        f'<div style="font-size:0.75rem;color:#6B6B8A;margin-bottom:4px">WINNER — {w_score}/10</div>'
+                        f'<div style="font-size:1.1rem;font-weight:700;color:#1A1A2E">"{winner}"</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    var_c1, var_c2 = st.columns(2)
+                    with var_c1:
+                        st.caption(f"🔥 Agressif : *{analysis.get('aggressive', '')}*")
+                    with var_c2:
+                        st.caption(f"🌍 Safe : *{analysis.get('safe', '')}*")
+
+                    # Bouton d'injection dans le YAML
+                    if st.button(
+                        "Injecter le winner dans le YAML",
+                        type="primary",
+                        key=f"inject_winner_{selected_idx}",
+                    ):
+                        try:
+                            current_cfg = yaml.safe_load(active_yaml) or {}
+                            updated_cfg = inject_winner(current_cfg, analysis)
+                            import io as _io
+                            buf = _io.StringIO()
+                            yaml.dump(updated_cfg, buf, allow_unicode=True,
+                                      default_flow_style=False, sort_keys=False)
+                            new_yaml = buf.getvalue()
+                            # Changer la version force Streamlit à recréer le widget avec la nouvelle valeur
+                            st.session_state[f"yaml_edit_val_{selected_idx}"] = new_yaml
+                            st.session_state[f"yaml_edit_v_{selected_idx}"] = _edit_v + 1
+                            st.success("Hook injecté ✓")
+                            st.rerun()
+                        except Exception as exc:
+                            st.error(f"Erreur injection : {exc}")
+
+                # ── Solution Scorer ───────────────────────────────────────────
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+                st.markdown("### 💡 Solution Scorer")
+                st.caption("Score la réponse IA affichée dans le reel. Propose une version améliorée si < 7.5/10.")
+
+                sol_col1, sol_col2 = st.columns([3, 1])
+                with sol_col1:
+                    solution_to_score = st.text_area(
+                        "Solution à scorer",
+                        value=variant.get("prompt_output", ""),
+                        height=160,
+                        key=f"solution_input_{selected_idx}",
+                        label_visibility="collapsed",
+                        placeholder="Colle ici la réponse IA à scorer…",
+                    )
+                with sol_col2:
+                    run_solution_scorer = st.button(
+                        "Scorer",
+                        type="primary",
+                        use_container_width=True,
+                        key=f"btn_score_solution_{selected_idx}",
+                    )
+
+                if run_solution_scorer and solution_to_score.strip():
+                    with st.spinner("Analyse de la solution…"):
+                        try:
+                            sol_analysis = analyze_solution(
+                                solution_to_score.strip(),
+                                context=st.session_state.get("auto_idea", ""),
+                            )
+                            st.session_state[f"sol_analysis_{selected_idx}"] = sol_analysis
+                        except Exception as exc:
+                            st.error(f"Erreur : {exc}")
+
+                sol_analysis = st.session_state.get(f"sol_analysis_{selected_idx}")
+                if sol_analysis:
+                    sol_scores  = sol_analysis.get("scores", {})
+                    sol_avg     = sol_scores.get("average", 0)
+                    sol_verdict = sol_scores.get("verdict", "")
+                    sol_div     = "hook-accepted" if sol_verdict == "GOOD" else "hook-rejected"
+                    sol_icon    = "✅" if sol_verdict == "GOOD" else "⚠️"
+
+                    st.markdown(
+                        f'<div class="{sol_div}">'
+                        f'<strong>{sol_icon} {sol_verdict}</strong> — Score moyen : '
+                        f'<strong>{sol_avg}/10</strong>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                    sol_labels = {
+                        "credibility": "Crédibilité",
+                        "save_worthy": "Save-worthy",
+                        "clarity":     "Clarté",
+                        "wow_factor":  "WOW factor",
+                        "length_fit":  "Longueur",
+                    }
+                    scols = st.columns(5)
+                    for col, (key, label) in zip(scols, sol_labels.items()):
+                        val = sol_scores.get(key, 0)
+                        color = "#4ade80" if val >= 7.5 else "#f87171"
+                        with col:
+                            st.markdown(
+                                f'<div style="text-align:center">'
+                                f'<div style="font-size:1.4rem;font-weight:700;color:{color}">{val}</div>'
+                                f'<div style="font-size:0.7rem;color:#6B6B8A">{label}</div>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    issues = sol_analysis.get("issues", [])
+                    if issues:
+                        for issue in issues:
+                            st.caption(f"⚠️ {issue}")
+
+                    improved = sol_analysis.get("improved_solution", "")
+                    if improved:
+                        with st.expander("Version améliorée", expanded=True):
+                            st.code(improved, language=None)
+                            st.caption(sol_analysis.get("improvement_notes", ""))
+
+                        if st.button(
+                            "Injecter la solution améliorée dans le YAML",
+                            type="primary",
+                            key=f"inject_solution_{selected_idx}",
+                        ):
+                            try:
+                                current_cfg = yaml.safe_load(active_yaml) or {}
+                                if "prompt" in current_cfg:
+                                    current_cfg["prompt"]["output_preview"] = improved
+                                import io as _io2
+                                buf2 = _io2.StringIO()
+                                yaml.dump(current_cfg, buf2, allow_unicode=True,
+                                          default_flow_style=False, sort_keys=False)
+                                st.session_state[f"yaml_edit_val_{selected_idx}"] = buf2.getvalue()
+                                st.session_state[f"yaml_edit_v_{selected_idx}"] = _edit_v + 1
+                                st.success("Solution injectée ✓")
+                                st.rerun()
+                            except Exception as exc:
+                                st.error(f"Erreur injection : {exc}")
 
                 with st.expander("📣 Caption Instagram", expanded=False):
                     st.text(variant.get("caption", ""))
