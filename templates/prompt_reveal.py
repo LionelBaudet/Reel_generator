@@ -617,6 +617,10 @@ class CTARenderer:
         self.subtext = cta_config.get("subtext", "")
         self.handle = cta_config.get("handle", "@ownyourtime.ai")
         self.duration = float(cta_config.get("duration", 3))
+        # Pré-wrapper la headline pour éviter le débordement (marges 60px de chaque côté)
+        _font = font_cache.get(110, "bold")
+        _dummy = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+        self._headline_lines = wrap_text(self.headline, _font, CANVAS_W - 120)
 
     def make_frame(self, t: float) -> np.ndarray:
         """Génère un frame à l'instant t."""
@@ -644,8 +648,8 @@ class CTARenderer:
         # ── Effet de pulsation continu ────────────────────────────────────
         scale = pulse(t, frequency=1.8, amplitude=0.04)
 
-        # ── Headline "Save THIS." ──────────────────────────────────────────
-        headline_lines = self.headline.split("\n")
+        # ── Headline ──────────────────────────────────────────────────────
+        headline_lines = self._headline_lines
         line_h = 120
         total_h = len(headline_lines) * line_h
         center_y = CANVAS_H // 2 - 80
