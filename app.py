@@ -14,13 +14,14 @@ from pathlib import Path
 import streamlit as st
 import yaml
 
-# Injecter la clé API depuis st.secrets (Streamlit Cloud) ou .env (local)
+# Injecter les clés API depuis st.secrets (Streamlit Cloud) ou .env (local)
 import os as _os
 try:
     import streamlit as _st_tmp
-    _key = _st_tmp.secrets.get("ANTHROPIC_API_KEY", "")
-    if _key:
-        _os.environ.setdefault("ANTHROPIC_API_KEY", _key)
+    for _secret_key in ("ANTHROPIC_API_KEY", "PEXELS_API_KEY"):
+        _val = _st_tmp.secrets.get(_secret_key, "")
+        if _val:
+            _os.environ.setdefault(_secret_key, _val)
 except Exception:
     pass
 
