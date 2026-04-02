@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 
@@ -25,8 +26,10 @@ except Exception:
 
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 try:
-    from generate import generate_variants, build_yaml, BROLL_CATEGORIES
+    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
+    from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
+    from utils.validation import validate_config, self_check
     _GEN_AVAILABLE = bool(_os.environ.get("ANTHROPIC_API_KEY"))
 except Exception:
     _GEN_AVAILABLE = False
@@ -432,8 +435,9 @@ with st.sidebar:
 # Onglets principaux
 # ─────────────────────────────────────────────────────────────────────────────
 
-tab_auto, tab_gen, tab_batch, tab_video, tab_music = st.tabs([
+tab_auto, tab_script, tab_gen, tab_batch, tab_video, tab_music = st.tabs([
     "✨ Idée → Reel",
+    "📝 Script Viral",
     "🎬 Générer",
     "📦 Batch",
     "📹 Vidéos",
@@ -879,7 +883,8 @@ with tab_auto:
                         progress.progress(1.0, text="Terminé !")
                         if proc.returncode == 0 and out_path.exists():
                             st.success(f"Reel prêt — {out_path.stat().st_size // 1024} KB")
-                            st.video(str(out_path))
+                            with open(out_path, "rb") as _vf:
+                                st.video(_vf.read())
                             with open(out_path, "rb") as f:
                                 st.download_button(
                                     "⬇️ Télécharger",
@@ -896,7 +901,485 @@ with tab_auto:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# ONGLET 1 — GÉNÉRER
+# ONGLET 1 — SCRIPT VIRAL
+# ═════════════════════════════════════════════════════════════════════════════
+
+with tab_script:
+    st.markdown("## 📝 Script Viral")
+    st.caption("Génère un script complet optimisé pour stopper le scroll — avant de créer le reel.")
+
+    if not _GEN_AVAILABLE:
+        st.error("ANTHROPIC_API_KEY non définie.")
+    else:
+        sv_idea = st.text_input(
+            "Ton idée",
+            placeholder="ex: automatiser ses emails avec GPT, gagner 1h par jour sur Excel…",
+            key="sv_idea_input",
+        )
+
+        sv_col1, sv_col2 = st.columns([3, 1])
+        with sv_col1:
+            sv_clicked = st.button(
+                "Générer le script viral",
+                type="primary",
+                disabled=not sv_idea.strip(),
+                use_container_width=True,
+                key="btn_sv",
+            )
+        with sv_col2:
+            if st.button("Reset", type="secondary", use_container_width=True, key="btn_sv_reset"):
+                st.session_state.pop("sv_result", None)
+                st.rerun()
+
+        if sv_clicked and sv_idea.strip():
+            with st.spinner("Génération du script viral…"):
+                try:
+                    sv_result = generate_viral_script(sv_idea.strip())
+                    st.session_state["sv_result"] = sv_result
+                    st.session_state["sv_idea_stored"] = sv_idea.strip()
+                except Exception as exc:
+                    st.error(f"Erreur : {exc}")
+
+        sv = st.session_state.get("sv_result")
+        if sv:
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── 3 Hooks scorés ───────────────────────────────────────────────
+            st.markdown("### 1. Hooks")
+            hook_cols = st.columns(3)
+            type_labels = {"contraste": "CONTRASTE", "argent_résultat": "ARGENT / RÉSULTAT", "vérité_cachée": "VÉRITÉ CACHÉE"}
+            for col, hook in zip(hook_cols, sv.get("hooks", [])):
+                score = hook.get("score", 0)
+                color = "#4ade80" if score >= 9 else "#facc15" if score >= 7.5 else "#f87171"
+                label = type_labels.get(hook.get("type", ""), hook.get("type", "").upper())
+                with col:
+                    st.markdown(
+                        f'<div style="background:#F5F5F7;border:1px solid #E0E0E8;'
+                        f'border-radius:10px;padding:0.8rem;">'
+                        f'<div style="font-size:0.7rem;color:#6B6B8A;font-weight:700;margin-bottom:4px">{label}</div>'
+                        f'<div style="font-size:1rem;font-weight:700;color:#1A1A2E;margin-bottom:8px">"{hook.get("text","")}"</div>'
+                        f'<div style="display:flex;align-items:center;gap:8px;">'
+                        f'<span style="font-size:1.4rem;font-weight:800;color:{color}">{score}</span>'
+                        f'<span style="font-size:0.7rem;color:#6B6B8A">/10</span>'
+                        f'</div>'
+                        f'<div style="font-size:0.75rem;color:#6B6B8A;margin-top:6px">{hook.get("why","")}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            # ── Meilleur hook ────────────────────────────────────────────────
+            best = sv.get("best_hook", {})
+            st.markdown(
+                f'<div class="hook-winner" style="margin-top:1rem">'
+                f'<div style="font-size:0.72rem;color:#C8972A;font-weight:700;margin-bottom:4px">BEST HOOK</div>'
+                f'<div style="font-size:1.2rem;font-weight:800;color:#1A1A2E;margin-bottom:6px">"{best.get("text","")}"</div>'
+                f'<div style="font-size:0.82rem;color:#6B6B8A">{best.get("reason","")}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── Script structuré ─────────────────────────────────────────────
+            st.markdown("### 2. Script (15s max)")
+            script = sv.get("script", {})
+            script_steps = [
+                ("0–3s",   "Hook",     "hook",     "#f87171"),
+                ("3–6s",   "Pain",     "pain",     "#fb923c"),
+                ("6–9s",   "Twist",    "twist",    "#facc15"),
+                ("9–14s",  "Solution", "solution", "#4ade80"),
+                ("14–17s", "Résultat", "result",   "#60a5fa"),
+                ("17–20s", "CTA",      "cta",      "#c084fc"),
+            ]
+            for timing, label, key, color in script_steps:
+                text = script.get(key, "")
+                if text:
+                    st.markdown(
+                        f'<div style="display:flex;gap:0.75rem;align-items:flex-start;'
+                        f'padding:0.5rem 0;border-bottom:1px solid #F0F0F5;">'
+                        f'<span style="min-width:52px;font-size:0.72rem;color:#6B6B8A;padding-top:2px">{timing}</span>'
+                        f'<span style="min-width:64px;font-weight:700;font-size:0.82rem;color:{color}">{label}</span>'
+                        f'<span style="color:#1A1A2E;font-size:0.92rem">{text}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── Overlay + Angle viral + CTA ───────────────────────────────────
+            ov_col, info_col = st.columns([1, 1])
+
+            with ov_col:
+                st.markdown("### 3. Overlay texte")
+                for line in sv.get("overlay_lines", []):
+                    st.markdown(
+                        f'<div style="background:#1A1A2E;color:#F2F0EA;font-weight:700;'
+                        f'font-size:1rem;padding:0.4rem 0.8rem;border-radius:6px;'
+                        f'margin-bottom:6px;text-align:center">{line}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            with info_col:
+                st.markdown("### 4. Angle viral")
+                viral = sv.get("viral_angle", {})
+                st.markdown(
+                    f'<div style="background:#FFF8EC;border:1px solid #C8972A;border-radius:8px;'
+                    f'padding:0.6rem 0.8rem;margin-bottom:0.5rem;">'
+                    f'<div style="font-size:0.72rem;color:#C8972A;font-weight:700">ÉMOTION</div>'
+                    f'<div style="font-weight:600;color:#1A1A2E">{viral.get("emotion","")}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.5rem;">'
+                    f'<div style="font-size:0.72rem;color:#6B6B8A;font-weight:700">MÉCANISME PSY</div>'
+                    f'<div style="color:#1A1A2E;font-size:0.9rem">{viral.get("mechanism","")}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.6rem 0.8rem;">'
+                    f'<div style="font-size:0.72rem;color:#6B6B8A;font-weight:700">CTA</div>'
+                    f'<div style="font-weight:600;color:#1A1A2E">{sv.get("cta_optimized","")}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+            # ── Variante A/B agressive ────────────────────────────────────────
+            ab = sv.get("ab_variant", {})
+            if ab:
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+                with st.expander("### 5. Variante A/B — Version agressive", expanded=False):
+                    st.markdown(
+                        f'<div class="hook-rejected" style="margin-bottom:0.75rem">'
+                        f'<div style="font-size:0.72rem;color:#991b1b;font-weight:700;margin-bottom:4px">HOOK AGRESSIF</div>'
+                        f'<div style="font-size:1.1rem;font-weight:700;color:#1A1A2E">"{ab.get("hook","")}"</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    ab_cols = st.columns(len(ab.get("overlay_lines", [])) or 1)
+                    for col, line in zip(ab_cols, ab.get("overlay_lines", [])):
+                        with col:
+                            st.markdown(
+                                f'<div style="background:#1A1A2E;color:#f87171;font-weight:700;'
+                                f'font-size:0.9rem;padding:0.4rem;border-radius:6px;text-align:center">'
+                                f'{line}</div>',
+                                unsafe_allow_html=True,
+                            )
+                    st.caption(f"Pourquoi plus agressif : {ab.get('why','')}")
+
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── Plan de montage ───────────────────────────────────────────────
+            st.markdown("### 6. Plan de montage TEXT-CENTRIC")
+            st.caption("Une phrase par scène · minimum 2.5s · animations sur le texte uniquement.")
+
+            montage_col1, montage_col2 = st.columns([3, 1])
+            with montage_col2:
+                if st.button("Générer le montage", type="primary",
+                             use_container_width=True, key="btn_montage"):
+                    with st.spinner("Génération du plan de montage…"):
+                        try:
+                            plan = generate_montage_plan(sv.get("script", {}))
+                            st.session_state["sv_montage"] = plan
+                        except Exception as exc:
+                            st.error(f"Erreur : {exc}")
+
+            montage = st.session_state.get("sv_montage")
+            if montage:
+                total = montage.get("total_duration", 0)
+                val   = montage.get("validation", {})
+
+                # Bandeau validation
+                all_ok = all(val.values()) if val else False
+                val_color = "#d1fae5" if all_ok else "#fee2e2"
+                val_icon  = "✅" if all_ok else "⚠️"
+                checks = " · ".join(
+                    f"{'✓' if v else '✗'} {k.replace('_', ' ')}"
+                    for k, v in val.items()
+                )
+                st.markdown(
+                    f'<div style="background:{val_color};border-radius:8px;'
+                    f'padding:0.5rem 0.8rem;margin-bottom:0.75rem;font-size:0.82rem">'
+                    f'{val_icon} {checks} · <strong>{total}s total</strong></div>',
+                    unsafe_allow_html=True,
+                )
+
+                # Requêtes Pexels suggérées
+                pexels_q = montage.get("pexels_queries", [])
+                if pexels_q:
+                    st.markdown(
+                        '<div style="background:#F0F7FF;border-radius:8px;'
+                        'padding:0.5rem 0.8rem;margin-bottom:0.75rem;font-size:0.82rem">'
+                        '<strong>🎬 Pexels suggérés :</strong> '
+                        + " · ".join(f'<code>{q}</code>' for q in pexels_q)
+                        + "</div>",
+                        unsafe_allow_html=True,
+                    )
+
+                # Timeline scène par scène
+                ANIM_ICONS = {
+                    "fade_in": "✨", "slide_in": "↑", "slide": "↑",
+                    "typing": "⌨️", "pop": "💥",
+                }
+                TYPE_COLORS = {
+                    "hook": "#f87171", "pain": "#fb923c", "twist": "#facc15",
+                    "solution": "#4ade80", "result": "#60a5fa", "cta": "#c084fc",
+                }
+                scenes = montage.get("scenes", [])
+                for scene in scenes:
+                    stype    = scene.get("type", "")
+                    duration = scene.get("duration", 2.5)
+                    text     = scene.get("text", "")
+                    kw       = scene.get("keyword_highlight", "")
+                    anim     = scene.get("text_animation", scene.get("animation", "fade_in"))
+                    emphasis = scene.get("emphasis", False)
+                    color    = TYPE_COLORS.get(stype, "#6B6B8A")
+                    anim_icon = ANIM_ICONS.get(anim, "▶")
+
+                    display_text = text
+                    if kw and kw in text:
+                        display_text = text.replace(
+                            kw,
+                            f'<span style="color:#C8972A;font-weight:800">{kw}</span>'
+                        )
+                    if emphasis:
+                        display_text = f'<strong>{display_text}</strong>'
+
+                    st.markdown(
+                        f'<div style="display:flex;gap:0.75rem;align-items:stretch;'
+                        f'padding:0.6rem 0;border-bottom:1px solid #F0F0F5;">'
+                        f'<div style="width:4px;background:{color};border-radius:2px;'
+                        f'flex-shrink:0"></div>'
+                        f'<div style="min-width:36px;font-size:0.75rem;color:#6B6B8A;'
+                        f'padding-top:2px;font-weight:600">{duration}s</div>'
+                        f'<div style="min-width:68px;font-size:0.72rem;font-weight:700;'
+                        f'color:{color};text-transform:uppercase;padding-top:2px">{stype}</div>'
+                        f'<div style="flex:1;font-weight:600;color:#1A1A2E">{display_text}</div>'
+                        f'<div style="min-width:90px;font-size:0.78rem;color:#6B6B8A;'
+                        f'text-align:right">{anim_icon} {anim}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+                # ── Pexels : téléchargement des vidéos de fond ────────────────
+                pexels_queries = montage.get("pexels_queries", [])
+                _has_pexels_key = bool(_os.environ.get("PEXELS_API_KEY", ""))
+                _pexels_paths = st.session_state.get("sv_pexels_paths", [])
+
+                if pexels_queries:
+                    pcol1, pcol2 = st.columns([3, 1])
+                    with pcol1:
+                        if _pexels_paths:
+                            st.markdown(
+                                '<div style="background:#d1fae5;border-radius:8px;'
+                                'padding:0.4rem 0.8rem;font-size:0.82rem">'
+                                f'🎬 <strong>{len(_pexels_paths)} vidéo(s) Pexels prête(s)</strong> : '
+                                + " · ".join(f'`{Path(p).name}`' for p in _pexels_paths)
+                                + "</div>",
+                                unsafe_allow_html=True,
+                            )
+                        elif _has_pexels_key:
+                            st.info(
+                                f"📥 **{len(pexels_queries)} vidéos Pexels** prêtes à télécharger "
+                                f"— clique sur le bouton →"
+                            )
+                        else:
+                            st.warning(
+                                "⚠️ `PEXELS_API_KEY` non configurée — vidéos locales utilisées. "
+                                "Ajoute la clé dans `.env` ou `st.secrets`."
+                            )
+                    with pcol2:
+                        if _has_pexels_key:
+                            if st.button("📥 Télécharger Pexels",
+                                         use_container_width=True, key="sv_pexels"):
+                                with st.spinner("Téléchargement des vidéos Pexels…"):
+                                    try:
+                                        paths = get_pexels_videos(pexels_queries, max_videos=3)
+                                        st.session_state["sv_pexels_paths"] = paths
+                                        _pexels_paths = paths
+                                        st.success(f"{len(paths)} vidéo(s) téléchargée(s)")
+                                    except Exception as _pe:
+                                        st.error(f"Pexels : {_pe}")
+
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+                st.markdown("### Générer le Reel")
+
+                idea_for_reel = st.session_state.get("sv_idea_stored", "")
+                reel_yaml, reel_slug = build_yaml_from_viral_script(
+                    sv, montage, idea_for_reel, video_paths=_pexels_paths or None
+                )
+
+                # ── Self-check validation ──────────────────────────────────────
+                try:
+                    _cfg_check = yaml.safe_load(reel_yaml) or {}
+                    _checks = self_check(_cfg_check)
+                    _all_ok = all(_checks.values())
+                    _chk_color = "#d1fae5" if _all_ok else "#fef9c3"
+                    _chk_icon  = "✅" if _all_ok else "⚠️"
+                    _chk_lines = " · ".join(
+                        f"{'✓' if v else '✗'} {k}" for k, v in _checks.items()
+                    )
+                    st.markdown(
+                        f'<div style="background:{_chk_color};border-radius:8px;'
+                        f'padding:0.4rem 0.8rem;font-size:0.80rem;margin-bottom:0.5rem">'
+                        f'{_chk_icon} <strong>Self-check</strong> : {_chk_lines}</div>',
+                        unsafe_allow_html=True,
+                    )
+                except Exception:
+                    pass
+
+                with st.expander("📄 YAML reel — modifiable", expanded=False):
+                    _sv_edit_v = st.session_state.get("sv_reel_edit_v", 0)
+                    _sv_edit_val = st.session_state.get("sv_reel_edit_val", reel_yaml)
+                    sv_edited_yaml = st.text_area(
+                        "sv_yaml_editor",
+                        value=_sv_edit_val,
+                        height=380,
+                        key=f"sv_yaml_editor_v{_sv_edit_v}",
+                        label_visibility="collapsed",
+                    )
+                    try:
+                        yaml.safe_load(sv_edited_yaml)
+                    except Exception as _ye:
+                        st.warning(f"⚠️ YAML invalide : {_ye}")
+
+                reel_path = ROOT / "config" / "batch" / f"{reel_slug}.yaml"
+                out_path  = ROOT / "output" / f"{reel_slug}.mp4"
+
+                btn_c1, btn_c2, btn_c3 = st.columns(3)
+
+                with btn_c1:
+                    if st.button("💾 Sauvegarder YAML", type="secondary",
+                                 use_container_width=True, key="sv_save_yaml"):
+                        reel_path.parent.mkdir(parents=True, exist_ok=True)
+                        reel_path.write_text(sv_edited_yaml, encoding="utf-8")
+                        st.success(f"Sauvegardé → `{reel_path.name}`")
+
+                with btn_c2:
+                    if st.button("🔍 Preview PNG", type="secondary",
+                                 use_container_width=True, key="sv_preview"):
+                        reel_path.parent.mkdir(parents=True, exist_ok=True)
+                        reel_path.write_text(sv_edited_yaml, encoding="utf-8")
+                        with st.spinner("Génération des aperçus…"):
+                            res = _run([sys.executable, "main.py",
+                                        "--config", str(reel_path),
+                                        "--output", "output/", "--preview"])
+                        if res.returncode == 0:
+                            tabs_p = st.tabs(["Intro", "Hook", "Prompt", "CTA"])
+                            for lbl, tab in zip(["intro", "hook", "prompt", "cta"], tabs_p):
+                                with tab:
+                                    p = ROOT / "output" / f"preview_{lbl}.png"
+                                    if p.exists():
+                                        st.image(str(p), use_container_width=True)
+                        else:
+                            st.error("Erreur preview")
+                            with st.expander("Logs"):
+                                st.code(res.stderr or res.stdout)
+
+                with btn_c3:
+                    if st.button("🚀 Générer le Reel", type="primary",
+                                 use_container_width=True, key="sv_run_reel"):
+                        reel_path.parent.mkdir(parents=True, exist_ok=True)
+                        reel_path.write_text(sv_edited_yaml, encoding="utf-8")
+                        # ~8s de rendu par seconde de vidéo (scènes + encodage FFmpeg)
+                        _est = max(60, int(montage.get("total_duration", 18) * 8))
+                        _n_scenes = len(montage.get("scenes", []))
+                        progress = st.progress(0, text="Chargement B-roll…")
+
+                        proc = subprocess.Popen(
+                            [sys.executable, "main.py",
+                             "--config", str(reel_path),
+                             "--output", str(out_path)],
+                            cwd=str(ROOT),
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, encoding="utf-8", errors="replace",
+                        )
+                        log_lines = []
+                        # État partagé entre le thread lecteur et le thread principal
+                        _state = {"cur": 0, "tot": _n_scenes or 1,
+                                  "broll": False, "done": False}
+
+                        def _reader():
+                            for line in proc.stdout:
+                                log_lines.append(line.rstrip())
+                                if "Scène" in line:
+                                    try:
+                                        parts = line.split("Scène")[1].strip().split("/")
+                                        _state["cur"] = int(parts[0])
+                                        _state["tot"] = int(parts[1].split()[0])
+                                    except Exception:
+                                        pass
+                                elif "B-roll chargé" in line:
+                                    _state["broll"] = True
+                            _state["done"] = True
+
+                        _reader_thread = threading.Thread(target=_reader, daemon=True)
+                        _reader_thread.start()
+
+                        _t0 = time.time()
+                        with st.spinner("Génération en cours…"):
+                            while not _state["done"]:
+                                elapsed = time.time() - _t0
+                                cur = _state["cur"]
+                                tot = max(1, _state["tot"])
+
+                                if cur > 0 and cur >= tot:
+                                    # Toutes les scènes rendues → encodage FFmpeg
+                                    # Les scènes ≈ 60% du temps, l'encodage ≈ 40%
+                                    _scene_time = _est * 0.6
+                                    _enc_budget = max(1.0, _est * 0.4)
+                                    enc_pct = min(0.99, 0.60 + (elapsed - _scene_time) / _enc_budget * 0.39)
+                                    progress.progress(max(0.61, enc_pct),
+                                                      text=f"Encodage FFmpeg… {int(elapsed)}s / ~{_est}s")
+                                elif cur > 0:
+                                    progress.progress(
+                                        min(cur / tot * 0.60, 0.59),
+                                        text=f"Scène {cur}/{tot}…",
+                                    )
+                                elif _state["broll"]:
+                                    progress.progress(0.10, text="B-roll chargé, rendu des scènes…")
+                                else:
+                                    progress.progress(
+                                        min(0.08, elapsed / _est * 0.08),
+                                        text=f"Chargement… {int(elapsed)}s",
+                                    )
+                                time.sleep(0.5)
+
+                        _reader_thread.join(timeout=10)
+                        proc.wait()
+                        progress.progress(1.0, text="Terminé !")
+                        if proc.returncode == 0 and out_path.exists():
+                            st.success(f"Reel prêt — {out_path.stat().st_size // 1024} KB")
+                            with open(out_path, "rb") as _vf:
+                                st.video(_vf.read())
+                            with open(out_path, "rb") as _f:
+                                st.download_button("⬇️ Télécharger", data=_f,
+                                                   file_name=out_path.name,
+                                                   mime="video/mp4", type="primary",
+                                                   key="sv_dl")
+                        else:
+                            st.error("Génération échouée.")
+                            with st.expander("Logs"):
+                                st.code("\n".join(log_lines[-30:]))
+
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── Bouton → générer les 3 concepts YAML ─────────────────────────
+            if st.button(
+                "✨ Générer les 3 concepts YAML →",
+                type="primary",
+                use_container_width=True,
+                key="sv_to_yaml",
+            ):
+                st.session_state["auto_idea_input"] = st.session_state.get("sv_idea_stored", sv_idea)
+                st.info("Idée transférée → va dans l'onglet **✨ Idée → Reel** et clique sur Générer.")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ONGLET 2 — GÉNÉRER
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_gen:
@@ -1099,7 +1582,8 @@ with tab_gen:
 
             if proc.returncode == 0 and out_path.exists():
                 st.success(f"Reel généré en {elapsed:.0f}s — {out_path.stat().st_size // 1024} KB")
-                st.video(str(out_path))
+                with open(out_path, "rb") as _vf:
+                    st.video(_vf.read())
                 with open(out_path, "rb") as f:
                     st.download_button(
                         "⬇️ Télécharger le Reel",

@@ -55,8 +55,12 @@ def load_config(config_path: str) -> dict:
     if config is None:
         raise ValueError("Le fichier de configuration est vide")
 
-    # Validation des sections requises
-    required_sections = ["reel", "hook", "prompt", "cta"]
+    # Validation des sections requises selon le template
+    template_name = config.get("reel", {}).get("template", "prompt_reveal")
+    if template_name in ("multi_scene", "viral_text_centric_v1"):
+        required_sections = ["reel", "scenes"]
+    else:
+        required_sections = ["reel", "hook", "prompt", "cta"]
     for section in required_sections:
         if section not in config:
             raise ValueError(f"Section manquante dans la config: '{section}'")
@@ -105,7 +109,13 @@ def generate_single(config_path: str, output_path: str, use_remotion: bool = Fal
         output_dir.mkdir(parents=True, exist_ok=True)
 
         preview_paths = []
-        for segment, t in [("intro", 1.5), ("hook", 1.5), ("prompt", 6.0), ("cta", 1.0)]:
+        template_name = config.get("reel", {}).get("template", "prompt_reveal")
+        if template_name == "multi_scene":
+            scenes = config.get("scenes", [])
+            segments = [(s.get("type", f"scene{i}"), 0.5) for i, s in enumerate(scenes[:4])]
+        else:
+            segments = [("intro", 1.5), ("hook", 1.5), ("prompt", 6.0), ("cta", 1.0)]
+        for segment, t in segments:
             preview_file = str(output_dir / f"preview_{segment}.png")
             template.generate_preview_frame(preview_file, segment=segment, t=t)
             preview_paths.append(preview_file)

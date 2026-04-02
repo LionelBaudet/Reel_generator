@@ -101,8 +101,18 @@ Règles absolues :
 # ── Core ──────────────────────────────────────────────────────────────────────
 
 def _parse_json(raw: str) -> object:
-    """Parse JSON en nettoyant les virgules trailing (habitude de Claude)."""
-    raw = re.sub(r",\s*\]", "]", raw.strip())
+    """Parse JSON robuste : nettoie markdown, virgules trailing, extrait le premier bloc JSON."""
+    raw = raw.strip()
+    # Enlever blocs ```json ... ``` ou ``` ... ```
+    raw = re.sub(r"^```(?:json)?\s*\n?", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"\n?```\s*$", "", raw)
+    raw = raw.strip()
+    # Extraire le premier objet/tableau JSON si du texte précède
+    match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)
+    if match:
+        raw = match.group(1)
+    # Nettoyer virgules trailing
+    raw = re.sub(r",\s*\]", "]", raw)
     raw = re.sub(r",\s*\}", "}", raw)
     return json.loads(raw)
 
@@ -155,6 +165,235 @@ Règles absolues :
 - prompt_output : toujours en ANGLAIS, propre et structuré (doit donner envie de sauvegarder)
 - Aucun texte hors du JSON
 """
+
+
+VIRAL_SCRIPT_SYSTEM = """\
+Tu es un expert en viralité Instagram spécialisé dans les comptes faceless niche IA / productivité / revenus.
+Ton objectif : créer du contenu qui ARRÊTE le scroll et génère des abonnés.
+Pas du contenu propre. Pas du contenu éducatif. Du contenu qui énerve ou intrigue.
+Si c'est générique → recommence. Si ça ressemble à LinkedIn → recommence.
+Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
+"""
+
+VIRAL_SCRIPT_PROMPT = """\
+Idée : "{idea}"
+
+Génère un script reel Instagram viral pour @ownyourtime.ai (compte faceless).
+
+Le HOOK est la partie la plus importante. Génère 3 hooks, score chacun /10.
+Si aucun hook n'atteint 9/10 → améliore jusqu'à en avoir au moins un à 9/10.
+
+Retourne ce JSON exact :
+{{
+  "hooks": [
+    {{"type": "contraste",      "text": "<max 10 mots>", "score": 0.0, "why": "<pourquoi ça marche>"}},
+    {{"type": "argent_résultat","text": "<max 10 mots>", "score": 0.0, "why": "<pourquoi ça marche>"}},
+    {{"type": "vérité_cachée", "text": "<max 10 mots>", "score": 0.0, "why": "<pourquoi ça marche>"}}
+  ],
+  "best_hook": {{
+    "text": "<le hook avec le score le plus élevé>",
+    "reason": "<pourquoi c'est le meilleur — 1 phrase>"
+  }},
+  "script": {{
+    "hook":     "<0-3s>",
+    "pain":     "<3-6s : douleur réelle, pas abstraite>",
+    "twist":    "<6-9s : retournement mental>",
+    "solution": "<9-14s : simple et actionnable>",
+    "result":   "<14-17s : chiffré et concret>",
+    "cta":      "<17-20s : FOLLOW ou SAVE, naturel>"
+  }},
+  "overlay_lines": [
+    "<max 6 mots>",
+    "<max 6 mots>",
+    "<max 6 mots>",
+    "<max 6 mots>",
+    "<max 6 mots>"
+  ],
+  "viral_angle": {{
+    "emotion": "<frustration / curiosité / envie / FOMO>",
+    "mechanism": "<mécanisme psychologique en 1 phrase>"
+  }},
+  "cta_optimized": "<orienté FOLLOW ou SAVE, naturel, max 12 mots>",
+  "ab_variant": {{
+    "hook": "<version plus agressive du best hook>",
+    "overlay_lines": ["<ligne 1>", "<ligne 2>", "<ligne 3>"],
+    "why": "<ce qui la rend plus agressive>"
+  }}
+}}
+"""
+
+
+MONTAGE_SYSTEM = """\
+Tu es un expert en montage vidéo TEXT-CENTRIC viral pour Instagram Reels.
+
+RÈGLES ABSOLUES :
+- Le texte est la star. La vidéo de fond est une ambiance calme uniquement.
+- Structure obligatoire : hook → pain → shift → solution → result → cta
+- Une seule idée par scène. Maximum 7 mots par scène.
+- Durées minimales : hook 3.2s, cta 3.2s, autres 2.8s minimum.
+- Si le texte a plus de 5 mots → augmenter la durée automatiquement.
+- Animations UNIQUEMENT sur le texte : fade_in, slide_up, typing, pop.
+- La vidéo de fond ne bouge pas agressivement.
+- 3 requêtes Pexels lifestyle calme, cohérentes avec le sujet.
+
+TEMPLATE : viral_text_centric_v1
+Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
+"""
+
+MONTAGE_JSON_TEMPLATE = """
+Retourne ce JSON exact (sans markdown, sans texte autour) :
+{"total_duration": 18, "pexels_queries": ["man working late laptop dark", "person thinking at screen", "minimal desk typing calm"], "background": {"style": "slow ambient", "transitions": "smooth crossfade", "overlay_opacity": 0.55, "motion": "minimal"}, "scenes": [{"id": 1, "type": "hook", "duration": 3.2, "text": "...", "keyword_highlight": "...", "text_animation": "fade_in", "font_size": "xl", "emphasis": true}, {"id": 2, "type": "pain", "duration": 2.8, "text": "...", "keyword_highlight": "", "text_animation": "fade_in", "font_size": "lg", "emphasis": false}, {"id": 3, "type": "shift", "duration": 2.8, "text": "...", "keyword_highlight": "...", "text_animation": "slide_up", "font_size": "lg", "emphasis": true}, {"id": 4, "type": "solution", "duration": 3.0, "text": "...", "keyword_highlight": "", "text_animation": "typing", "font_size": "lg", "emphasis": false}, {"id": 5, "type": "result", "duration": 3.0, "text": "...", "keyword_highlight": "...", "text_animation": "fade_in", "font_size": "lg", "emphasis": true}, {"id": 6, "type": "cta", "duration": 3.2, "text": "...", "keyword_highlight": "", "text_animation": "pop", "font_size": "xl", "emphasis": true}], "validation": {"hook_visible_frame_0": true, "all_scenes_min_2s8": true, "text_readable_mobile": true, "bg_calm": true}}
+
+Remplace les ... par les vraies valeurs selon le script fourni.
+Règles de durée :
+- hook / cta : 3.2s minimum — JAMAIS moins
+- pain / shift : 2.8s minimum
+- solution / result : 3.0s minimum
+- Si le texte a plus de 5 mots → +0.4s par mot supplémentaire
+font_size : xl uniquement pour hook et cta — lg pour le reste
+pexels_queries : lifestyle calme lié au sujet (laptop / desk / focus / person thinking)
+total_duration : somme exacte des durées des scènes
+"""
+
+
+def generate_montage_plan(script: dict) -> dict:
+    """Génère un plan de montage scène par scène à partir d'un script structuré."""
+    # Construction sans .format() pour éviter les conflits avec les {} du script
+    script_lines = "\n".join([
+        "Script à transformer en config montage vidéo dynamique :\n",
+        f"Hook    : {script.get('hook', '')}",
+        f"Pain    : {script.get('pain', '')}",
+        f"Twist   : {script.get('twist', '')}",
+        f"Solution: {script.get('solution', '')}",
+        f"Résultat: {script.get('result', '')}",
+        f"CTA     : {script.get('cta', '')}",
+    ])
+    prompt = script_lines + MONTAGE_JSON_TEMPLATE
+
+    message = _client().messages.create(
+        model=MODEL,
+        max_tokens=2000,
+        system=MONTAGE_SYSTEM,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return _parse_json(message.content[0].text)
+
+
+def build_yaml_from_viral_script(sv: dict, montage: dict, idea: str,
+                                   video_paths: list | None = None) -> tuple:
+    """
+    Construit un YAML viral_text_centric_v1 depuis le script viral + plan de montage.
+    video_paths : liste de chemins locaux de vidéos Pexels (optionnel).
+    Retourne (yaml_string, slug).
+    """
+    slug       = re.sub(r"[^\w]", "_", idea.lower().strip())[:24]
+    full_slug  = f"reel_script_{slug}"
+    duration   = float(montage.get("total_duration", 18))
+    audio_path = AUDIO_VARIANTS[hash(slug) % len(AUDIO_VARIANTS)]
+    overlay_op = float(montage.get("background", {}).get("overlay_opacity", 0.55))
+
+    # Fallback broll local si pas de vidéos Pexels
+    idea_lower = idea.lower()
+    broll_map = [
+        (["email", "mail", "message", "relance"], "emails"),
+        (["réunion", "meeting", "call", "client"], "meetings"),
+        (["excel", "tableau", "formule", "data"], "excel"),
+        (["report", "rapport", "dashboard", "kpi"], "reports"),
+        (["nuit", "night", "travail", "heures"], "night_work"),
+    ]
+    broll_cat = "emails"
+    for keywords, category in broll_map:
+        if any(kw in idea_lower for kw in keywords):
+            broll_cat = category
+            break
+    fallback_video = BROLL_CATEGORIES.get(broll_cat, BROLL_CATEGORIES["emails"])
+
+    pexels_queries = montage.get("pexels_queries", [])
+    scenes_data    = montage.get("scenes", [])
+
+    # ── Section background.videos ─────────────────────────────────────────────
+    if video_paths:
+        bg_videos_yaml = ""
+        for i, path in enumerate(video_paths):
+            q = pexels_queries[i] if i < len(pexels_queries) else ""
+            bg_videos_yaml += f'    - path: "{path}"\n      query: "{q}"\n'
+    else:
+        # Pas encore téléchargées : queries seulement, path vide
+        bg_videos_yaml = ""
+        for q in pexels_queries:
+            bg_videos_yaml += f'    - query: "{q}"\n      path: ""\n'
+        if not pexels_queries:
+            bg_videos_yaml = f'    - path: "{fallback_video}"\n      query: ""\n'
+
+    yaml_content = f"""\
+# Reel viral text-centric : {idea}
+# Généré depuis Script Viral + Plan de Montage — {datetime.now().strftime("%Y-%m-%d %H:%M")}
+# Template : viral_text_centric_v1
+
+reel:
+  template: viral_text_centric_v1
+  duration: {duration}
+  fps: 30
+  width: 1080
+  height: 1920
+
+background:
+  videos:
+{bg_videos_yaml}\
+  style: "slow ambient"
+  transitions: "smooth crossfade"
+  overlay_opacity: {overlay_op}
+  motion: "minimal"
+
+broll_video: "{fallback_video}"
+
+audio:
+  background_music: "{audio_path}"
+  volume: 0.28
+
+scenes:
+"""
+    for scene in scenes_data:
+        text      = str(scene.get("text", "")).replace('"', "'")
+        keyword   = str(scene.get("keyword_highlight", "")).replace('"', "'")
+        emphasis  = str(scene.get("emphasis", False)).lower()
+        dur       = max(2.8, float(scene.get("duration", 2.8)))
+        stype     = scene.get("type", "scene")
+        if stype in ("hook", "cta"):
+            dur = max(3.0, dur)
+        text_anim = scene.get("text_animation", scene.get("animation", "fade_in"))
+        font_size = scene.get("font_size", "xl" if stype in ("hook", "cta") else "lg")
+
+        yaml_content += f"""\
+  - type: "{stype}"
+    duration: {dur}
+    text: "{text}"
+    keyword_highlight: "{keyword}"
+    text_animation: "{text_anim}"
+    font_size: "{font_size}"
+    emphasis: {emphasis}
+"""
+
+    # Page finale dorée systématique
+    yaml_content += """\
+  - type: "gold_outro"
+    duration: 3.0
+    handle: "@ownyourtime.ai"
+    follow_text: "Follow pour plus"
+"""
+
+    return yaml_content, full_slug
+
+
+def generate_viral_script(idea: str) -> dict:
+    """Génère un script reel viral complet depuis une idée courte."""
+    message = _client().messages.create(
+        model=MODEL,
+        max_tokens=2000,
+        system=VIRAL_SCRIPT_SYSTEM,
+        messages=[{"role": "user", "content": VIRAL_SCRIPT_PROMPT.format(idea=idea)}],
+    )
+    return _parse_json(message.content[0].text)
 
 
 def generate_variants(idea: str) -> list:
