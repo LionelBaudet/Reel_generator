@@ -333,7 +333,7 @@ class GoldOutroRenderer:
         self._prerender()
 
     def _prerender(self):
-        img  = Image.new("RGB", (RENDER_W, RENDER_H), BG_COLOR)
+        img  = Image.new("RGBA", (RENDER_W, RENDER_H), (*BG_COLOR, 255))
         draw = ImageDraw.Draw(img)
 
         font_handle = font_cache.get(44, "bold")
@@ -376,7 +376,7 @@ class GoldOutroRenderer:
                         bar_x0 + bar_w, cy - 30 + th_h + 52 + bar_h],
                        fill=GOLD_COLOR)
 
-        self._frame = np.array(img)
+        self._frame = np.array(img.convert("RGB"))
 
     def make_frame(self, t: float) -> np.ndarray:
         alpha = ease_out(min(1.0, t / OUTRO_FADE_IN))
