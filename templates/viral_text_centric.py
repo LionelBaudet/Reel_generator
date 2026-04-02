@@ -136,10 +136,6 @@ class SceneRenderer:
         for li, line in enumerate(lines):
             self._draw_line(draw, line, cy + li * lh, 255)
 
-        # Underline gold sous le keyword (hook uniquement)
-        if self.is_hook and self.keyword:
-            self._draw_keyword_underline(draw, lines, cy, lh)
-
         arr = np.array(layer, dtype=np.float32)
         arr /= 255.0
         self._pre = arr
@@ -159,11 +155,14 @@ class SceneRenderer:
 
         def px(c): return (*c[:3], alpha)
 
-        if self.keyword and self.keyword in line:
-            before, _, after = line.partition(self.keyword)
+        kw_idx = line.lower().find(self.keyword.lower()) if self.keyword else -1
+        if kw_idx != -1:
+            before     = line[:kw_idx]
+            kw_actual  = line[kw_idx: kw_idx + len(self.keyword)]
+            after      = line[kw_idx + len(self.keyword):]
             cx = x
             for part, color in [
-                (before, TEXT_COLOR), (self.keyword, GOLD_COLOR), (after, TEXT_COLOR)
+                (before, TEXT_COLOR), (kw_actual, GOLD_COLOR), (after, TEXT_COLOR)
             ]:
                 if not part:
                     continue
