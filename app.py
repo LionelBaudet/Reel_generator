@@ -31,6 +31,7 @@ try:
     from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, optimize_script_hooks, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
     from utils.hook_engine import optimize_hooks, save_hook_result
+    from utils.idea_classifier import classify_idea, CATEGORIES
     from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
     from utils.validation import validate_config, self_check
     _GEN_AVAILABLE = bool(_os.environ.get("ANTHROPIC_API_KEY"))
@@ -989,6 +990,23 @@ with tab_script:
         ab_result = st.session_state.get("sv_ab_result")
         if ab_result:
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+            # Badge type d'idée
+            _ab_label = ab_result.get("idea_type_label", "")
+            _ab_angle = ab_result.get("idea_angle", "")
+            _ab_conf  = ab_result.get("idea_confidence", 0)
+            if _ab_label:
+                _ab_conf_pct   = int(_ab_conf * 100)
+                _ab_conf_color = "#4ade80" if _ab_conf >= 0.6 else "#facc15" if _ab_conf >= 0.4 else "#94a3b8"
+                st.markdown(
+                    f'<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap">'
+                    f'<span style="background:#F5F5F7;border:1px solid #E0E0E8;border-radius:20px;'
+                    f'padding:3px 10px;font-size:0.72rem;font-weight:700;color:#1A1A2E">📂 {_ab_label}</span>'
+                    f'<span style="background:#FFF8EC;border:1px solid #E8B84B;border-radius:20px;'
+                    f'padding:3px 10px;font-size:0.72rem;font-weight:700;color:#C8972A">⚡ {_ab_angle}</span>'
+                    f'<span style="font-size:0.68rem;color:{_ab_conf_color};font-weight:600">confiance {_ab_conf_pct}%</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
             versions   = ab_result.get("versions", [])
             selection  = ab_result.get("selection", {})
 
@@ -1121,6 +1139,29 @@ with tab_script:
         sv = st.session_state.get("sv_result")
         if sv:
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+            # ── Type d'idée détecté ─────────────────────────────────────────
+            _itype = sv.get("idea_type", "")
+            _ilabel = sv.get("idea_type_label", "")
+            _iangle = sv.get("idea_angle", "")
+            _iconf  = sv.get("idea_confidence", 0)
+            if _ilabel:
+                _conf_pct = int(_iconf * 100)
+                _conf_color = "#4ade80" if _iconf >= 0.6 else "#facc15" if _iconf >= 0.4 else "#94a3b8"
+                st.markdown(
+                    f'<div style="display:flex;gap:0.5rem;align-items:center;'
+                    f'margin-bottom:0.75rem;flex-wrap:wrap">'
+                    f'<span style="background:#F5F5F7;border:1px solid #E0E0E8;border-radius:20px;'
+                    f'padding:3px 10px;font-size:0.72rem;font-weight:700;color:#1A1A2E">'
+                    f'📂 {_ilabel}</span>'
+                    f'<span style="background:#FFF8EC;border:1px solid #E8B84B;border-radius:20px;'
+                    f'padding:3px 10px;font-size:0.72rem;font-weight:700;color:#C8972A">'
+                    f'⚡ {_iangle}</span>'
+                    f'<span style="font-size:0.68rem;color:{_conf_color};font-weight:600">'
+                    f'confiance {_conf_pct}%</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
 
             # ── Best hook ────────────────────────────────────────────────────
             st.markdown("### 1. Best Hook")

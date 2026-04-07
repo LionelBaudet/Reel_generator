@@ -662,16 +662,30 @@ Retourne ce JSON exact :
 
 def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
     """Génère 3 versions A/B/C (safe / curiosité / agressif) pour une même idée."""
+    from utils.idea_classifier import classify_idea, build_ab_type_context
+
+    classification = classify_idea(idea)
+    type_ctx       = build_ab_type_context(classification, lang=lang)
+
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
     system = _AB_SYSTEM_EN if lang == "en" else _AB_SYSTEM_FR
-    prompt = _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix=lang_prefix)
+    prompt = lang_prefix + type_ctx + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
+
     message = _client().messages.create(
         model=MODEL,
         max_tokens=3000,
         system=system,
         messages=[{"role": "user", "content": prompt}],
     )
-    return _parse_json(message.content[0].text)
+    result = _parse_json(message.content[0].text)
+
+    # Attacher la classification pour affichage
+    result["idea_type"]       = classification["type"]
+    result["idea_type_label"] = classification["label"] if lang != "en" else classification["label_en"]
+    result["idea_angle"]      = classification["angle"] if lang != "en" else classification["angle_en"]
+    result["idea_confidence"] = classification["confidence"]
+
+    return result
 
 
 def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
@@ -691,15 +705,29 @@ def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
 
 def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     """Génère un script reel viral complet depuis une idée courte."""
+    from utils.idea_classifier import classify_idea, build_type_context
+
+    classification = classify_idea(idea)
+    type_ctx       = build_type_context(classification, lang=lang)
+
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
-    prompt = lang_prefix + VIRAL_SCRIPT_PROMPT.format(idea=idea)
+    prompt = lang_prefix + type_ctx + VIRAL_SCRIPT_PROMPT.format(idea=idea)
+
     message = _client().messages.create(
         model=MODEL,
         max_tokens=2000,
         system=_viral_script_system(lang),
         messages=[{"role": "user", "content": prompt}],
     )
-    return _parse_json(message.content[0].text)
+    result = _parse_json(message.content[0].text)
+
+    # Attacher la classification au résultat pour affichage dans l'app
+    result["idea_type"]       = classification["type"]
+    result["idea_type_label"] = classification["label"] if lang != "en" else classification["label_en"]
+    result["idea_angle"]      = classification["angle"] if lang != "en" else classification["angle_en"]
+    result["idea_confidence"] = classification["confidence"]
+
+    return result
 
 
 _CAPTION_SYSTEM_FR = """\
