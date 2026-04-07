@@ -167,13 +167,33 @@ Règles absolues :
 """
 
 
-VIRAL_SCRIPT_SYSTEM = """\
+_VIRAL_SCRIPT_SYSTEM_BASE = """\
 Tu es un expert en viralité Instagram spécialisé dans les comptes faceless niche IA / productivité / revenus.
 Ton objectif : créer du contenu qui ARRÊTE le scroll et génère des abonnés.
 Pas du contenu propre. Pas du contenu éducatif. Du contenu qui énerve ou intrigue.
 Si c'est générique → recommence. Si ça ressemble à LinkedIn → recommence.
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
+
+def _viral_script_system(lang: str = "fr") -> str:
+    lang_line = (
+        "LANGUE : French — generate ALL script content in French."
+        if lang == "en"
+        else "LANGUE : Français — tout le contenu du script doit être en français."
+    )
+    # swap for English
+    if lang == "en":
+        return (
+            "You are an Instagram virality expert specialized in faceless accounts in the AI / productivity / income niche.\n"
+            "Goal: create content that STOPS the scroll and grows followers.\n"
+            "Not clean content. Not educational content. Content that annoys or intrigues.\n"
+            "If it's generic → redo. If it sounds like LinkedIn → redo.\n"
+            "Respond ONLY with valid JSON, no markdown, no text before or after.\n"
+        )
+    return _VIRAL_SCRIPT_SYSTEM_BASE
+
+# Keep backward-compatible alias
+VIRAL_SCRIPT_SYSTEM = _VIRAL_SCRIPT_SYSTEM_BASE
 
 VIRAL_SCRIPT_PROMPT = """\
 Idée : "{idea}"
@@ -223,7 +243,7 @@ Retourne ce JSON exact :
 """
 
 
-MONTAGE_SYSTEM = """\
+_MONTAGE_SYSTEM_FR = """\
 Tu es un expert en montage vidéo TEXT-CENTRIC viral pour Instagram Reels.
 
 RÈGLES ABSOLUES :
@@ -235,10 +255,35 @@ RÈGLES ABSOLUES :
 - Animations UNIQUEMENT sur le texte : fade_in, slide_up, typing, pop.
 - La vidéo de fond ne bouge pas agressivement.
 - 3 requêtes Pexels lifestyle calme, cohérentes avec le sujet.
+- LANGUE DU CONTENU : Français.
 
 TEMPLATE : viral_text_centric_v1
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
+
+_MONTAGE_SYSTEM_EN = """\
+You are an expert in TEXT-CENTRIC viral video editing for Instagram Reels.
+
+ABSOLUTE RULES:
+- Text is the star. Background video is calm ambiance only.
+- Mandatory structure: hook → pain → shift → solution → result → cta
+- One idea per scene. Maximum 7 words per scene.
+- Minimum durations: hook 3.2s, cta 3.2s, others 2.8s minimum.
+- If text has more than 5 words → increase duration automatically.
+- Animations on TEXT ONLY: fade_in, slide_up, typing, pop.
+- Background video must not move aggressively.
+- 3 calm lifestyle Pexels queries, consistent with the topic.
+- CONTENT LANGUAGE: English.
+
+TEMPLATE: viral_text_centric_v1
+Respond ONLY with valid JSON, no markdown, no text before or after.
+"""
+
+def _montage_system(lang: str = "fr") -> str:
+    return _MONTAGE_SYSTEM_EN if lang == "en" else _MONTAGE_SYSTEM_FR
+
+# backward-compatible alias
+MONTAGE_SYSTEM = _MONTAGE_SYSTEM_FR
 
 MONTAGE_JSON_TEMPLATE = """
 Retourne ce JSON exact (sans markdown, sans texte autour) :
@@ -256,16 +301,15 @@ total_duration : somme exacte des durées des scènes
 """
 
 
-def generate_montage_plan(script: dict) -> dict:
+def generate_montage_plan(script: dict, lang: str = "fr") -> dict:
     """Génère un plan de montage scène par scène à partir d'un script structuré."""
-    # Construction sans .format() pour éviter les conflits avec les {} du script
     script_lines = "\n".join([
-        "Script à transformer en config montage vidéo dynamique :\n",
+        "Script to transform into a dynamic video montage config:\n",
         f"Hook    : {script.get('hook', '')}",
         f"Pain    : {script.get('pain', '')}",
         f"Twist   : {script.get('twist', '')}",
         f"Solution: {script.get('solution', '')}",
-        f"Résultat: {script.get('result', '')}",
+        f"Result  : {script.get('result', '')}",
         f"CTA     : {script.get('cta', '')}",
     ])
     prompt = script_lines + MONTAGE_JSON_TEMPLATE
@@ -273,14 +317,15 @@ def generate_montage_plan(script: dict) -> dict:
     message = _client().messages.create(
         model=MODEL,
         max_tokens=2000,
-        system=MONTAGE_SYSTEM,
+        system=_montage_system(lang),
         messages=[{"role": "user", "content": prompt}],
     )
     return _parse_json(message.content[0].text)
 
 
 def build_yaml_from_viral_script(sv: dict, montage: dict, idea: str,
-                                   video_paths: list | None = None) -> tuple:
+                                   video_paths: list | None = None,
+                                   lang: str = "fr") -> tuple:
     """
     Construit un YAML viral_text_centric_v1 depuis le script viral + plan de montage.
     video_paths : liste de chemins locaux de vidéos Pexels (optionnel).
@@ -375,25 +420,81 @@ scenes:
 """
 
     # Page finale dorée systématique
-    yaml_content += """\
+    follow_text = "Follow for more" if lang == "en" else "Follow pour plus"
+    yaml_content += f"""\
   - type: "gold_outro"
     duration: 3.0
     handle: "@ownyourtime.ai"
-    follow_text: "Follow pour plus"
+    follow_text: "{follow_text}"
 """
 
     return yaml_content, full_slug
 
 
-def generate_viral_script(idea: str) -> dict:
+def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     """Génère un script reel viral complet depuis une idée courte."""
+    lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
+    prompt = lang_prefix + VIRAL_SCRIPT_PROMPT.format(idea=idea)
     message = _client().messages.create(
         model=MODEL,
         max_tokens=2000,
-        system=VIRAL_SCRIPT_SYSTEM,
-        messages=[{"role": "user", "content": VIRAL_SCRIPT_PROMPT.format(idea=idea)}],
+        system=_viral_script_system(lang),
+        messages=[{"role": "user", "content": prompt}],
     )
     return _parse_json(message.content[0].text)
+
+
+_CAPTION_SYSTEM_FR = """\
+Tu es un expert en copywriting Instagram pour les comptes faceless productivité/IA/revenus.
+Tu écris des captions courtes, humaines, qui donnent envie de sauvegarder et de follow.
+Pas de hashtags génériques. Pas de "Découvrez comment". Naturel, direct, léger.
+Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
+"""
+
+_CAPTION_SYSTEM_EN = """\
+You are an Instagram copywriting expert for faceless productivity/AI/income accounts.
+You write short, human captions that make people want to save and follow.
+No generic hashtags. No "Discover how". Natural, direct, punchy.
+Respond ONLY with valid JSON, no markdown, no text before or after.
+"""
+
+def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> str:
+    """Génère un caption Instagram prêt à publier depuis le script viral."""
+    script = sv.get("script", {})
+    hook   = sv.get("best_hook", {}).get("text", script.get("hook", ""))
+    cta    = script.get("cta", "")
+    scenes = montage.get("scenes", [])
+    scene_texts = " / ".join(s.get("text", "") for s in scenes if s.get("text"))
+
+    if lang == "en":
+        system  = _CAPTION_SYSTEM_EN
+        prompt  = (
+            f'Reel topic: "{idea}"\n'
+            f'Hook: "{hook}"\n'
+            f'Scene texts: "{scene_texts}"\n'
+            f'CTA: "{cta}"\n\n'
+            'Generate an Instagram caption. Return JSON:\n'
+            '{"caption": "<2-4 punchy lines>\\n\\n<CTA line: Follow @ownyourtime.ai for more>\\n\\n<10-12 hashtags without line break>"}'
+        )
+    else:
+        system  = _CAPTION_SYSTEM_FR
+        prompt  = (
+            f'Sujet du reel : "{idea}"\n'
+            f'Hook : "{hook}"\n'
+            f'Textes des scènes : "{scene_texts}"\n'
+            f'CTA : "{cta}"\n\n'
+            'Génère un caption Instagram. Retourne ce JSON :\n'
+            '{"caption": "<2-4 lignes percutantes>\\n\\n<ligne CTA : Follow @ownyourtime.ai pour plus>\\n\\n<10-12 hashtags sans saut de ligne>"}'
+        )
+
+    message = _client().messages.create(
+        model=MODEL,
+        max_tokens=600,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    data = _parse_json(message.content[0].text)
+    return data.get("caption", "")
 
 
 def generate_variants(idea: str) -> list:

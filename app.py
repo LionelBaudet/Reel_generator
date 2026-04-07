@@ -27,7 +27,7 @@ except Exception:
 
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 try:
-    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, BROLL_CATEGORIES
+    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
     from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
     from utils.validation import validate_config, self_check
@@ -918,6 +918,15 @@ with tab_script:
             key="sv_idea_input",
         )
 
+        _lang_choice = st.radio(
+            "Langue du reel",
+            ["Français", "English"],
+            horizontal=True,
+            key="sv_lang_radio",
+        )
+        sv_lang = "en" if _lang_choice == "English" else "fr"
+        st.session_state["sv_lang"] = sv_lang
+
         sv_col1, sv_col2 = st.columns([3, 1])
         with sv_col1:
             sv_clicked = st.button(
@@ -935,9 +944,10 @@ with tab_script:
         if sv_clicked and sv_idea.strip():
             with st.spinner("Génération du script viral…"):
                 try:
-                    sv_result = generate_viral_script(sv_idea.strip())
+                    sv_result = generate_viral_script(sv_idea.strip(), lang=sv_lang)
                     st.session_state["sv_result"] = sv_result
                     st.session_state["sv_idea_stored"] = sv_idea.strip()
+                    st.session_state.pop("sv_caption", None)   # reset caption si nouvelle génération
                 except Exception as exc:
                     st.error(f"Erreur : {exc}")
 
@@ -1081,7 +1091,8 @@ with tab_script:
                              use_container_width=True, key="btn_montage"):
                     with st.spinner("Génération du plan de montage…"):
                         try:
-                            plan = generate_montage_plan(sv.get("script", {}))
+                            _cur_lang = st.session_state.get("sv_lang", "fr")
+                            plan = generate_montage_plan(sv.get("script", {}), lang=_cur_lang)
                             st.session_state["sv_montage"] = plan
                         except Exception as exc:
                             st.error(f"Erreur : {exc}")
@@ -1209,8 +1220,11 @@ with tab_script:
                 st.markdown("### Générer le Reel")
 
                 idea_for_reel = st.session_state.get("sv_idea_stored", "")
+                _reel_lang = st.session_state.get("sv_lang", "fr")
                 reel_yaml, reel_slug = build_yaml_from_viral_script(
-                    sv, montage, idea_for_reel, video_paths=_pexels_paths or None
+                    sv, montage, idea_for_reel,
+                    video_paths=_pexels_paths or None,
+                    lang=_reel_lang,
                 )
 
                 # ── Self-check validation ──────────────────────────────────────
@@ -1365,6 +1379,42 @@ with tab_script:
                             st.error("Génération échouée.")
                             with st.expander("Logs"):
                                 st.code("\n".join(log_lines[-30:]))
+
+            # ── Caption Instagram ──────────────────────────────────────────
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+            st.markdown("### Caption Instagram")
+
+            _cap_lang  = st.session_state.get("sv_lang", "fr")
+            _cap_stored = st.session_state.get("sv_caption", "")
+
+            cap_col1, cap_col2 = st.columns([1, 3])
+            with cap_col1:
+                if st.button(
+                    "Générer le caption" if _cap_lang == "fr" else "Generate caption",
+                    type="secondary",
+                    use_container_width=True,
+                    key="btn_sv_caption",
+                ):
+                    with st.spinner("Génération du caption…" if _cap_lang == "fr" else "Generating caption…"):
+                        try:
+                            _cap_idea = st.session_state.get("sv_idea_stored", "")
+                            _cap_montage = st.session_state.get("sv_montage", {})
+                            _cap_sv = st.session_state.get("sv_result", {})
+                            _cap_text = generate_caption(_cap_sv, _cap_montage, _cap_idea, lang=_cap_lang)
+                            st.session_state["sv_caption"] = _cap_text
+                            _cap_stored = _cap_text
+                        except Exception as _ce:
+                            st.error(f"Erreur caption : {_ce}")
+
+            if _cap_stored:
+                with cap_col2:
+                    st.text_area(
+                        "caption_output",
+                        value=_cap_stored,
+                        height=200,
+                        key="sv_caption_display",
+                        label_visibility="collapsed",
+                    )
 
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
