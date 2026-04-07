@@ -6,6 +6,7 @@ Usage:
     python generate.py "gagner du temps emails" --run
     python generate.py "relancer clients automatiquement" --preview
 """
+from __future__ import annotations
 
 import argparse
 import json
