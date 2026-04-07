@@ -491,6 +491,119 @@ scenes:
     return yaml_content, full_slug
 
 
+_AB_SYSTEM_FR = """\
+Tu es une ARME À CONTENU SHORT-FORM. Tu génères 3 versions distinctes d'un même reel.
+
+VERSION A = Safe — large audience, compréhensible, clair
+VERSION B = Curiosité — gap d'information, intrigue, question non répondue
+VERSION C = Agressif — pattern interrupt, provocation, disruptif
+
+RÈGLES POUR CHAQUE VERSION :
+- Hook différent, ton différent, même idée de fond
+- Chaque ligne = max 6 mots
+- Zéro remplissage, zéro transition molle
+- C doit être notablement plus agressif que A
+
+SCORING HOOK : +3 perte · +3 contradiction · +2 curiosité · +2 croyance attaquée · -3 neutre
+
+Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
+"""
+
+_AB_SYSTEM_EN = """\
+You are a SHORT-FORM CONTENT WEAPON. You generate 3 distinct versions of the same reel.
+
+VERSION A = Safe — broad appeal, clear, understandable
+VERSION B = Curiosity — information gap, intrigue, unanswered question
+VERSION C = Aggressive — pattern interrupt, provocative, disruptive
+
+RULES FOR EACH VERSION:
+- Different hook, different tone, same core idea
+- Each line = max 6 words
+- Zero filler, zero soft transitions
+- C must be noticeably more aggressive than A
+
+HOOK SCORE: +3 loss · +3 contradiction · +2 curiosity · +2 belief attack · -3 neutral
+
+Respond ONLY with valid JSON, no markdown, no text before or after.
+"""
+
+_AB_PROMPT_TEMPLATE = """\
+{lang_prefix}Idée : "{idea}"
+
+Génère 3 versions (A/B/C) du script reel pour @ownyourtime.ai.
+
+Retourne ce JSON exact :
+{{
+  "versions": [
+    {{
+      "id": "A",
+      "type": "safe",
+      "hook": {{"text": "<max 8 mots — clair, accessible>", "score": 0}},
+      "script": {{
+        "hook":     "<même texte que hook.text>",
+        "pain":     "<tension — max 6 mots>",
+        "shift":    "<retournement — max 6 mots>",
+        "solution": "<action concrète — max 6 mots>",
+        "result":   "<résultat chiffré — max 6 mots>",
+        "cta":      "<déclencheur commentaire — max 8 mots>"
+      }},
+      "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
+      "tone": "<description du ton en 3 mots>"
+    }},
+    {{
+      "id": "B",
+      "type": "curiosity",
+      "hook": {{"text": "<max 8 mots — gap d'information, intrigue>", "score": 0}},
+      "script": {{
+        "hook": "<même texte que hook.text>",
+        "pain": "<max 6 mots>",
+        "shift": "<max 6 mots>",
+        "solution": "<max 6 mots>",
+        "result": "<max 6 mots>",
+        "cta": "<max 8 mots>"
+      }},
+      "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
+      "tone": "<description du ton en 3 mots>"
+    }},
+    {{
+      "id": "C",
+      "type": "aggressive",
+      "hook": {{"text": "<max 8 mots — provocation, contradiction, pattern interrupt>", "score": 0}},
+      "script": {{
+        "hook": "<même texte que hook.text>",
+        "pain": "<max 6 mots>",
+        "shift": "<max 6 mots>",
+        "solution": "<max 6 mots>",
+        "result": "<max 6 mots>",
+        "cta": "<max 8 mots>"
+      }},
+      "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
+      "tone": "<description du ton en 3 mots>"
+    }}
+  ],
+  "selection": {{
+    "safest": "A",
+    "most_viral": "<A|B|C>",
+    "most_likely_to_convert": "<A|B|C>",
+    "recommendation": "<1-2 phrases : quelle version utiliser selon l'objectif>"
+  }}
+}}
+"""
+
+def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
+    """Génère 3 versions A/B/C (safe / curiosité / agressif) pour une même idée."""
+    lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
+    system = _AB_SYSTEM_EN if lang == "en" else _AB_SYSTEM_FR
+    prompt = _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix=lang_prefix)
+    message = _client().messages.create(
+        model=MODEL,
+        max_tokens=3000,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return _parse_json(message.content[0].text)
+
+
 def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     """Génère un script reel viral complet depuis une idée courte."""
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""

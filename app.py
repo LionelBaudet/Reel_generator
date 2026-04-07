@@ -27,7 +27,7 @@ except Exception:
 
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 try:
-    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, BROLL_CATEGORIES
+    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
     from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
     from utils.validation import validate_config, self_check
@@ -918,19 +918,29 @@ with tab_script:
             key="sv_idea_input",
         )
 
-        _lang_choice = st.radio(
-            "Langue du reel",
-            ["Français", "English"],
-            horizontal=True,
-            key="sv_lang_radio",
-        )
+        _opt_col1, _opt_col2 = st.columns(2)
+        with _opt_col1:
+            _lang_choice = st.radio(
+                "Langue",
+                ["Français", "English"],
+                horizontal=True,
+                key="sv_lang_radio",
+            )
+        with _opt_col2:
+            _mode_choice = st.radio(
+                "Mode",
+                ["Standard", "A/B Testing"],
+                horizontal=True,
+                key="sv_mode_radio",
+            )
         sv_lang = "en" if _lang_choice == "English" else "fr"
+        sv_mode = "ab" if _mode_choice == "A/B Testing" else "standard"
         st.session_state["sv_lang"] = sv_lang
 
         sv_col1, sv_col2 = st.columns([3, 1])
         with sv_col1:
             sv_clicked = st.button(
-                "Générer le script viral",
+                "Générer A/B/C" if sv_mode == "ab" else "Générer le script viral",
                 type="primary",
                 disabled=not sv_idea.strip(),
                 use_container_width=True,
@@ -938,18 +948,167 @@ with tab_script:
             )
         with sv_col2:
             if st.button("Reset", type="secondary", use_container_width=True, key="btn_sv_reset"):
-                st.session_state.pop("sv_result", None)
+                for _k in ("sv_result", "sv_ab_result", "sv_caption", "sv_montage",
+                           "sv_ab_selected", "sv_pexels_paths"):
+                    st.session_state.pop(_k, None)
                 st.rerun()
 
         if sv_clicked and sv_idea.strip():
-            with st.spinner("Génération du script viral…"):
-                try:
-                    sv_result = generate_viral_script(sv_idea.strip(), lang=sv_lang)
-                    st.session_state["sv_result"] = sv_result
-                    st.session_state["sv_idea_stored"] = sv_idea.strip()
-                    st.session_state.pop("sv_caption", None)   # reset caption si nouvelle génération
-                except Exception as exc:
-                    st.error(f"Erreur : {exc}")
+            if sv_mode == "ab":
+                with st.spinner("Génération des 3 versions A/B/C…"):
+                    try:
+                        ab_result = generate_ab_versions(sv_idea.strip(), lang=sv_lang)
+                        st.session_state["sv_ab_result"]   = ab_result
+                        st.session_state["sv_idea_stored"] = sv_idea.strip()
+                        st.session_state.pop("sv_result",  None)
+                        st.session_state.pop("sv_caption", None)
+                        st.session_state.pop("sv_montage", None)
+                        st.session_state.pop("sv_ab_selected", None)
+                    except Exception as exc:
+                        st.error(f"Erreur : {exc}")
+            else:
+                with st.spinner("Génération du script viral…"):
+                    try:
+                        sv_result = generate_viral_script(sv_idea.strip(), lang=sv_lang)
+                        st.session_state["sv_result"] = sv_result
+                        st.session_state["sv_idea_stored"] = sv_idea.strip()
+                        st.session_state.pop("sv_caption",   None)
+                        st.session_state.pop("sv_ab_result", None)
+                    except Exception as exc:
+                        st.error(f"Erreur : {exc}")
+
+        # ── Mode A/B ─────────────────────────────────────────────────────────
+        ab_result = st.session_state.get("sv_ab_result")
+        if ab_result:
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+            versions   = ab_result.get("versions", [])
+            selection  = ab_result.get("selection", {})
+
+            _type_labels = {"safe": "A — SAFE", "curiosity": "B — CURIOSITÉ", "aggressive": "C — AGRESSIF"}
+            _type_colors = {"safe": "#60a5fa", "curiosity": "#facc15", "aggressive": "#f87171"}
+            _type_bg     = {"safe": "#EFF6FF", "curiosity": "#FEFCE8", "aggressive": "#FFF1F2"}
+
+            tab_a, tab_b, tab_c = st.tabs(["A — Safe", "B — Curiosité", "C — Agressif"])
+            _script_keys = [("Hook","hook","#f87171"),("Tension","pain","#fb923c"),
+                            ("Shift","shift","#facc15"),("Solution","solution","#4ade80"),
+                            ("Résultat","result","#60a5fa"),("CTA","cta","#c084fc")]
+
+            for tab, version in zip([tab_a, tab_b, tab_c], versions):
+                with tab:
+                    vtype  = version.get("type", "")
+                    color  = _type_colors.get(vtype, "#aaa")
+                    bg     = _type_bg.get(vtype, "#F5F5F7")
+                    hook   = version.get("hook", {})
+                    sc     = hook.get("score", 0)
+
+                    # Hook
+                    st.markdown(
+                        f'<div style="background:{bg};border-left:4px solid {color};'
+                        f'border-radius:0 8px 8px 0;padding:0.8rem 1rem;margin-bottom:0.75rem">'
+                        f'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+                        f'<span style="font-size:0.72rem;font-weight:700;color:{color}">'
+                        f'{_type_labels.get(vtype,"")}</span>'
+                        f'<span style="font-size:0.9rem;font-weight:800;color:{color}">Score {sc}</span>'
+                        f'</div>'
+                        f'<div style="font-size:1.15rem;font-weight:800;color:#1A1A2E">'
+                        f'"{hook.get("text","")}"</div>'
+                        f'<div style="font-size:0.75rem;color:#6B6B8A;margin-top:4px">'
+                        f'Ton : {version.get("tone","")}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                    # Script
+                    script_v = version.get("script", {})
+                    for lbl, key, clr in _script_keys:
+                        txt = script_v.get(key, "")
+                        if txt:
+                            st.markdown(
+                                f'<div style="display:flex;gap:0.75rem;padding:0.4rem 0;'
+                                f'border-bottom:1px solid #F0F0F5;">'
+                                f'<span style="min-width:72px;font-weight:700;font-size:0.8rem;color:{clr}">{lbl}</span>'
+                                f'<span style="color:#1A1A2E;font-size:0.9rem">{txt}</span>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    # Overlay lines
+                    if version.get("overlay_lines"):
+                        with st.expander("Overlay texte", expanded=False):
+                            for line in version["overlay_lines"]:
+                                st.markdown(
+                                    f'<div style="background:#1A1A2E;color:#F2F0EA;font-weight:700;'
+                                    f'font-size:0.95rem;padding:0.35rem 0.7rem;border-radius:6px;'
+                                    f'margin-bottom:4px;text-align:center">{line}</div>',
+                                    unsafe_allow_html=True,
+                                )
+
+            # ── Self-selection ───────────────────────────────────────────────
+            if selection:
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+                st.markdown("### Analyse")
+                sel_cols = st.columns(3)
+                for col, (label, key, icon) in zip(sel_cols, [
+                    ("La plus sûre",       "safest",                 "🛡️"),
+                    ("La plus virale",      "most_viral",             "🔥"),
+                    ("La + convertissante", "most_likely_to_convert", "💰"),
+                ]):
+                    with col:
+                        v = selection.get(key, "?")
+                        st.markdown(
+                            f'<div style="background:#F5F5F7;border-radius:8px;padding:0.6rem;text-align:center">'
+                            f'<div style="font-size:0.72rem;color:#6B6B8A;font-weight:700">{icon} {label}</div>'
+                            f'<div style="font-size:2rem;font-weight:900;color:#E8B84B">VERSION {v}</div>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+
+                reco = selection.get("recommendation", "")
+                if reco:
+                    st.markdown(
+                        f'<div style="background:#FFF8EC;border:1px solid #E8B84B;border-radius:8px;'
+                        f'padding:0.6rem 0.8rem;margin-top:0.5rem;font-size:0.88rem;color:#1A1A2E">'
+                        f'<strong>Recommandation :</strong> {reco}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            # ── Choisir la version pour le montage ───────────────────────────
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+            st.markdown("### Utiliser pour le montage")
+            _ver_labels = {v["id"]: f"Version {v['id']} — {v.get('type','').capitalize()} · \"{v.get('hook',{}).get('text','')}\"" for v in versions}
+            _default_v  = selection.get("most_viral", "A")
+            _selected_v = st.radio(
+                "Version à utiliser",
+                options=[v["id"] for v in versions],
+                format_func=lambda x: _ver_labels.get(x, x),
+                index=["A","B","C"].index(_default_v) if _default_v in ["A","B","C"] else 0,
+                key="sv_ab_version_radio",
+            )
+            st.session_state["sv_ab_selected"] = _selected_v
+
+            _ab_montage_btn = st.button(
+                f"Générer plan de montage — Version {_selected_v}",
+                type="primary", use_container_width=True, key="btn_ab_montage",
+            )
+            if _ab_montage_btn:
+                _chosen = next((v for v in versions if v["id"] == _selected_v), versions[0])
+                # Construire un sv compatible avec generate_montage_plan
+                _sv_compat = {
+                    "script":    _chosen.get("script", {}),
+                    "best_hook": _chosen.get("hook", {}),
+                    "overlay_lines": _chosen.get("overlay_lines", []),
+                }
+                _cur_lang = st.session_state.get("sv_lang", "fr")
+                with st.spinner(f"Plan de montage Version {_selected_v}…"):
+                    try:
+                        plan = generate_montage_plan(_chosen.get("script", {}), lang=_cur_lang)
+                        st.session_state["sv_montage"]      = plan
+                        st.session_state["sv_result"]       = _sv_compat
+                        st.session_state["sv_idea_stored"]  = st.session_state.get("sv_idea_stored", "")
+                        st.success(f"Plan de montage Version {_selected_v} prêt.")
+                        st.rerun()
+                    except Exception as _e:
+                        st.error(f"Erreur : {_e}")
 
         sv = st.session_state.get("sv_result")
         if sv:
