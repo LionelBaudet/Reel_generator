@@ -28,8 +28,9 @@ except Exception:
 
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 try:
-    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, BROLL_CATEGORIES
+    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, optimize_script_hooks, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
+    from utils.hook_engine import optimize_hooks, save_hook_result
     from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
     from utils.validation import validate_config, self_check
     _GEN_AVAILABLE = bool(_os.environ.get("ANTHROPIC_API_KEY"))
@@ -950,7 +951,7 @@ with tab_script:
         with sv_col2:
             if st.button("Reset", type="secondary", use_container_width=True, key="btn_sv_reset"):
                 for _k in ("sv_result", "sv_ab_result", "sv_caption", "sv_montage",
-                           "sv_ab_selected", "sv_pexels_paths"):
+                           "sv_ab_selected", "sv_pexels_paths", "sv_optimized"):
                     st.session_state.pop(_k, None)
                 st.rerun()
 
@@ -975,6 +976,12 @@ with tab_script:
                         st.session_state["sv_idea_stored"] = sv_idea.strip()
                         st.session_state.pop("sv_caption",   None)
                         st.session_state.pop("sv_ab_result", None)
+                        # Optimisation locale automatique (sans appel API)
+                        try:
+                            _opt = optimize_script_hooks(sv_result)
+                            st.session_state["sv_optimized"] = _opt
+                        except Exception:
+                            st.session_state.pop("sv_optimized", None)
                     except Exception as exc:
                         st.error(f"Erreur : {exc}")
 
@@ -1148,6 +1155,146 @@ with tab_script:
                             f'</div></div>',
                             unsafe_allow_html=True,
                         )
+
+            # ── Hook Optimizer ────────────────────────────────────────────────
+            sv_optimized = st.session_state.get("sv_optimized")
+            if sv_optimized:
+                _weak  = sv_optimized.get("weak_count", 0)
+                _rewr  = sv_optimized.get("rewritten", 0)
+                _best  = sv_optimized.get("best", {}) or {}
+                _vars  = sv_optimized.get("variants", {})
+                _hist  = sv_optimized.get("top_history", [])
+                _ranked = sv_optimized.get("ranked", [])
+
+                # Badge résumé
+                _badge_color = "#d1fae5" if _weak == 0 else "#fef9c3" if _weak <= 2 else "#fee2e2"
+                _badge_icon  = "✅" if _weak == 0 else "⚠️"
+                st.markdown(
+                    f'<div style="background:{_badge_color};border-radius:8px;'
+                    f'padding:0.4rem 0.8rem;margin:0.5rem 0;font-size:0.82rem">'
+                    f'{_badge_icon} <strong>Hook Optimizer</strong> — '
+                    f'{_weak} hook(s) faible(s) détecté(s)'
+                    f'{f" · {_rewr} réécrit(s) via API" if _rewr else ""}'
+                    f' · Score local best : <strong>{_best.get("total_score", "—")}/10</strong>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+                with st.expander("🎯 Hooks optimisés — Variantes A / B / C", expanded=True):
+                    _v_labels = {
+                        "A": ("Simple", "#60a5fa", "#EFF6FF"),
+                        "B": ("Intrigue", "#facc15", "#FEFCE8"),
+                        "C": ("Interruption", "#f87171", "#FFF1F2"),
+                    }
+                    _opt_cols = st.columns(3)
+                    for _col, _v in zip(_opt_cols, ("A", "B", "C")):
+                        with _col:
+                            _vh = _vars.get(_v) or {}
+                            _vlabel, _vcolor, _vbg = _v_labels[_v]
+                            _sc  = _vh.get("total_score", "—")
+                            _bst = _vh.get("history_boost", 0)
+                            _wk  = _vh.get("is_weak", False)
+                            _rw  = _vh.get("was_rewritten", False)
+                            _txt = _vh.get("text", "—")
+                            _tag = ""
+                            if _rw:
+                                _tag = ' <span style="font-size:0.65rem;background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:8px">réécrit</span>'
+                            elif _wk:
+                                _tag = ' <span style="font-size:0.65rem;background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:8px">faible</span>'
+                            st.markdown(
+                                f'<div style="background:{_vbg};border:1px solid {_vcolor};'
+                                f'border-radius:8px;padding:0.6rem;height:100%">'
+                                f'<div style="font-size:0.68rem;font-weight:700;color:{_vcolor};margin-bottom:4px">'
+                                f'VERSION {_v} — {_vlabel}</div>'
+                                f'<div style="font-weight:700;color:#1A1A2E;font-size:0.92rem;margin-bottom:6px">'
+                                f'"{_txt}"{_tag}</div>'
+                                f'<div style="font-size:0.72rem;color:#6B6B8A">'
+                                f'Score {_sc}/10'
+                                f'{f" · +{_bst} hist." if _bst > 0 else ""}'
+                                f'</div></div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    # Top hooks classés
+                    if _ranked:
+                        st.markdown(
+                            '<div style="font-size:0.78rem;font-weight:700;color:#6B6B8A;'
+                            'margin:0.75rem 0 0.3rem 0">Classement complet</div>',
+                            unsafe_allow_html=True,
+                        )
+                        for _r in _ranked:
+                            _rtxt = _r.get("text", "")
+                            _rsc  = _r.get("total_score", 0)
+                            _rv   = _r.get("variant", "A")
+                            _rwk  = _r.get("is_weak", False)
+                            _rcol = "#4ade80" if _rsc >= 8 else "#facc15" if _rsc >= 6 else "#f87171"
+                            _rvar_color = _v_labels[_rv][1]
+                            _weak_mark  = " ⚠" if _rwk else ""
+                            st.markdown(
+                                f'<div style="display:flex;gap:0.6rem;align-items:center;'
+                                f'padding:0.3rem 0;border-bottom:1px solid #F5F5F7;">'
+                                f'<span style="min-width:30px;font-weight:800;font-size:0.9rem;color:{_rcol}">{_rsc}</span>'
+                                f'<span style="min-width:18px;font-size:0.7rem;font-weight:700;color:{_rvar_color}">{_rv}</span>'
+                                f'<span style="color:#1A1A2E;font-size:0.85rem">{_rtxt}{_weak_mark}</span>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    # Patterns historiques
+                    if _hist:
+                        st.markdown(
+                            '<div style="font-size:0.78rem;font-weight:700;color:#C8972A;'
+                            'margin:0.75rem 0 0.3rem 0">🏆 Top performers historiques</div>',
+                            unsafe_allow_html=True,
+                        )
+                        for _hp in _hist:
+                            st.markdown(
+                                f'<div style="background:#FFF8EC;border-radius:6px;'
+                                f'padding:0.25rem 0.6rem;margin-bottom:3px;'
+                                f'font-size:0.82rem;color:#1A1A2E">"{_hp}"</div>',
+                                unsafe_allow_html=True,
+                            )
+
+                    # Bouton réécriture API
+                    if _weak > 0 and _rewr == 0:
+                        st.markdown("")
+                        if st.button(
+                            f"✍️ Réécrire les {_weak} hooks faibles via Claude",
+                            type="secondary",
+                            use_container_width=True,
+                            key="btn_rewrite_hooks",
+                        ):
+                            with st.spinner("Réécriture en cours…"):
+                                try:
+                                    _sv_cur = st.session_state.get("sv_result", {})
+                                    _opt2 = optimize_script_hooks(_sv_cur, use_api_rewrite=True)
+                                    st.session_state["sv_optimized"] = _opt2
+                                    st.rerun()
+                                except Exception as _re:
+                                    st.error(f"Erreur réécriture : {_re}")
+
+                # Sauvegarder la performance
+                with st.expander("📊 Sauvegarder la performance d'un hook", expanded=False):
+                    st.caption("Enregistre les résultats réels pour améliorer le scoring futur.")
+                    _perf_hook = st.selectbox(
+                        "Hook",
+                        options=[r.get("text", "") for r in _ranked],
+                        key="perf_hook_sel",
+                    )
+                    _pc1, _pc2, _pc3 = st.columns(3)
+                    with _pc1:
+                        _perf_views = st.number_input("Vues", min_value=0, value=0, step=100, key="perf_views")
+                    with _pc2:
+                        _perf_likes = st.number_input("Likes", min_value=0, value=0, step=10, key="perf_likes")
+                    with _pc3:
+                        _perf_comments = st.number_input("Commentaires", min_value=0, value=0, step=1, key="perf_comments")
+                    if st.button("💾 Sauvegarder", type="secondary", use_container_width=True, key="btn_save_perf"):
+                        if _perf_hook:
+                            try:
+                                save_hook_result(_perf_hook, int(_perf_views), int(_perf_likes), int(_perf_comments))
+                                st.success(f"Performance enregistrée pour : \"{_perf_hook}\"")
+                            except Exception as _se:
+                                st.error(f"Erreur sauvegarde : {_se}")
 
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 

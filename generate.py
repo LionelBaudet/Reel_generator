@@ -674,6 +674,21 @@ def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
     return _parse_json(message.content[0].text)
 
 
+def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
+                           use_api_rewrite: bool = False) -> dict:
+    """
+    Lance le pipeline d'optimisation locale sur les hooks d'un script viral.
+    Peut être appelé juste après generate_viral_script() sans appel API supplémentaire.
+    use_api_rewrite=True : réécrit les hooks faibles via Claude (1 appel, optionnel).
+    """
+    from utils.hook_engine import optimize_hooks as _run_optimize
+    return _run_optimize(
+        sv.get("hooks", []),
+        history_path=history_path,
+        use_api_rewrite=use_api_rewrite,
+    )
+
+
 def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     """Génère un script reel viral complet depuis une idée courte."""
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
