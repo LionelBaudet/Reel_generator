@@ -955,65 +955,74 @@ with tab_script:
         if sv:
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
-            # ── 3 Hooks scorés ───────────────────────────────────────────────
-            st.markdown("### 1. Hooks")
-            hook_cols = st.columns(3)
-            type_labels = {"contraste": "CONTRASTE", "argent_résultat": "ARGENT / RÉSULTAT", "vérité_cachée": "VÉRITÉ CACHÉE"}
-            for col, hook in zip(hook_cols, sv.get("hooks", [])):
-                score = hook.get("score", 0)
-                color = "#4ade80" if score >= 9 else "#facc15" if score >= 7.5 else "#f87171"
-                label = type_labels.get(hook.get("type", ""), hook.get("type", "").upper())
-                with col:
-                    st.markdown(
-                        f'<div style="background:#F5F5F7;border:1px solid #E0E0E8;'
-                        f'border-radius:10px;padding:0.8rem;">'
-                        f'<div style="font-size:0.7rem;color:#6B6B8A;font-weight:700;margin-bottom:4px">{label}</div>'
-                        f'<div style="font-size:1rem;font-weight:700;color:#1A1A2E;margin-bottom:8px">"{hook.get("text","")}"</div>'
-                        f'<div style="display:flex;align-items:center;gap:8px;">'
-                        f'<span style="font-size:1.4rem;font-weight:800;color:{color}">{score}</span>'
-                        f'<span style="font-size:0.7rem;color:#6B6B8A">/10</span>'
-                        f'</div>'
-                        f'<div style="font-size:0.75rem;color:#6B6B8A;margin-top:6px">{hook.get("why","")}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-            # ── Meilleur hook ────────────────────────────────────────────────
+            # ── Best hook ────────────────────────────────────────────────────
+            st.markdown("### 1. Best Hook")
             best = sv.get("best_hook", {})
+            best_score = best.get("score", 0)
             st.markdown(
-                f'<div class="hook-winner" style="margin-top:1rem">'
-                f'<div style="font-size:0.72rem;color:#C8972A;font-weight:700;margin-bottom:4px">BEST HOOK</div>'
-                f'<div style="font-size:1.2rem;font-weight:800;color:#1A1A2E;margin-bottom:6px">"{best.get("text","")}"</div>'
+                f'<div class="hook-winner" style="margin-bottom:0.5rem">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+                f'<span style="font-size:0.72rem;color:#C8972A;font-weight:700">BEST HOOK</span>'
+                f'<span style="font-size:1rem;font-weight:800;color:#E8B84B">Score {best_score}</span>'
+                f'</div>'
+                f'<div style="font-size:1.25rem;font-weight:800;color:#1A1A2E;margin-bottom:6px">"{best.get("text","")}"</div>'
                 f'<div style="font-size:0.82rem;color:#6B6B8A">{best.get("reason","")}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
 
+            # ── 10 hooks (expander) ──────────────────────────────────────────
+            all_hooks = sv.get("hooks", [])
+            if all_hooks:
+                with st.expander(f"Voir les {len(all_hooks)} hooks générés", expanded=False):
+                    for h in sorted(all_hooks, key=lambda x: x.get("score", 0), reverse=True):
+                        sc  = h.get("score", 0)
+                        col = "#4ade80" if sc >= 8 else "#facc15" if sc >= 6 else "#f87171"
+                        st.markdown(
+                            f'<div style="display:flex;gap:0.75rem;align-items:flex-start;'
+                            f'padding:0.45rem 0;border-bottom:1px solid #F0F0F5;">'
+                            f'<span style="min-width:32px;font-size:1rem;font-weight:800;color:{col}">{sc}</span>'
+                            f'<div>'
+                            f'<div style="font-weight:600;color:#1A1A2E">"{h.get("text","")}"</div>'
+                            f'<div style="font-size:0.72rem;color:#6B6B8A">{h.get("type","").upper()} — {h.get("why","")}</div>'
+                            f'</div></div>',
+                            unsafe_allow_html=True,
+                        )
+
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
             # ── Script structuré ─────────────────────────────────────────────
-            st.markdown("### 2. Script (15s max)")
+            st.markdown("### 2. Script")
             script = sv.get("script", {})
             script_steps = [
-                ("0–3s",   "Hook",     "hook",     "#f87171"),
-                ("3–6s",   "Pain",     "pain",     "#fb923c"),
-                ("6–9s",   "Twist",    "twist",    "#facc15"),
-                ("9–14s",  "Solution", "solution", "#4ade80"),
-                ("14–17s", "Résultat", "result",   "#60a5fa"),
-                ("17–20s", "CTA",      "cta",      "#c084fc"),
+                ("Hook",     "hook",     "#f87171"),
+                ("Tension",  "pain",     "#fb923c"),
+                ("Shift",    "shift",    "#facc15"),
+                ("Solution", "solution", "#4ade80"),
+                ("Résultat", "result",   "#60a5fa"),
+                ("CTA",      "cta",      "#c084fc"),
             ]
-            for timing, label, key, color in script_steps:
+            for label, key, color in script_steps:
                 text = script.get(key, "")
                 if text:
                     st.markdown(
                         f'<div style="display:flex;gap:0.75rem;align-items:flex-start;'
                         f'padding:0.5rem 0;border-bottom:1px solid #F0F0F5;">'
-                        f'<span style="min-width:52px;font-size:0.72rem;color:#6B6B8A;padding-top:2px">{timing}</span>'
-                        f'<span style="min-width:64px;font-weight:700;font-size:0.82rem;color:{color}">{label}</span>'
+                        f'<span style="min-width:72px;font-weight:700;font-size:0.82rem;color:{color}">{label}</span>'
                         f'<span style="color:#1A1A2E;font-size:0.92rem">{text}</span>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+
+            # why it performs
+            why = sv.get("why_it_performs", "")
+            if why:
+                st.markdown(
+                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.5rem 0.8rem;'
+                    f'margin-top:0.5rem;font-size:0.82rem;color:#1A1A2E">'
+                    f'<span style="font-weight:700;color:#C8972A">Pourquoi ça va performer : </span>{why}</div>',
+                    unsafe_allow_html=True,
+                )
 
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
