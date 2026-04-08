@@ -1660,7 +1660,7 @@ with tab_script:
                 _cur_lang = st.session_state.get("sv_lang", "fr")
                 with st.spinner(f"Plan de montage Version {_selected_v}…"):
                     try:
-                        plan = generate_montage_plan(_chosen.get("script", {}), lang=_cur_lang)
+                        plan = generate_montage_plan(_chosen.get("script", {}), lang=_cur_lang, idea_type=ab_result.get("idea_type", ""))
                         st.session_state["sv_montage"]      = plan
                         st.session_state["sv_result"]       = _sv_compat
                         st.session_state["sv_idea_stored"]  = st.session_state.get("sv_idea_stored", "")
@@ -2036,7 +2036,7 @@ with tab_script:
                     with st.spinner("Génération du plan de montage…"):
                         try:
                             _cur_lang = st.session_state.get("sv_lang", "fr")
-                            plan = generate_montage_plan(sv.get("script", {}), lang=_cur_lang)
+                            plan = generate_montage_plan(sv.get("script", {}), lang=_cur_lang, idea_type=sv.get("idea_type", ""))
                             st.session_state["sv_montage"] = plan
                         except Exception as exc:
                             st.error(f"Erreur : {exc}")

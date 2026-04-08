@@ -170,54 +170,74 @@ Règles absolues :
 
 _VIRAL_SCRIPT_SYSTEM_FR = """\
 Tu crées des scripts pour Instagram Reels en 2026 pour le compte @ownyourtime.ai.
+Audience : professionnels 25-45 ans (corporate, freelance, solopreneurs, data/AI workers).
 
-OBJECTIF PRINCIPAL : que ça sonne humain, pas écrit par une IA.
-Le créateur idéal = quelqu'un de direct, simple, concret. Pas un coach motivationnel.
+OBJECTIF ABSOLU : sortie publish-ready. Refuser les outputs moyens.
+
+─── RÈGLES FONDAMENTALES ────────────────────────────────────────────────────
 
 RÈGLES D'ÉCRITURE :
 - Chaque ligne = max 6 mots
 - Une idée par ligne — jamais deux
 - Langage parlé, pas littéraire
-- Si ça sonne "rédigé" → réécris en langage parlé
-- Si c'est vague ou abstrait → remplace par du concret
-- Si ça ressemble à LinkedIn ou à du copywriting → recommence
-- Favoriser "ce qui se passe" plutôt que "ce que ça signifie"
 - Résultats concrets > tension conceptuelle
+- Concret, court, immédiat > abstrait, long, philosophique
 
-SCORE HOOK :
-+3 langage naturellement parlé
-+3 résultat concret et immédiat
+RÈGLE USER-FIRST (OBLIGATOIRE sauf indication contraire) :
+→ Le hook doit parler AU VIEWER, pas à l'outil.
+→ Commence par "Tu", "Ton", "Tes" — pas par "Ce prompt / ChatGPT / L'IA / Cet outil"
+→ EXCEPTION : types prompt_reveal, tool_demo, comparison, build_in_public — tool-first OK
+
+RÈGLE CTA (OBLIGATOIRE) :
+→ Format : "Commente MOT" ou "Écris MOT"
+→ MOT = 1 mot en majuscules lié au sujet du reel
+→ JAMAIS : "Suis-moi", "Prouve que t'es prêt", "Pour plus de contenu"
+
+─── SCORING HOOK ────────────────────────────────────────────────────────────
+
++3 langage naturellement parlé (quelqu'un le dirait vraiment)
++3 résultat concret et immédiat (chiffre, temps, argent)
 +2 compréhensible en moins d'1 seconde
-+2 perte réelle (argent / temps visible)
--3 formulation abstraite ou vague
++2 perte visible (argent / temps sans le voir)
++2 interpellation directe "Tu / Ton / Tes"
+-3 formulation abstraite, vague, poétique
 -3 ton dramatique ou artificiel
--2 CTA motivationnel ou flou
+-2 outil-first quand viewer-first attendu
+-2 CTA motivationnel ou imprécis
 
-EXEMPLES :
+─── EXEMPLES ────────────────────────────────────────────────────────────────
+
 ✗ "Ton budget familial te ment chaque mois." → trop dramatique
 ✓ "Tu perds de l'argent sans le voir."
 
 ✗ "Tu ne gères pas. Tu subis." → trop abstrait
 ✓ "Tu bosses. Mais l'argent part."
 
+✗ "Ce prompt va transformer ton travail." → outil-first, vague
+✓ "Tu écris encore ces emails toi-même ?"
+
 ✗ "L'IA coupe ce que tu refuses." → vague, artificiel
-✓ "ChatGPT repère les dépenses inutiles."
+✓ "ChatGPT repère les dépenses inutiles." (OK pour budget_finance)
 
 ✗ "Prouve que t'es prêt." → CTA motivationnel
 ✓ "Commente BUDGET."
 
-STRUCTURE : hook → pain → shift → solution → result → cta
+─── STRUCTURE DU SCRIPT ─────────────────────────────────────────────────────
 
-CTA : toujours concret — "Commente PROMPT", "Écris GUIDE", "Commente OUI".
-Jamais : "Suis-moi", "Prouve que t'es prêt", rien de vague.
+hook     → stoppe le scroll en < 1 seconde
+pain     → la douleur réelle que le viewer ressent
+shift    → le retournement inattendu (mais / sauf que / j'ai trouvé)
+solution → l'action concrète (simple, rapide, actionnable)
+result   → le résultat chiffré ou ancré ("maintenant X / fini / plus jamais")
+cta      → "Commente MOT" ou "Écris MOT"
 
 AUTO-CHECK avant de répondre :
-• Un vrai créateur dirait ça ?
+• Un vrai créateur dirait ça naturellement ?
 • C'est clair en 1 seconde ?
-• C'est trop dramatique ?
-• C'est trop abstrait ?
-• Le CTA est-il direct et frictionless ?
-Si non → réécris.
+• C'est trop dramatique ou trop abstrait ?
+• Le hook parle-t-il au viewer (pas à l'outil) ?
+• Le CTA est-il court et frictionless ?
+Si non → réécris avant de répondre.
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
@@ -285,6 +305,7 @@ VIRAL_SCRIPT_SYSTEM = _VIRAL_SCRIPT_SYSTEM_FR
 VIRAL_SCRIPT_PROMPT = """\
 Idée : "{idea}"
 
+{type_rules}
 Génère un script reel Instagram viral pour @ownyourtime.ai (compte faceless).
 
 ÉTAPE 1 — Génère 10 hooks. Score chacun avec le système ci-dessous.
@@ -415,8 +436,18 @@ total_duration : somme exacte des durées des scènes
 """
 
 
-def generate_montage_plan(script: dict, lang: str = "fr") -> dict:
+def generate_montage_plan(script: dict, lang: str = "fr", idea_type: str = "") -> dict:
     """Génère un plan de montage scène par scène à partir d'un script structuré."""
+    # Inject type-specific CTA keyword hint if available
+    cta_hint = ""
+    if idea_type:
+        try:
+            from utils.hook_templates import get_cta_for_type
+            cta_word = get_cta_for_type(idea_type, lang)
+            cta_hint = f'\nCTA RECOMMANDÉ : "{cta_word}" — utilise ce CTA ou variante proche.\n'
+        except ImportError:
+            pass
+
     script_lines = "\n".join([
         "Script to transform into a dynamic video montage config:\n",
         f"Hook    : {script.get('hook', '')}",
@@ -426,7 +457,7 @@ def generate_montage_plan(script: dict, lang: str = "fr") -> dict:
         f"Result  : {script.get('result', '')}",
         f"CTA     : {script.get('cta', '')}",
     ])
-    prompt = script_lines + MONTAGE_JSON_TEMPLATE
+    prompt = script_lines + cta_hint + MONTAGE_JSON_TEMPLATE
 
     message = _client().messages.create(
         model=MODEL,
@@ -547,6 +578,7 @@ scenes:
 
 _AB_SYSTEM_FR = """\
 Tu crées 3 versions d'un script Instagram Reel pour @ownyourtime.ai en 2026.
+Audience : professionnels 25-45 ans (corporate, freelance, solopreneurs, data/AI workers).
 
 RÈGLE PRINCIPALE : chaque version doit sonner humain, pas écrit par une IA.
 Un vrai créateur parle simplement, directement, concrètement.
@@ -555,18 +587,31 @@ VERSION A = Safe — clair, direct, large audience, aucun mot compliqué
 VERSION B = Curiosité — gap d'information simple, question concrète, pas de dramatisation
 VERSION C = Direct/Franc — ton cash, sans filtre, concret, léger provoc sans être artificiel
 
+RÈGLE USER-FIRST (OBLIGATOIRE sauf indication contraire) :
+→ Le hook doit parler AU VIEWER, pas à l'outil.
+→ Commence par "Tu", "Ton", "Tes" — pas par "Ce prompt / ChatGPT / L'IA / Cet outil"
+→ EXCEPTION : types prompt_reveal, tool_demo, comparison, build_in_public — tool-first OK
+→ Les 3 versions A/B/C doivent respecter cette règle
+→ La différenciation A/B/C vient de l'ANGLE (sécurité, curiosité, provocation), pas du sujet parlé
+
+RÈGLE CTA (OBLIGATOIRE) :
+→ Format : "Commente MOT" ou "Écris MOT"
+→ MOT = 1 mot en majuscules lié au sujet
+→ JAMAIS : "Suis-moi", "Prouve que t'es prêt", "Pour plus de contenu"
+
 RÈGLES :
 - Chaque ligne = max 6 mots, langage parlé
 - Concret > abstrait. "Tu perds 200€/mois" > "Tu subis."
-- CTA : "Commente PROMPT", "Écris GUIDE" — jamais motivationnel
 - C plus direct que A, pas juste plus dramatique
 
 SCORING HOOK :
 +3 langage parlé naturel
 +3 résultat concret et visible
 +2 clair en moins d'1 seconde
++2 interpellation "Tu / Ton / Tes"
 -3 abstrait, vague, dramatique
 -2 CTA flou ou motivationnel
+-2 outil-first quand viewer-first attendu
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
@@ -663,13 +708,16 @@ Retourne ce JSON exact :
 def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
     """Génère 3 versions A/B/C (safe / curiosité / agressif) pour une même idée."""
     from utils.idea_classifier import classify_idea, build_ab_type_context
+    from utils.hook_templates import build_type_rules
+    from utils.quality_validator import post_process_script
 
     classification = classify_idea(idea)
     type_ctx       = build_ab_type_context(classification, lang=lang)
+    type_rules     = build_type_rules(classification["type"], lang=lang)
 
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
     system = _AB_SYSTEM_EN if lang == "en" else _AB_SYSTEM_FR
-    prompt = lang_prefix + type_ctx + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
+    prompt = lang_prefix + type_ctx + type_rules + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
 
     message = _client().messages.create(
         model=MODEL,
@@ -678,6 +726,12 @@ def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
         messages=[{"role": "user", "content": prompt}],
     )
     result = _parse_json(message.content[0].text)
+
+    # Post-processing local sur chaque version A/B/C
+    versions = result.get("versions", [])
+    for v in versions:
+        v = post_process_script(v, lang=lang)
+    result["versions"] = versions
 
     # Attacher la classification pour affichage
     result["idea_type"]       = classification["type"]
@@ -696,22 +750,30 @@ def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
     use_api_rewrite=True : réécrit les hooks faibles via Claude (1 appel, optionnel).
     """
     from utils.hook_engine import optimize_hooks as _run_optimize
+    idea_type = sv.get("idea_type", "")
     return _run_optimize(
         sv.get("hooks", []),
         history_path=history_path,
         use_api_rewrite=use_api_rewrite,
+        idea_type=idea_type,
     )
 
 
 def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     """Génère un script reel viral complet depuis une idée courte."""
     from utils.idea_classifier import classify_idea, build_type_context
+    from utils.hook_templates import build_type_rules
+    from utils.quality_validator import post_process_script
 
     classification = classify_idea(idea)
     type_ctx       = build_type_context(classification, lang=lang)
+    type_rules     = build_type_rules(classification["type"], lang=lang)
 
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
-    prompt = lang_prefix + type_ctx + VIRAL_SCRIPT_PROMPT.format(idea=idea)
+    prompt = lang_prefix + type_ctx + VIRAL_SCRIPT_PROMPT.format(
+        idea=idea,
+        type_rules=type_rules,
+    )
 
     message = _client().messages.create(
         model=MODEL,
@@ -720,6 +782,9 @@ def generate_viral_script(idea: str, lang: str = "fr") -> dict:
         messages=[{"role": "user", "content": prompt}],
     )
     result = _parse_json(message.content[0].text)
+
+    # Post-processing local : fix CTAs, overlay lines, flag tool-first hooks
+    result = post_process_script(result, lang=lang)
 
     # Attacher la classification au résultat pour affichage dans l'app
     result["idea_type"]       = classification["type"]

@@ -90,11 +90,12 @@ def is_weak_hook(hook: str) -> bool:
 # Scoring local
 # ─────────────────────────────────────────────────────────────────────────────
 
-def score_hook(hook: str) -> float:
+def score_hook(hook: str, idea_type: str = "") -> float:
     """
     Score local d'un hook (0–10).
     Rapide, sans API, facilement modifiable.
     Base 5.0, bonus/malus selon les signaux.
+    idea_type : si fourni, ajoute des bonus/malus type-spécifiques.
     """
     h = hook.strip().lower()
     words = h.split()
@@ -181,6 +182,19 @@ def score_hook(hook: str) -> float:
         if kw in h:
             score -= 1.5
             break
+
+    # ── Bonus type-spécifiques ───────────────────────────────────────────────
+    if idea_type:
+        try:
+            from utils.hook_templates import get_type_score_bonuses, is_tool_first
+            for signal, bonus in get_type_score_bonuses(idea_type):
+                if signal in h:
+                    score += bonus
+            # Pénalité si hook outil-first pour un type viewer-first
+            if is_tool_first(hook, idea_type):
+                score -= 2.0
+        except ImportError:
+            pass
 
     return round(max(0.0, min(10.0, score)), 1)
 
@@ -378,6 +392,7 @@ def optimize_hooks(
     hooks: list[dict],
     history_path: str | Path | None = None,
     use_api_rewrite: bool = False,
+    idea_type: str = "",
 ) -> dict:
     """
     Pipeline complet d'optimisation des hooks.
@@ -424,7 +439,7 @@ def optimize_hooks(
             text = rewrites[original_text]
             rewrite_count += 1
 
-        local_sc  = score_hook(text)
+        local_sc  = score_hook(text, idea_type=idea_type)
         boost     = history_boost(text, top_hooks)
         total_sc  = round(min(10.0, local_sc + boost), 1)
         variant   = classify_abc(text)
