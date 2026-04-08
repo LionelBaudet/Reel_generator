@@ -20,7 +20,7 @@ import yaml
 import os as _os
 try:
     import streamlit as _st_tmp
-    for _secret_key in ("ANTHROPIC_API_KEY", "PEXELS_API_KEY"):
+    for _secret_key in ("ANTHROPIC_API_KEY", "PEXELS_API_KEY", "ELEVENLABS_API_KEY"):
         _val = _st_tmp.secrets.get(_secret_key, "")
         if _val:
             _os.environ.setdefault(_secret_key, _val)
@@ -2238,7 +2238,14 @@ with tab_script:
                         with st.spinner("Génération de la voix-off via ElevenLabs..."):
                             try:
                                 from generate_voiceover import generate_voiceover
-                                _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out)
+                                _el_key = (
+                                    _os.environ.get("ELEVENLABS_API_KEY", "")
+                                    or st.secrets.get("ELEVENLABS_API_KEY", "")
+                                )
+                                if not _el_key:
+                                    st.error("ELEVENLABS_API_KEY non configurée. Ajoute-la dans `.env` ou `st.secrets`.")
+                                    st.stop()
+                                _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out, api_key=_el_key)
                                 st.session_state["sv_voiceover_path"] = str(_vo_result)
                                 st.session_state["sv_voiceover_text"] = _vo_text
                                 _vo_path_existing = str(_vo_result)
