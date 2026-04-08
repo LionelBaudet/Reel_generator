@@ -139,7 +139,9 @@ class SceneRenderer:
             layer = Image.new("RGBA", (RENDER_W, RENDER_H), (0, 0, 0, 0))
             td    = ImageDraw.Draw(layer)
             total = sum(len(l) for l in lines)
-            vis, shown = max(1, int(progress * total)), 0
+            # Typing finishes at 80 % of scene — 20 % hold so last word stays visible
+            typing_progress = min(1.0, t / max(self.duration * 0.80, 0.001))
+            vis, shown = max(1, int(typing_progress * total)), 0
             for li, line in enumerate(lines):
                 take  = min(max(0, vis - shown), len(line))
                 shown += len(line)

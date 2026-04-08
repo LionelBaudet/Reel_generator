@@ -244,7 +244,10 @@ class SceneRenderer:
         frame    = self._bg(t)
 
         if self.anim == "typing":
-            return self._make_frame_typing(frame, progress)
+            # Typing finishes at 80 % of scene duration — last 20 % holds the
+            # complete text so the final word is always visible before cut.
+            typing_progress = min(1.0, t / max(self.duration * 0.80, 0.001))
+            return self._make_frame_typing(frame, typing_progress)
 
         if self._pre is None:
             return frame
