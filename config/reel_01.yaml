@@ -1,0 +1,28 @@
+title: "Stop typing emails from scratch"
+
+voiceover:
+  text: >
+    Stop typing emails from scratch.
+    Use this prompt instead.
+    Copy it, paste it, done.
+    Save 20 minutes every single day.
+  voice_id: "EXAVITQu4vr4xnSDxMaL"   # Sarah — clear, professional
+  speed: 1.0
+  stability: 0.5
+  similarity_boost: 0.75
+  style: 0.0
+  model_id: "eleven_multilingual_v2"   # supports French + English
+
+video:
+  clips:
+    - assets/video/typing_person.mp4   # place your b-roll here
+  background_music: assets/audio/lofi_beat.wav
+  music_volume: 0.15
+  voiceover_volume: 1.0
+  music_fade_out: 0.5                  # seconds
+
+slides: []                             # add PNG paths here if needed
+  # - assets/slides/slide_01.png
+  # - assets/slides/slide_02.png
+
+output: output/reel_01.mp4
