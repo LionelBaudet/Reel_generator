@@ -128,8 +128,9 @@ def generate_voiceover(
         },
     }
 
-    print(f"[voiceover] Requesting TTS from ElevenLabs (voice={voice_id})…")
-    print(f"[voiceover] Text ({len(text)} chars): {text[:80]}{'…' if len(text) > 80 else ''}")
+    print(f"[voiceover] Requesting TTS from ElevenLabs (voice={voice_id})...")
+    snippet = text[:80] + ("..." if len(text) > 80 else "")
+    print(f"[voiceover] Text ({len(text)} chars): {snippet}")
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=60)
@@ -157,7 +158,7 @@ def generate_voiceover(
     out_path.write_bytes(response.content)
 
     size_kb = out_path.stat().st_size // 1024
-    print(f"[voiceover] Saved → {out_path}  ({size_kb} KB)")
+    print(f"[voiceover] Saved: {out_path}  ({size_kb} KB)")
 
     return out_path
 
