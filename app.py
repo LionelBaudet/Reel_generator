@@ -5,6 +5,7 @@ Lancez avec : streamlit run app.py
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -2168,6 +2169,90 @@ with tab_script:
                                         st.error(f"Pexels : {_pe}")
 
                 st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
+                # ── Étape 3.5 — Voix-off ElevenLabs ─────────────────────────
+                st.markdown('<div class="section-title">🎙️ Étape 3.5 — Voix-off ElevenLabs</div>',
+                            unsafe_allow_html=True)
+
+                _vo_path_existing = st.session_state.get("sv_voiceover_path", "")
+
+                # Derive default voiceover text from scene texts
+                _scenes_text = " ".join(
+                    str(sc.get("text", ""))
+                    for sc in montage.get("scenes", [])
+                    if sc.get("text")
+                )
+                _vo_text_default = st.session_state.get("sv_voiceover_text") or _scenes_text
+
+                _vo_col1, _vo_col2 = st.columns([3, 1])
+                with _vo_col1:
+                    _vo_text = st.text_area(
+                        "Texte de la voix-off",
+                        value=_vo_text_default,
+                        height=120,
+                        key="sv_vo_text_area",
+                        help="Texte que lira ElevenLabs. Dérive automatiquement des scènes du montage.",
+                    )
+                with _vo_col2:
+                    _VOICES = {
+                        "Sarah — claire, pro (fr/en)": "EXAVITQu4vr4xnSDxMaL",
+                        "Adam — profond, autorité":    "pNInz6obpgDQGcFmaJgB",
+                        "Antoni — naturel, convers.":  "ErXwobaYiN019PkySvjV",
+                    }
+                    _vo_voice_label = st.selectbox(
+                        "Voix", list(_VOICES.keys()), key="sv_vo_voice"
+                    )
+                    _vo_voice_id = _VOICES[_vo_voice_label]
+                    _vo_speed = st.slider(
+                        "Vitesse", 0.7, 1.3, 1.0, 0.05, key="sv_vo_speed"
+                    )
+                    _vo_stability = st.slider(
+                        "Stabilité", 0.2, 1.0, 0.5, 0.05, key="sv_vo_stability"
+                    )
+
+                _vo_btn_col, _vo_status_col = st.columns([1, 2])
+                with _vo_btn_col:
+                    _btn_vo = st.button(
+                        "Générer la voix-off",
+                        type="primary", use_container_width=True, key="btn_gen_vo",
+                    )
+
+                if _btn_vo:
+                    if not _vo_text.strip():
+                        st.warning("Le texte de la voix-off est vide.")
+                    else:
+                        _idea_slug = re.sub(r"[^\w]", "_",
+                                            st.session_state.get("sv_idea_stored", "reel").lower())[:30]
+                        _vo_out = Path("assets/voiceover") / f"{_idea_slug}.mp3"
+                        _vo_cfg = {
+                            "title": _idea_slug,
+                            "voiceover": {
+                                "text":             _vo_text,
+                                "voice_id":         _vo_voice_id,
+                                "speed":            _vo_speed,
+                                "stability":        _vo_stability,
+                                "similarity_boost": 0.75,
+                                "model_id":         "eleven_multilingual_v2",
+                            },
+                        }
+                        with st.spinner("Génération de la voix-off via ElevenLabs..."):
+                            try:
+                                from generate_voiceover import generate_voiceover
+                                _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out)
+                                st.session_state["sv_voiceover_path"] = str(_vo_result)
+                                st.session_state["sv_voiceover_text"] = _vo_text
+                                _vo_path_existing = str(_vo_result)
+                                st.success(f"Voix-off prête : `{_vo_result.name}` ({_vo_result.stat().st_size // 1024} KB)")
+                            except SystemExit as _e:
+                                st.error(f"Erreur ElevenLabs : {_e}")
+                            except Exception as _e:
+                                st.error(f"Erreur inattendue : {_e}")
+
+                if _vo_path_existing and Path(_vo_path_existing).exists():
+                    with _vo_status_col:
+                        st.audio(_vo_path_existing, format="audio/mp3")
+
+                st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
                 st.markdown('<div class="section-title">🚀 Étape 4 — Générer le Reel</div>', unsafe_allow_html=True)
 
                 idea_for_reel = st.session_state.get("sv_idea_stored", "")
@@ -2176,6 +2261,7 @@ with tab_script:
                     sv, montage, idea_for_reel,
                     video_paths=_pexels_paths or None,
                     lang=_reel_lang,
+                    voiceover_path=st.session_state.get("sv_voiceover_path", ""),
                 )
 
                 # ── Self-check validation ──────────────────────────────────────

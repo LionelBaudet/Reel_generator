@@ -47,17 +47,58 @@ def generate_silence(duration_seconds: float, output_path: str, sample_rate: int
     return output_path
 
 
+def _get_bg_clip(audio_config: dict, total_duration: float, AudioFileClip, CompositeAudioClip):
+    """Returns a background music clip (looped + trimmed), or None."""
+    bg_music_path = audio_config.get("background_music", "")
+    volume        = float(audio_config.get("volume", 0.3))
+
+    if bg_music_path and os.path.exists(bg_music_path):
+        logger.info(f"Chargement de la musique: {bg_music_path}")
+        try:
+            clip = AudioFileClip(bg_music_path)
+            if clip.duration < total_duration:
+                from moviepy.audio.AudioClip import concatenate_audioclips
+                repeats = int(total_duration / clip.duration) + 1
+                clip = concatenate_audioclips([clip] * repeats)
+            return clip.subclip(0, total_duration).volumex(volume)
+        except Exception as e:
+            logger.warning(f"Erreur chargement audio {bg_music_path}: {e}")
+
+    try:
+        from utils.audio_gen import ensure_lofi_beat
+        beat_path = ensure_lofi_beat("assets/audio/lofi_beat.wav",
+                                      duration=max(35.0, total_duration + 5))
+        logger.info(f"Beat lo-fi généré : {beat_path}")
+        clip = AudioFileClip(beat_path)
+        if clip.duration < total_duration:
+            from moviepy.audio.AudioClip import concatenate_audioclips
+            repeats = int(total_duration / clip.duration) + 1
+            clip = concatenate_audioclips([clip] * repeats)
+        return clip.subclip(0, total_duration).volumex(volume)
+    except Exception as e:
+        logger.warning(f"Beat lo-fi indisponible ({e}) — génération de silence")
+
+    silence_path = "output/silence_temp.wav"
+    os.makedirs("output", exist_ok=True)
+    generate_silence(total_duration, silence_path)
+    try:
+        return AudioFileClip(silence_path).volumex(0)
+    except Exception as e:
+        logger.warning(f"Impossible de créer le clip audio de silence: {e}")
+        return None
+
+
 def get_audio_clip(audio_config: dict, total_duration: float):
     """
     Prépare le clip audio pour le reel.
-    Retourne un AudioFileClip MoviePy ou None si pas d'audio.
+    Si un voiceover est configuré (audio.voiceover), le mixe avec la musique de fond.
 
     Args:
-        audio_config: Section 'audio' du fichier de configuration
-        total_duration: Durée totale de la vidéo en secondes
+        audio_config:   Section 'audio' du fichier de configuration.
+        total_duration: Durée totale de la vidéo en secondes.
 
     Returns:
-        AudioFileClip ou None
+        AudioFileClip ou CompositeAudioClip ou None.
     """
     try:
         from moviepy.editor import AudioFileClip, CompositeAudioClip
@@ -65,50 +106,25 @@ def get_audio_clip(audio_config: dict, total_duration: float):
         try:
             from moviepy import AudioFileClip, CompositeAudioClip
         except ImportError:
-            logger.error("MoviePy n'est pas installé")
+            logger.error("MoviePy n'est pas installe")
             return None
 
-    bg_music_path = audio_config.get("background_music", "")
-    volume = float(audio_config.get("volume", 0.3))
+    bg_clip = _get_bg_clip(audio_config, total_duration, AudioFileClip, CompositeAudioClip)
 
-    # Vérifier si le fichier de musique existe
-    if bg_music_path and os.path.exists(bg_music_path):
-        logger.info(f"Chargement de la musique: {bg_music_path}")
+    # Mix voiceover if provided
+    voiceover_path   = audio_config.get("voiceover", "").strip()
+    voiceover_volume = float(audio_config.get("voiceover_volume", 1.0))
+
+    if voiceover_path and os.path.exists(voiceover_path):
         try:
-            audio_clip = AudioFileClip(bg_music_path)
-            # Boucler si nécessaire
-            if audio_clip.duration < total_duration:
-                from moviepy.audio.AudioClip import concatenate_audioclips
-                repeats = int(total_duration / audio_clip.duration) + 1
-                audio_clip = concatenate_audioclips([audio_clip] * repeats)
-            # Couper à la durée exacte et ajuster le volume
-            audio_clip = audio_clip.subclip(0, total_duration).volumex(volume)
-            return audio_clip
+            vo_clip = AudioFileClip(voiceover_path).volumex(voiceover_volume)
+            logger.info(f"Voiceover charge : {voiceover_path} ({vo_clip.duration:.1f}s)")
+            if bg_clip is not None:
+                # Limit bg to voiceover duration so voiceover drives the mix length
+                bg_trimmed = bg_clip.subclip(0, min(bg_clip.duration, total_duration))
+                return CompositeAudioClip([bg_trimmed, vo_clip])
+            return vo_clip
         except Exception as e:
-            logger.warning(f"Erreur chargement audio {bg_music_path}: {e}")
+            logger.warning(f"Voiceover non charge ({e}) — musique seule")
 
-    # Générer un beat lo-fi synthétique si pas de fichier audio disponible
-    try:
-        from utils.audio_gen import ensure_lofi_beat
-        beat_path = ensure_lofi_beat("assets/audio/lofi_beat.wav", duration=max(35.0, total_duration + 5))
-        logger.info(f"Beat lo-fi généré : {beat_path}")
-        audio_clip = AudioFileClip(beat_path)
-        if audio_clip.duration < total_duration:
-            from moviepy.audio.AudioClip import concatenate_audioclips
-            repeats = int(total_duration / audio_clip.duration) + 1
-            audio_clip = concatenate_audioclips([audio_clip] * repeats)
-        audio_clip = audio_clip.subclip(0, total_duration).volumex(volume)
-        return audio_clip
-    except Exception as e:
-        logger.warning(f"Beat lo-fi indisponible ({e}) — génération de silence")
-
-    silence_path = "output/silence_temp.wav"
-    os.makedirs("output", exist_ok=True)
-    generate_silence(total_duration, silence_path)
-
-    try:
-        audio_clip = AudioFileClip(silence_path).volumex(0)
-        return audio_clip
-    except Exception as e:
-        logger.warning(f"Impossible de créer le clip audio de silence: {e}")
-        return None
+    return bg_clip

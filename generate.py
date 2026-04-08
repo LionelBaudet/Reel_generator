@@ -470,7 +470,8 @@ def generate_montage_plan(script: dict, lang: str = "fr", idea_type: str = "") -
 
 def build_yaml_from_viral_script(sv: dict, montage: dict, idea: str,
                                    video_paths: list | None = None,
-                                   lang: str = "fr") -> tuple:
+                                   lang: str = "fr",
+                                   voiceover_path: str = "") -> tuple:
     """
     Construit un YAML viral_text_centric_v1 depuis le script viral + plan de montage.
     video_paths : liste de chemins locaux de vidéos Pexels (optionnel).
@@ -540,6 +541,8 @@ broll_video: "{fallback_video}"
 audio:
   background_music: "{audio_path}"
   volume: 0.28
+  voiceover: "{voiceover_path}"
+  voiceover_volume: 1.0
 
 scenes:
 """
