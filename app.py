@@ -62,19 +62,37 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* ── Design Tokens ─────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   REELS GENERATOR — Design System v3
+   Premium SaaS · Clean · Professional · Production-ready
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Design Tokens ──────────────────────────────────────────────────────────── */
 :root {
-  --gold:         #C8972A;
-  --gold-dark:    #A87820;
-  --gold-light:   #FFF8EC;
-  --gold-border:  #E8C97A;
-  --bg:           #FFFFFF;
-  --surface:      #F8F9FB;
-  --surface-2:    #F0F2F5;
-  --border:       #E2E8F0;
-  --text:         #1A202C;
-  --text-2:       #4A5568;
-  --text-muted:   #718096;
+  /* Brand */
+  --brand:        #D4A843;
+  --brand-dark:   #B8901E;
+  --brand-deeper: #966F0A;
+  --brand-light:  #FEF9ED;
+  --brand-border: #F0D080;
+
+  /* Neutrals */
+  --bg:           #F7F8FA;
+  --surface:      #FFFFFF;
+  --surface-2:    #F3F4F6;
+  --surface-3:    #EAECF0;
+  --border:       #E5E7EB;
+  --border-dark:  #D1D5DB;
+
+  /* Text */
+  --text:         #111827;
+  --text-2:       #374151;
+  --text-muted:   #6B7280;
+  --text-faint:   #9CA3AF;
+
+  /* Status */
   --success:      #059669;
   --success-bg:   #ECFDF5;
   --success-bd:   #A7F3D0;
@@ -87,172 +105,352 @@ st.markdown("""
   --info:         #2563EB;
   --info-bg:      #EFF6FF;
   --info-bd:      #BFDBFE;
-  --r-sm:         6px;
-  --r:            10px;
-  --r-lg:         14px;
-  --shadow-xs:    0 1px 2px rgba(0,0,0,.05);
-  --shadow-sm:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-  --shadow:       0 4px 8px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05);
-  --shadow-md:    0 8px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+
+  /* Radius */
+  --r-xs:   3px;
+  --r-sm:   6px;
+  --r:      8px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-xl:   20px;
+  --r-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow:    0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-md: 0 10px 18px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+
+  /* Legacy compat */
+  --gold:        var(--brand);
+  --gold-dark:   var(--brand-dark);
+  --gold-light:  var(--brand-light);
+  --gold-border: var(--brand-border);
 }
 
-/* ── Global ─────────────────────────────────────────────────────────────────── */
-.stApp { background: var(--bg) !important; }
+/* ── Reset & Base ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, .stApp {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  background: var(--bg) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Clean up Streamlit chrome */
+footer, #MainMenu, .stDeployButton,
+[data-testid="stToolbar"], [data-testid="stStatusWidget"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Main area */
+.main .block-container {
+  padding-top: 1.75rem !important;
+  padding-left: 2.25rem !important;
+  padding-right: 2.25rem !important;
+  max-width: 1280px !important;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
   background: var(--surface) !important;
   border-right: 1px solid var(--border) !important;
 }
-h1, h2, h3 { color: var(--text) !important; letter-spacing: -0.02em; }
-h2 { font-size: 1.35rem !important; margin-bottom: 0.25rem !important; }
-h3 { font-size: 1.05rem !important; }
-p, label, .stMarkdown, .stCaption { color: var(--text-2) !important; }
-.stCaption { color: var(--text-muted) !important; font-size: 0.8rem !important; }
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+h1 {
+  font-size: 1.5rem !important; font-weight: 800 !important;
+  color: var(--text) !important; letter-spacing: -0.025em !important;
+  line-height: 1.25 !important; margin-bottom: 0.25rem !important;
+}
+h2 {
+  font-size: 1.2rem !important; font-weight: 700 !important;
+  color: var(--text) !important; letter-spacing: -0.02em !important;
+  margin-bottom: 0.2rem !important;
+}
+h3 {
+  font-size: 0.975rem !important; font-weight: 600 !important;
+  color: var(--text) !important;
+}
+p, .stMarkdown p { color: var(--text-2) !important; font-size: 0.9rem !important; line-height: 1.55 !important; }
+.stCaption, small { color: var(--text-muted) !important; font-size: 0.8rem !important; }
 
 /* ── Inputs ─────────────────────────────────────────────────────────────────── */
-.stTextArea textarea, .stTextInput input, .stSelectbox select {
-  background: var(--bg) !important;
+.stTextArea textarea, .stTextInput input {
+  background: var(--surface) !important;
   color: var(--text) !important;
   border: 1.5px solid var(--border) !important;
   border-radius: var(--r) !important;
-  font-size: 0.92rem !important;
-  transition: border-color .15s;
+  font-size: 0.9rem !important;
+  font-family: 'Inter', sans-serif !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 .stTextArea textarea:focus, .stTextInput input:focus {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(200,151,42,.12) !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(212,168,67,.18) !important;
+  outline: none !important;
 }
-.stSlider > div { color: var(--text); }
-.stNumberInput input { border-radius: var(--r) !important; }
+.stSelectbox [data-baseweb="select"] > div:first-child {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--r) !important;
+}
+.stNumberInput input {
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--r) !important;
+}
+label, .stWidgetLabel p {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--text-2) !important;
+  letter-spacing: 0.01em !important;
+}
 
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 .stButton > button {
-  min-height: 42px !important;
+  height: 40px !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   border-radius: var(--r) !important;
   transition: all .15s ease !important;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.01em !important;
+  font-family: 'Inter', sans-serif !important;
 }
 .stButton > button[kind="primary"] {
-  background: var(--gold) !important;
+  background: var(--brand) !important;
   color: #fff !important;
-  border: none !important;
-  box-shadow: var(--shadow-xs) !important;
+  border: 1.5px solid var(--brand-dark) !important;
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255,255,255,.12) !important;
 }
 .stButton > button[kind="primary"]:hover {
-  background: var(--gold-dark) !important;
+  background: var(--brand-dark) !important;
+  border-color: var(--brand-deeper) !important;
   box-shadow: var(--shadow-sm) !important;
-  transform: translateY(-1px);
+  transform: translateY(-1px) !important;
 }
+.stButton > button[kind="primary"]:active { transform: translateY(0) !important; }
 .stButton > button[kind="secondary"] {
-  background: var(--bg) !important;
+  background: var(--surface) !important;
   border: 1.5px solid var(--border) !important;
-  color: var(--text) !important;
+  color: var(--text-2) !important;
+  box-shadow: var(--shadow-xs) !important;
 }
 .stButton > button[kind="secondary"]:hover {
-  border-color: var(--gold) !important;
-  color: var(--gold) !important;
-  background: var(--gold-light) !important;
+  border-color: var(--brand-border) !important;
+  color: var(--brand-dark) !important;
+  background: var(--brand-light) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
-/* ── Tabs ───────────────────────────────────────────────────────────────────── */
+/* ── Tabs — Pill Style ──────────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {
-  gap: 0 !important;
-  border-bottom: 1.5px solid var(--border) !important;
+  gap: 2px !important;
+  background: var(--surface-2) !important;
+  border-radius: var(--r-md) !important;
+  padding: 3px !important;
+  border-bottom: none !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  margin-bottom: 1.5rem !important;
 }
 .stTabs [data-baseweb="tab"] {
   color: var(--text-muted) !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  padding: 0.6rem 1rem !important;
-  border-radius: 0 !important;
-  transition: color .15s;
-}
-.stTabs [aria-selected="true"] {
-  color: var(--gold) !important;
-  border-bottom: 2.5px solid var(--gold) !important;
+  font-weight: 500 !important;
+  font-size: 0.825rem !important;
+  padding: 0.38rem 0.85rem !important;
+  border-radius: var(--r-sm) !important;
+  transition: all .12s ease !important;
+  border: none !important;
   background: transparent !important;
+  white-space: nowrap !important;
+}
+.stTabs [data-baseweb="tab"]:hover { color: var(--text) !important; background: rgba(0,0,0,.04) !important; }
+.stTabs [aria-selected="true"] {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--shadow-xs) !important;
+  border: none !important;
 }
 
-/* ── Cards ─────────────────────────────────────────────────────────────────── */
-.card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 1.2rem 1.4rem;
-  margin-bottom: 0.875rem;
-  box-shadow: var(--shadow-sm);
+/* ── Progress ───────────────────────────────────────────────────────────────── */
+.stProgress > div > div {
+  background: var(--surface-3) !important;
+  border-radius: var(--r-full) !important;
+  height: 5px !important;
 }
-.card:hover { border-color: var(--gold-border); box-shadow: var(--shadow); }
+.stProgress > div > div > div {
+  background: linear-gradient(90deg, var(--brand), var(--brand-dark)) !important;
+  border-radius: var(--r-full) !important;
+}
 
-.reel-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 1rem 1.2rem;
-  margin-bottom: 0.75rem;
-  transition: border-color .15s, box-shadow .15s;
+/* ── Metrics ────────────────────────────────────────────────────────────────── */
+[data-testid="metric-container"] {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  padding: 1rem 1.2rem !important;
+  box-shadow: var(--shadow-xs) !important;
 }
-.reel-card:hover { border-color: var(--gold-border); box-shadow: var(--shadow-sm); }
+[data-testid="stMetricLabel"] {
+  font-size: 0.72rem !important; font-weight: 700 !important;
+  color: var(--text-muted) !important; text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+}
+[data-testid="stMetricValue"] {
+  font-size: 1.65rem !important; font-weight: 800 !important;
+  color: var(--text) !important; letter-spacing: -0.03em !important;
+}
+
+/* ── Expanders ──────────────────────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  color: var(--text) !important;
+  padding: 0.65rem 1rem !important;
+  transition: background .12s ease;
+}
+.streamlit-expanderHeader:hover { background: var(--surface-2) !important; }
+.streamlit-expanderContent {
+  border: 1px solid var(--border) !important;
+  border-top: none !important;
+  border-radius: 0 0 var(--r) var(--r) !important;
+  padding: 1rem !important;
+}
+
+/* ── DataFrames ─────────────────────────────────────────────────────────────── */
+.stDataFrame {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CUSTOM COMPONENTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Page Header ────────────────────────────────────────────────────────────── */
+.page-header {
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.75rem;
+}
+.page-header-eyebrow {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--brand); margin-bottom: 4px;
+}
+.page-header-title {
+  font-size: 1.45rem; font-weight: 800; color: var(--text);
+  letter-spacing: -0.025em; line-height: 1.2; margin: 0 0 6px 0;
+}
+.page-header-sub {
+  font-size: 0.875rem; color: var(--text-muted); margin: 0; line-height: 1.5;
+}
+
+/* ── App Brand (sidebar) ────────────────────────────────────────────────────── */
+.app-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 1.1rem 1rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.app-brand-icon {
+  width: 34px; height: 34px;
+  background: var(--brand);
+  border-radius: var(--r);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(212,168,67,.35);
+}
+.app-brand-name { font-size: 0.9rem; font-weight: 800; color: var(--text); line-height: 1.1; }
+.app-brand-handle { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+
+/* ── Status Indicators ──────────────────────────────────────────────────────── */
+.status-row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0.3rem 1rem; font-size: 0.78rem; color: var(--text-2);
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.status-dot.ok    { background: var(--success); box-shadow: 0 0 5px rgba(5,150,105,.5); }
+.status-dot.warn  { background: var(--warning); }
+.status-dot.error { background: var(--error); }
+.status-dot.off   { background: var(--text-faint); }
+
+/* ── Sidebar KPI Grid ───────────────────────────────────────────────────────── */
+.sidebar-section-label {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--text-faint); padding: 0.65rem 1rem 0.2rem;
+}
+.kpi-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 0.8rem 0.75rem;
+}
+.kpi-item {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 0.55rem 0.6rem; text-align: center;
+  transition: border-color .12s;
+}
+.kpi-item:hover { border-color: var(--brand-border); }
+.kpi-item-value { font-size: 1.05rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+.kpi-item-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+
+/* ── Divider ────────────────────────────────────────────────────────────────── */
+.gold-hr, hr.section-hr {
+  border: none; border-top: 1px solid var(--border); margin: 1.4rem 0;
+}
+
+/* ── Section Label ──────────────────────────────────────────────────────────── */
+.section-title {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--text-muted); margin: 1.5rem 0 0.6rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
 
 /* ── Step Indicator ─────────────────────────────────────────────────────────── */
 .step-bar {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin: 0.5rem 0 1.75rem;
-  padding: 0;
+  display: flex; align-items: center;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-xl); padding: 0.45rem 1rem;
+  margin: 0 0 1.75rem 0; gap: 0;
 }
 .step-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex: 1;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
+  display: flex; align-items: center; gap: 0.4rem; flex: 1;
+  font-size: 0.73rem; font-weight: 600; color: var(--text-muted); white-space: nowrap;
 }
 .step-item .step-num {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  border: 1.5px solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.68rem;
-  font-weight: 700;
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface); border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: 0.68rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  transition: all .15s ease;
 }
-.step-item.done .step-num {
-  background: var(--success-bg);
-  border-color: var(--success-bd);
-  color: var(--success);
-}
+.step-item.done .step-num  { background: var(--success-bg); border-color: var(--success-bd); color: var(--success); }
 .step-item.active .step-num {
-  background: var(--gold-light);
-  border-color: var(--gold-border);
-  color: var(--gold);
+  background: var(--brand-light); border-color: var(--brand-border);
+  color: var(--brand); box-shadow: 0 0 0 3px rgba(212,168,67,.15);
 }
-.step-item.active { color: var(--gold); }
-.step-item.done { color: var(--success); }
+.step-item.active { color: var(--brand); font-weight: 700; }
+.step-item.done   { color: var(--success); }
 .step-connector {
-  flex: 1;
-  height: 1.5px;
-  background: var(--border);
-  margin: 0 0.3rem;
-  max-width: 40px;
+  flex: 1; height: 1.5px; background: var(--border);
+  margin: 0 0.35rem; max-width: 40px; border-radius: 1px;
 }
 .step-connector.done { background: var(--success-bd); }
 
 /* ── Callouts ───────────────────────────────────────────────────────────────── */
 .callout {
-  border-radius: var(--r);
-  padding: 0.65rem 0.9rem;
-  margin: 0.6rem 0;
-  font-size: 0.83rem;
-  line-height: 1.5;
-  border-left: 3.5px solid;
+  border-radius: var(--r); padding: 0.7rem 1rem; margin: 0.5rem 0;
+  font-size: 0.85rem; line-height: 1.55; border-left: 4px solid;
 }
 .callout-info    { background: var(--info-bg);    border-color: var(--info);    color: #1e40af; }
 .callout-success { background: var(--success-bg); border-color: var(--success); color: #065f46; }
@@ -262,124 +460,171 @@ p, label, .stMarkdown, .stCaption { color: var(--text-2) !important; }
 /* ── Badges ─────────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 9px; border-radius: 20px;
-  font-size: 0.73rem; font-weight: 700;
-  border: 1px solid transparent;
+  padding: 2px 9px; border-radius: var(--r-full);
+  font-size: 0.72rem; font-weight: 700; border: 1.5px solid transparent;
 }
-.badge-ok      { background: var(--success-bg); color: var(--success); border-color: var(--success-bd); }
-.badge-miss    { background: var(--error-bg);   color: var(--error);   border-color: var(--error-bd); }
-.badge-warn    { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
-.badge-gen     { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
-.badge-info    { background: var(--info-bg);    color: var(--info);    border-color: var(--info-bd); }
-.badge-gold    { background: var(--gold-light); color: var(--gold);    border-color: var(--gold-border); }
+.badge-ok    { background: var(--success-bg); color: var(--success); border-color: var(--success-bd); }
+.badge-miss  { background: var(--error-bg);   color: var(--error);   border-color: var(--error-bd); }
+.badge-warn  { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
+.badge-info  { background: var(--info-bg);    color: var(--info);    border-color: var(--info-bd); }
+.badge-gold  { background: var(--brand-light); color: var(--brand);  border-color: var(--brand-border); }
+.badge-gen   { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
 
-/* ── Gold divider ───────────────────────────────────────────────────────────── */
-.gold-hr {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 1.25rem 0;
+/* ── Concept Card (Tab 0 variants) ─────────────────────────────────────────── */
+.concept-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+  height: 100%;
+}
+.concept-card:hover {
+  border-color: var(--brand-border); box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.concept-card.selected {
+  border-color: var(--brand); box-shadow: 0 0 0 3px rgba(212,168,67,.15);
+}
+.concept-card-header {
+  padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.concept-card-body { padding: 0.85rem 0.9rem; }
+.concept-card-hook {
+  background: var(--brand-light); border-left: 3px solid var(--brand);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 0.55rem 0.75rem; margin: 0.5rem 0 0.65rem;
+  font-size: 0.9rem; font-weight: 700; color: var(--text);
+  line-height: 1.35; font-style: italic;
+}
+.concept-card-meta {
+  font-size: 0.77rem; color: var(--text-muted); line-height: 1.4;
+  display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;
+}
+.concept-card-preview {
+  font-size: 0.8rem; color: var(--text-muted);
+  line-height: 1.45; font-style: italic; margin-top: 0.4rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* ── Script lines ───────────────────────────────────────────────────────────── */
+/* ── Script Display ─────────────────────────────────────────────────────────── */
+.script-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); overflow: hidden; margin-bottom: 0.75rem;
+}
 .script-line {
-  display: flex; gap: 0.75rem; align-items: flex-start;
-  padding: 0.6rem 0.75rem;
-  border-radius: var(--r-sm);
-  margin-bottom: 4px;
+  display: flex; gap: 0.8rem; align-items: flex-start;
+  padding: 0.65rem 1rem; border-bottom: 1px solid var(--surface-2);
   transition: background .1s;
 }
-.script-line:hover { background: var(--surface); }
+.script-line:last-child { border-bottom: none; }
+.script-line:hover { background: var(--surface-2); }
 .script-label {
-  min-width: 68px;
-  font-weight: 700;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding-top: 2px;
+  min-width: 70px; font-weight: 700; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; flex-shrink: 0;
 }
-.script-text { color: var(--text); font-size: 0.92rem; line-height: 1.5; }
+.script-text { color: var(--text); font-size: 0.9rem; line-height: 1.5; flex: 1; }
 
-/* ── Hook cards ─────────────────────────────────────────────────────────────── */
+/* ── Hook Cards ─────────────────────────────────────────────────────────────── */
 .hook-winner {
-  background: var(--gold-light);
-  border: 2px solid var(--gold-border);
-  border-radius: var(--r-lg);
-  padding: 1rem 1.2rem;
-  margin: 0.75rem 0;
+  background: var(--brand-light); border: 2px solid var(--brand-border);
+  border-radius: var(--r-lg); padding: 1rem 1.25rem; margin: 0.75rem 0;
   box-shadow: var(--shadow-sm);
 }
 .hook-accepted {
-  background: var(--success-bg);
-  border: 1px solid var(--success-bd);
-  border-radius: var(--r);
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
+  background: var(--success-bg); border: 1px solid var(--success-bd);
+  border-radius: var(--r); padding: 0.75rem 1rem; margin-bottom: 0.75rem; color: #065f46;
 }
 .hook-rejected {
-  background: var(--error-bg);
-  border: 1px solid var(--error-bd);
-  border-radius: var(--r);
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
-}
-.hook-score-bar { height: 6px; border-radius: 3px; margin: 4px 0 10px 0; }
-
-/* ── Section title ──────────────────────────────────────────────────────────── */
-.section-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin: 1.5rem 0 0.5rem;
+  background: var(--error-bg); border: 1px solid var(--error-bd);
+  border-radius: var(--r); padding: 0.75rem 1rem; margin-bottom: 0.75rem; color: #991b1b;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────────── */
-.sidebar-logo {
-  text-align: center;
-  padding: 1.25rem 0 0.25rem;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 0.5px;
+/* ── Score Grid ─────────────────────────────────────────────────────────────── */
+.score-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0.75rem 0;
 }
-.sidebar-sub {
-  text-align: center;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
+.score-cell {
+  text-align: center; padding: 0.55rem 0.3rem;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r);
 }
-.sidebar-stat {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.35rem 0;
-  font-size: 0.82rem;
-  color: var(--text-2);
-  border-bottom: 1px solid var(--border);
-}
-.sidebar-stat:last-child { border-bottom: none; }
-.sidebar-stat strong { color: var(--text); font-weight: 700; }
+.score-cell-value { font-size: 1.25rem; font-weight: 800; line-height: 1; }
+.score-cell-label { font-size: 0.63rem; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
 
-/* ── Expanders ───────────────────────────────────────────────────────────────── */
-.streamlit-expanderHeader {
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-  color: var(--text) !important;
+/* ── Montage Rows ───────────────────────────────────────────────────────────── */
+.montage-table {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); overflow: hidden; margin: 0.75rem 0;
+}
+.montage-row {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--surface-2);
+  font-size: 0.875rem; transition: background .1s;
+}
+.montage-row:last-child { border-bottom: none; }
+.montage-row:hover { background: var(--surface-2); }
+.montage-idx {
+  width: 20px; height: 20px; background: var(--surface-2);
+  border-radius: var(--r-xs); display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0;
+}
+.montage-type {
+  min-width: 62px; font-size: 0.68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.montage-text { flex: 1; color: var(--text); line-height: 1.4; }
+.montage-dur {
+  font-size: 0.75rem; color: var(--text-muted); font-weight: 600;
+  background: var(--surface-2); padding: 2px 8px; border-radius: var(--r-full); flex-shrink: 0;
+}
+.montage-anim {
+  font-size: 0.7rem; color: var(--text-faint); min-width: 60px; text-align: right;
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────────────────── */
+/* ── Caption Box ────────────────────────────────────────────────────────────── */
+.caption-box {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 1rem 1.1rem;
+  font-size: 0.875rem; line-height: 1.65; color: var(--text-2);
+  white-space: pre-wrap; font-family: 'Inter', sans-serif;
+}
+
+/* ── Reel Card ──────────────────────────────────────────────────────────────── */
+.reel-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 0.85rem 1rem;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 0.75rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+.reel-card:hover { border-color: var(--brand-border); box-shadow: var(--shadow-sm); }
+
+/* ── Empty State ────────────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 3.5rem 2rem; color: var(--text-muted);
+  background: var(--surface); border: 1.5px dashed var(--border);
+  border-radius: var(--r-lg); margin: 1rem 0;
+}
+.empty-state-icon { font-size: 2.25rem; margin-bottom: 0.65rem; opacity: .55; }
+.empty-state-title { font-size: 0.975rem; font-weight: 700; color: var(--text-2); margin-bottom: 0.35rem; }
+.empty-state-sub { font-size: 0.84rem; color: var(--text-muted); }
+
+/* ── Overlay pill ───────────────────────────────────────────────────────────── */
+.overlay-pill {
+  display: inline-block; background: #111827; color: #F2F0EA;
+  font-weight: 700; font-size: 0.875rem; padding: 0.3rem 0.75rem;
+  border-radius: var(--r); margin: 3px; letter-spacing: 0.01em;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  [data-testid="column"] {
-    width: 100% !important; flex: 1 1 100% !important; min-width: 100% !important;
-  }
-  h1 { font-size: 1.3rem !important; }
-  h2 { font-size: 1.1rem !important; }
-  h3 { font-size: 0.95rem !important; }
-  .stTabs [data-baseweb="tab-list"] { overflow-x: auto !important; flex-wrap: nowrap !important; }
-  .stTabs [data-baseweb="tab"] {
-    white-space: nowrap !important; font-size: 0.78rem !important; padding: 0.4rem 0.7rem !important;
-  }
-  .step-bar { flex-wrap: wrap; gap: 0.3rem; }
+  .main .block-container { padding-left: 1rem !important; padding-right: 1rem !important; }
+  [data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; min-width: 100% !important; }
+  h1 { font-size: 1.2rem !important; }
+  .page-header { flex-direction: column; gap: 0.75rem; }
+  .step-bar { flex-wrap: wrap; gap: 0.3rem; border-radius: var(--r); }
   .step-connector { display: none; }
+  .kpi-row { padding: 0 0.5rem 0.5rem; }
+  .stTabs [data-baseweb="tab-list"] { overflow-x: auto !important; flex-wrap: nowrap !important; width: 100% !important; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -565,42 +810,68 @@ def _form_to_config(f: dict, base: dict | None = None) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
+    # ── Brand ─────────────────────────────────────────────────────────────────
     st.markdown(
-        '<div class="sidebar-logo">🎬 Reels Generator</div>'
-        '<div class="sidebar-sub">@ownyourtime.ai</div>',
+        '<div class="app-brand">'
+        '<div class="app-brand-icon">🎬</div>'
+        '<div>'
+        '<div class="app-brand-name">Reels Generator</div>'
+        '<div class="app-brand-handle">@ownyourtime.ai</div>'
+        '</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
+
+    # ── API Status ─────────────────────────────────────────────────────────────
+    _api_ok = bool(_os.environ.get("ANTHROPIC_API_KEY"))
+    _pex_ok = bool(st.session_state.get("pexels_key"))
+    st.markdown(
+        f'<div class="status-row">'
+        f'<div class="status-dot {"ok" if _api_ok else "error"}"></div>'
+        f'<span>Claude API {"— connecté" if _api_ok else "— non configurée"}</span>'
+        f'</div>'
+        f'<div class="status-row">'
+        f'<div class="status-dot {"ok" if _pex_ok else "off"}"></div>'
+        f'<span>Pexels {"— actif" if _pex_ok else "— non configuré"}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
-    # Stats
+    # ── Assets KPIs ───────────────────────────────────────────────────────────
     n_videos = len(_available_videos())
     n_music  = len(_available_music())
     n_batch  = len(_batch_configs())
     n_output = len(list((ROOT / "output" / "batch").glob("*.mp4"))) if (ROOT / "output" / "batch").exists() else 0
 
+    st.markdown('<div class="sidebar-section-label">Assets</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="sidebar-stat"><span>📹 Vidéos stock</span><strong>{n_videos}</strong></div>'
-        f'<div class="sidebar-stat"><span>🎵 Musiques</span><strong>{n_music}</strong></div>'
-        f'<div class="sidebar-stat"><span>⚙️ Configs batch</span><strong>{n_batch}</strong></div>'
-        f'<div class="sidebar-stat"><span>✅ Reels générés</span><strong>{n_output}</strong></div>',
+        f'<div class="kpi-row">'
+        f'<div class="kpi-item"><div class="kpi-item-value">{n_videos}</div><div class="kpi-item-label">Vidéos</div></div>'
+        f'<div class="kpi-item"><div class="kpi-item-value">{n_music}</div><div class="kpi-item-label">Musiques</div></div>'
+        f'<div class="kpi-item"><div class="kpi-item-value">{n_batch}</div><div class="kpi-item-label">Configs</div></div>'
+        f'<div class="kpi-item"><div class="kpi-item-value">{n_output}</div><div class="kpi-item-label">Reels</div></div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
+
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
-    # Clé API Pexels
-    st.markdown("**🔑 Clé Pexels** *(B-roll gratuit)*")
+    # ── Clé Pexels ────────────────────────────────────────────────────────────
+    st.markdown('<div class="sidebar-section-label">Configuration</div>', unsafe_allow_html=True)
     pexels_key = st.text_input(
-        "Clé API", type="password",
+        "Clé API Pexels",
+        type="password",
         value=st.session_state.get("pexels_key", ""),
-        placeholder="Obtenir sur pexels.com/api",
-        label_visibility="collapsed",
+        placeholder="Clé depuis pexels.com/api…",
         key="sidebar_pexels_key",
+        help="Permet le téléchargement automatique de B-roll depuis Pexels (gratuit).",
     )
     if pexels_key:
         st.session_state["pexels_key"] = pexels_key
-        st.success("Clé enregistrée", icon="✅")
-    else:
-        st.caption("Optionnelle — permet le téléchargement automatique de B-roll.")
+    elif not _pex_ok:
+        st.caption("Optionnelle — permet le B-roll automatique.")
 
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
     st.caption("v2.1 · Python · Pillow · MoviePy · FFmpeg")
@@ -631,8 +902,17 @@ _ANGLE_LABELS = {
 }
 
 with tab_auto:
-    st.markdown("## ✨ Idée → Reel")
-    st.caption("Décris ton idée en quelques mots — Claude génère 3 concepts complets, tu choisis et tu génères.")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Pipeline IA</div>'
+        '<div class="page-header-title">Idée → Reel</div>'
+        '<div class="page-header-sub">'
+        'Décris ton idée en quelques mots — Claude génère 3 concepts complets avec hook, '
+        'script, YAML et caption, optimisés pour l\'algorithme Instagram.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     if not _GEN_AVAILABLE:
         st.markdown(
@@ -681,47 +961,71 @@ with tab_auto:
 
         # ── Affichage des 3 cartes ────────────────────────────────────────────
         variants = st.session_state.get("auto_variants")
+        if not variants and not idea_input.strip():
+            st.markdown(
+                '<div class="empty-state">'
+                '<div class="empty-state-icon">💡</div>'
+                '<div class="empty-state-title">Tape ton idée ci-dessus</div>'
+                '<div class="empty-state-sub">Claude génère 3 angles différents (frustration, gain, social proof) '
+                'avec hook, script complet, YAML prêt à générer et caption Instagram.</div>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
         if variants:
             idea_stored = st.session_state.get("auto_idea", "")
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
-            st.markdown(f"### 3 concepts pour « {idea_stored} »")
+            st.markdown(
+                f'<div style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">'
+                f'3 concepts générés pour <strong style="color:var(--text)">{idea_stored}</strong>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+            _ANGLE_STYLE = {
+                "frustration":  ("#FFF1F2", "#DC2626", "#FEE2E2"),
+                "gain":         ("#F0FDF4", "#059669", "#DCFCE7"),
+                "social_proof": ("#EFF6FF", "#2563EB", "#DBEAFE"),
+            }
 
             cols = st.columns(3)
             for i, (variant, col) in enumerate(zip(variants, cols)):
                 angle_key = variant.get("angle", "frustration")
-                icon, label, bg, color = _ANGLE_LABELS.get(
+                icon, label, _bg_legacy, _c_legacy = _ANGLE_LABELS.get(
                     angle_key, ("🎯", angle_key.upper(), "#1e1e32", "#f2f0ea")
                 )
-                broll = variant.get("broll_category", "—")
-                saves = variant.get("saves_time", "—")
-                hook  = variant.get("hook_text", "")
-                intro = variant.get("intro_text", "")
-                caption_preview = variant.get("caption", "")[:120]
+                _card_hdr_bg, _card_clr, _card_bd = _ANGLE_STYLE.get(
+                    angle_key, ("#F8F9FA", "#374151", "#E5E7EB")
+                )
+                broll           = variant.get("broll_category", "—")
+                saves           = variant.get("saves_time", "—")
+                hook            = variant.get("hook_text", "")
+                caption_preview = variant.get("caption", "")[:100]
+                is_selected     = (st.session_state.get("auto_selected_idx") == i)
+                card_extra      = "selected" if is_selected else ""
 
                 with col:
-                    # Badge angle
                     st.markdown(
-                        f'<div style="background:{bg};border:1px solid {color};border-radius:8px;'
-                        f'padding:0.4rem 0.8rem;margin-bottom:0.5rem;">'
-                        f'<span style="color:{color};font-weight:700;font-size:0.85rem;">'
-                        f'{icon} {label}</span></div>',
+                        f'<div class="concept-card {card_extra}">'
+                        f'<div class="concept-card-header" style="background:{_card_hdr_bg};border-bottom-color:{_card_bd};">'
+                        f'<span style="font-size:0.78rem;font-weight:700;color:{_card_clr}">{icon} {label}</span>'
+                        f'<span style="font-size:0.72rem;color:var(--text-muted)">#{i+1}</span>'
+                        f'</div>'
+                        f'<div class="concept-card-body">'
+                        f'<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;'
+                        f'letter-spacing:.07em;color:var(--text-muted);margin-bottom:3px">Hook</div>'
+                        f'<div class="concept-card-hook">"{hook}"</div>'
+                        f'<div class="concept-card-meta">'
+                        f'<span>📹 {broll}</span>'
+                        f'<span>⏱️ {saves}</span>'
+                        f'</div>'
+                        f'<div class="concept-card-preview">{caption_preview}…</div>'
+                        f'</div>'
+                        f'</div>',
                         unsafe_allow_html=True,
                     )
-                    st.markdown(f"**Hook**")
-                    st.markdown(
-                        f'<div style="background:#FFF8EC;border-left:3px solid #C8972A;'
-                        f'padding:0.5rem 0.8rem;border-radius:4px;color:#1A1A2E;'
-                        f'font-size:1rem;font-weight:600;margin-bottom:0.75rem;">'
-                        f'"{hook}"</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.caption(f"🎬 Intro : *{intro}*")
-                    st.caption(f"📹 B-Roll : `{broll}`  |  ⏱️ {saves}")
-                    st.caption(f"📝 {caption_preview}…")
 
-                    selected_idx = st.session_state.get("auto_selected_idx")
-                    btn_label = "✓ Sélectionné" if selected_idx == i else "Choisir ce concept"
-                    btn_type  = "primary" if selected_idx == i else "secondary"
+                    btn_label = "✓ Sélectionné" if is_selected else "Choisir ce concept"
+                    btn_type  = "primary" if is_selected else "secondary"
 
                     if st.button(btn_label, key=f"select_variant_{i}", type=btn_type, use_container_width=True):
                         st.session_state["auto_selected_idx"] = i
@@ -1087,7 +1391,17 @@ with tab_auto:
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_script:
-    st.markdown("## 📝 Script Viral")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Scripting</div>'
+        '<div class="page-header-title">Script Viral</div>'
+        '<div class="page-header-sub">'
+        'Génère un script structuré hook → tension → shift → solution → résultat → CTA, '
+        'avec optimisation automatique des hooks et plan de montage complet.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     if not _GEN_AVAILABLE:
         st.markdown(
@@ -1157,10 +1471,13 @@ with tab_script:
 
         if not sv_idea.strip() and not _has_script:
             st.markdown(
-                '<div class="callout callout-info" style="margin-top:0.5rem">'
-                '💡 <strong>Comment ça marche ?</strong> Entre une idée courte (3–10 mots), '
-                'clique Générer. Claude crée hook · tension · shift · solution · résultat · CTA '
-                'et optimise les hooks automatiquement.</div>',
+                '<div class="empty-state" style="margin-top:1rem">'
+                '<div class="empty-state-icon">📝</div>'
+                '<div class="empty-state-title">Tape ton idée et génère le script</div>'
+                '<div class="empty-state-sub">Claude structure automatiquement : '
+                'hook · tension · shift · solution · résultat · CTA · '
+                'caption Instagram · plan de montage avec durées.</div>'
+                '</div>',
                 unsafe_allow_html=True,
             )
 
@@ -1582,9 +1899,9 @@ with tab_script:
             why = sv.get("why_it_performs", "")
             if why:
                 st.markdown(
-                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.5rem 0.8rem;'
-                    f'margin-top:0.5rem;font-size:0.82rem;color:#1A1A2E">'
-                    f'<span style="font-weight:700;color:#C8972A">Pourquoi ça va performer : </span>{why}</div>',
+                    f'<div class="callout callout-info" style="margin-top:0.5rem">'
+                    f'<span style="font-weight:700">Pourquoi ça va performer :</span> {why}'
+                    f'</div>',
                     unsafe_allow_html=True,
                 )
 
@@ -1616,19 +1933,22 @@ with tab_script:
                             st.error(f"Erreur : {_ce}")
             if _cap_stored:
                 with _cap_col2:
+                    st.markdown(
+                        f'<div class="caption-box">{_cap_stored}</div>',
+                        unsafe_allow_html=True,
+                    )
                     st.text_area(
                         "caption_output",
                         value=_cap_stored,
-                        height=160,
+                        height=1,
                         key="sv_caption_display",
                         label_visibility="collapsed",
                     )
             else:
                 with _cap_col2:
                     st.markdown(
-                        '<div class="callout callout-info" style="margin:0">'
-                        'Génère d\'abord le script, puis clique <strong>Générer le caption</strong> '
-                        'pour obtenir la description Instagram optimisée.</div>',
+                        '<div class="callout callout-info">'
+                        'Génère d\'abord le script, puis clique <strong>Générer le caption</strong>.</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -1639,37 +1959,43 @@ with tab_script:
             ov_col, info_col = st.columns([1, 1])
 
             with ov_col:
-                st.markdown("**Overlay texte** *(scènes vidéo)*")
+                st.markdown(
+                    '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;'
+                    'letter-spacing:.07em;color:var(--text-muted);margin-bottom:.5rem">'
+                    'Overlay texte</div>',
+                    unsafe_allow_html=True,
+                )
                 for line in sv.get("overlay_lines", []):
                     st.markdown(
-                        f'<div style="background:#1A1A2E;color:#F2F0EA;font-weight:700;'
-                        f'font-size:1rem;padding:0.4rem 0.8rem;border-radius:6px;'
-                        f'margin-bottom:6px;text-align:center">{line}</div>',
+                        f'<div class="overlay-pill">{line}</div>',
                         unsafe_allow_html=True,
                     )
 
             with info_col:
-                st.markdown("**Angle viral**")
                 viral = sv.get("viral_angle", {})
+                emotion   = viral.get("emotion", "")
+                mechanism = viral.get("mechanism", "")
+                cta_opt   = sv.get("cta_optimized", "")
                 st.markdown(
-                    f'<div style="background:#FFF8EC;border:1px solid #C8972A;border-radius:8px;'
-                    f'padding:0.6rem 0.8rem;margin-bottom:0.5rem;">'
-                    f'<div style="font-size:0.72rem;color:#C8972A;font-weight:700">ÉMOTION</div>'
-                    f'<div style="font-weight:600;color:#1A1A2E">{viral.get("emotion","")}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.5rem;">'
-                    f'<div style="font-size:0.72rem;color:#6B6B8A;font-weight:700">MÉCANISME PSY</div>'
-                    f'<div style="color:#1A1A2E;font-size:0.9rem">{viral.get("mechanism","")}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f'<div style="background:#F5F5F7;border-radius:8px;padding:0.6rem 0.8rem;">'
-                    f'<div style="font-size:0.72rem;color:#6B6B8A;font-weight:700">CTA</div>'
-                    f'<div style="font-weight:600;color:#1A1A2E">{sv.get("cta_optimized","")}</div>'
+                    f'<div style="display:flex;flex-direction:column;gap:6px">'
+                    f'<div style="background:var(--brand-light);border:1px solid var(--brand-border);'
+                    f'border-radius:var(--r);padding:.55rem .75rem">'
+                    f'<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;'
+                    f'letter-spacing:.07em;color:var(--brand);margin-bottom:2px">Émotion</div>'
+                    f'<div style="font-weight:600;color:var(--text);font-size:.875rem">{emotion}</div>'
+                    f'</div>'
+                    f'<div style="background:var(--surface-2);border:1px solid var(--border);'
+                    f'border-radius:var(--r);padding:.55rem .75rem">'
+                    f'<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;'
+                    f'letter-spacing:.07em;color:var(--text-muted);margin-bottom:2px">Mécanisme</div>'
+                    f'<div style="color:var(--text-2);font-size:.85rem">{mechanism}</div>'
+                    f'</div>'
+                    f'<div style="background:var(--surface-2);border:1px solid var(--border);'
+                    f'border-radius:var(--r);padding:.55rem .75rem">'
+                    f'<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;'
+                    f'letter-spacing:.07em;color:var(--text-muted);margin-bottom:2px">CTA optimisé</div>'
+                    f'<div style="font-weight:600;color:var(--text);font-size:.875rem">{cta_opt}</div>'
+                    f'</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -1720,77 +2046,84 @@ with tab_script:
                 total = montage.get("total_duration", 0)
                 val   = montage.get("validation", {})
 
-                # Bandeau validation
-                all_ok = all(val.values()) if val else False
-                val_color = "#d1fae5" if all_ok else "#fee2e2"
+                # ── Bandeau validation ────────────────────────────────────────
+                all_ok    = all(val.values()) if val else False
+                val_class = "callout-success" if all_ok else "callout-warning"
                 val_icon  = "✅" if all_ok else "⚠️"
-                checks = " · ".join(
+                checks_parts = " · ".join(
                     f"{'✓' if v else '✗'} {k.replace('_', ' ')}"
                     for k, v in val.items()
                 )
                 st.markdown(
-                    f'<div style="background:{val_color};border-radius:8px;'
-                    f'padding:0.5rem 0.8rem;margin-bottom:0.75rem;font-size:0.82rem">'
-                    f'{val_icon} {checks} · <strong>{total}s total</strong></div>',
+                    f'<div class="callout {val_class}">'
+                    f'{val_icon} <strong>{total}s</strong> &nbsp;·&nbsp; {checks_parts}'
+                    f'</div>',
                     unsafe_allow_html=True,
                 )
 
-                # Requêtes Pexels suggérées
+                # ── Pexels suggérés ───────────────────────────────────────────
                 pexels_q = montage.get("pexels_queries", [])
                 if pexels_q:
+                    pills = "".join(
+                        f'<span style="background:var(--info-bg);color:var(--info);'
+                        f'border:1px solid var(--info-bd);border-radius:var(--r-full);'
+                        f'padding:2px 9px;font-size:.72rem;font-weight:600">{q}</span>'
+                        for q in pexels_q
+                    )
                     st.markdown(
-                        '<div style="background:#F0F7FF;border-radius:8px;'
-                        'padding:0.5rem 0.8rem;margin-bottom:0.75rem;font-size:0.82rem">'
-                        '<strong>🎬 Pexels suggérés :</strong> '
-                        + " · ".join(f'<code>{q}</code>' for q in pexels_q)
-                        + "</div>",
+                        f'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem">'
+                        f'<span style="font-size:.72rem;font-weight:700;color:var(--text-muted);'
+                        f'padding-top:3px">🎬 Pexels :</span>{pills}</div>',
                         unsafe_allow_html=True,
                     )
 
-                # Timeline scène par scène
+                # ── Timeline scène par scène ──────────────────────────────────
                 ANIM_ICONS = {
                     "fade_in": "✨", "slide_in": "↑", "slide": "↑",
-                    "typing": "⌨️", "pop": "💥",
+                    "slide_up": "↑", "typing": "⌨️", "pop": "💥", "fade_out": "↓",
                 }
                 TYPE_COLORS = {
-                    "hook": "#f87171", "pain": "#fb923c", "twist": "#facc15",
-                    "solution": "#4ade80", "result": "#60a5fa", "cta": "#c084fc",
+                    "hook":     "#EF4444",
+                    "pain":     "#F97316",
+                    "twist":    "#EAB308",
+                    "solution": "#10B981",
+                    "result":   "#3B82F6",
+                    "cta":      "#8B5CF6",
                 }
                 scenes = montage.get("scenes", [])
-                for scene in scenes:
+                rows_html = ""
+                for idx, scene in enumerate(scenes):
                     stype    = scene.get("type", "")
                     duration = scene.get("duration", 2.5)
                     text     = scene.get("text", "")
                     kw       = scene.get("keyword_highlight", "")
                     anim     = scene.get("text_animation", scene.get("animation", "fade_in"))
                     emphasis = scene.get("emphasis", False)
-                    color    = TYPE_COLORS.get(stype, "#6B6B8A")
+                    color    = TYPE_COLORS.get(stype, "#6B7280")
                     anim_icon = ANIM_ICONS.get(anim, "▶")
 
                     display_text = text
                     if kw and kw in text:
                         display_text = text.replace(
                             kw,
-                            f'<span style="color:#C8972A;font-weight:800">{kw}</span>'
+                            f'<span style="color:var(--brand);font-weight:800">{kw}</span>'
                         )
                     if emphasis:
                         display_text = f'<strong>{display_text}</strong>'
 
-                    st.markdown(
-                        f'<div style="display:flex;gap:0.75rem;align-items:stretch;'
-                        f'padding:0.6rem 0;border-bottom:1px solid #F0F0F5;">'
-                        f'<div style="width:4px;background:{color};border-radius:2px;'
-                        f'flex-shrink:0"></div>'
-                        f'<div style="min-width:36px;font-size:0.75rem;color:#6B6B8A;'
-                        f'padding-top:2px;font-weight:600">{duration}s</div>'
-                        f'<div style="min-width:68px;font-size:0.72rem;font-weight:700;'
-                        f'color:{color};text-transform:uppercase;padding-top:2px">{stype}</div>'
-                        f'<div style="flex:1;font-weight:600;color:#1A1A2E">{display_text}</div>'
-                        f'<div style="min-width:90px;font-size:0.78rem;color:#6B6B8A;'
-                        f'text-align:right">{anim_icon} {anim}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
+                    rows_html += (
+                        f'<div class="montage-row">'
+                        f'<div class="montage-idx">{idx+1}</div>'
+                        f'<div class="montage-type" style="color:{color}">{stype}</div>'
+                        f'<div class="montage-text">{display_text}</div>'
+                        f'<div class="montage-anim">{anim_icon} {anim}</div>'
+                        f'<div class="montage-dur">{duration}s</div>'
+                        f'</div>'
                     )
+                st.markdown(
+                    f'<div class="montage-table">{rows_html}</div>',
+                    unsafe_allow_html=True,
+                )
 
                 st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
@@ -2016,7 +2349,17 @@ with tab_script:
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_gen:
-    st.markdown("## Créer un Reel")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Studio</div>'
+        '<div class="page-header-title">Créer un Reel</div>'
+        '<div class="page-header-sub">'
+        'Configure manuellement chaque section du reel — intro, hook, prompt, CTA — '
+        'prévisualise les frames clés et génère la vidéo finale.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     # ── Charger une config existante ─────────────────────────────────────────
     all_configs = [ROOT / "config" / "reel_config.yaml"] + _batch_configs()
@@ -2236,8 +2579,17 @@ with tab_gen:
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_batch:
-    st.markdown("## Génération Batch")
-    st.caption("Gérez et générez plusieurs reels d'un seul clic.")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Production</div>'
+        '<div class="page-header-title">Génération Batch</div>'
+        '<div class="page-header-sub">'
+        'Gérez plusieurs configs YAML simultanément — générez en série, '
+        'suivez la progression et téléchargez les reels produits.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     configs = _batch_configs()
     out_batch = ROOT / "output" / "batch"
@@ -2348,7 +2700,17 @@ with tab_batch:
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_video:
-    st.markdown("## 📹 Vidéothèque")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Assets</div>'
+        '<div class="page-header-title">Vidéothèque B-Roll</div>'
+        '<div class="page-header-sub">'
+        'Recherche et téléchargement de B-roll via Pexels, gestion de la bibliothèque locale '
+        'et thèmes prédéfinis CC0 sans clé API.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     vid_dir = ROOT / "assets" / "video"
     vid_dir.mkdir(parents=True, exist_ok=True)
@@ -2635,8 +2997,17 @@ with tab_video:
 # ═════════════════════════════════════════════════════════════════════════════
 
 with tab_music:
-    st.markdown("## Bibliothèque Musicale")
-    st.caption("Beats lo-fi synthétiques — générés localement avec numpy, aucune dépendance externe.")
+    st.markdown(
+        '<div class="page-header">'
+        '<div class="page-header-eyebrow">Assets</div>'
+        '<div class="page-header-title">Bibliothèque Musicale</div>'
+        '<div class="page-header-sub">'
+        'Beats lo-fi synthétiques générés localement — aucune dépendance externe, '
+        'gestion des pistes et aperçu audio intégré.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     try:
         from utils.audio_gen import CHORD_PROGRESSIONS, ensure_lofi_beat
