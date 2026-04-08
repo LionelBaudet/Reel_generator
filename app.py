@@ -62,162 +62,324 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Palette */
+/* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --midnight:  #FFFFFF;
-  --deep-ink:  #F5F5F7;
-  --gold:      #C8972A;
-  --ivory:     #1A1A2E;
-  --muted:     #6B6B8A;
+  --gold:         #C8972A;
+  --gold-dark:    #A87820;
+  --gold-light:   #FFF8EC;
+  --gold-border:  #E8C97A;
+  --bg:           #FFFFFF;
+  --surface:      #F8F9FB;
+  --surface-2:    #F0F2F5;
+  --border:       #E2E8F0;
+  --text:         #1A202C;
+  --text-2:       #4A5568;
+  --text-muted:   #718096;
+  --success:      #059669;
+  --success-bg:   #ECFDF5;
+  --success-bd:   #A7F3D0;
+  --warning:      #D97706;
+  --warning-bg:   #FFFBEB;
+  --warning-bd:   #FDE68A;
+  --error:        #DC2626;
+  --error-bg:     #FEF2F2;
+  --error-bd:     #FECACA;
+  --info:         #2563EB;
+  --info-bg:      #EFF6FF;
+  --info-bd:      #BFDBFE;
+  --r-sm:         6px;
+  --r:            10px;
+  --r-lg:         14px;
+  --shadow-xs:    0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:       0 4px 8px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05);
+  --shadow-md:    0 8px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
 }
 
-/* Fond général */
-.stApp { background-color: #FFFFFF; }
-section[data-testid="stSidebar"] { background-color: #F5F5F7; border-right: 1px solid #E0E0E8; }
+/* ── Global ─────────────────────────────────────────────────────────────────── */
+.stApp { background: var(--bg) !important; }
+section[data-testid="stSidebar"] {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+}
+h1, h2, h3 { color: var(--text) !important; letter-spacing: -0.02em; }
+h2 { font-size: 1.35rem !important; margin-bottom: 0.25rem !important; }
+h3 { font-size: 1.05rem !important; }
+p, label, .stMarkdown, .stCaption { color: var(--text-2) !important; }
+.stCaption { color: var(--text-muted) !important; font-size: 0.8rem !important; }
 
-/* Titres */
-h1, h2, h3 { color: #1A1A2E !important; }
+/* ── Inputs ─────────────────────────────────────────────────────────────────── */
+.stTextArea textarea, .stTextInput input, .stSelectbox select {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--r) !important;
+  font-size: 0.92rem !important;
+  transition: border-color .15s;
+}
+.stTextArea textarea:focus, .stTextInput input:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(200,151,42,.12) !important;
+}
+.stSlider > div { color: var(--text); }
+.stNumberInput input { border-radius: var(--r) !important; }
 
-/* Texte général */
-p, label, .stMarkdown, .stCaption { color: #1A1A2E !important; }
-
-/* Bouton primaire gold */
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+.stButton > button {
+  min-height: 42px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--r) !important;
+  transition: all .15s ease !important;
+  letter-spacing: 0.01em;
+}
 .stButton > button[kind="primary"] {
-  background: var(--gold);
-  color: #FFFFFF;
-  font-weight: 700;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.5rem;
+  background: var(--gold) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: var(--shadow-xs) !important;
 }
 .stButton > button[kind="primary"]:hover {
-  background: #b5841f;
-  color: #FFFFFF;
+  background: var(--gold-dark) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px);
 }
-
-/* Bouton secondaire */
 .stButton > button[kind="secondary"] {
-  background: #FFFFFF;
-  border: 1px solid #C8C8D8;
-  color: #1A1A2E;
-  border-radius: 8px;
+  background: var(--bg) !important;
+  border: 1.5px solid var(--border) !important;
+  color: var(--text) !important;
 }
 .stButton > button[kind="secondary"]:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  background: var(--gold-light) !important;
 }
 
-/* Cartes / blocs */
-.reel-card {
-  background: #F5F5F7;
-  border: 1px solid #E0E0E8;
-  border-radius: 12px;
-  padding: 1rem 1.2rem;
-  margin-bottom: 0.75rem;
+/* ── Tabs ───────────────────────────────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+  gap: 0 !important;
+  border-bottom: 1.5px solid var(--border) !important;
 }
-.reel-card:hover { border-color: var(--gold); }
-
-/* Badge statut */
-.badge-ok   { background:#d1fae5; color:#065f46; padding:2px 10px;
-              border-radius:20px; font-size:0.8rem; font-weight:600; }
-.badge-miss { background:#fee2e2; color:#991b1b; padding:2px 10px;
-              border-radius:20px; font-size:0.8rem; font-weight:600; }
-.badge-gen  { background:#fef9c3; color:#854d0e; padding:2px 10px;
-              border-radius:20px; font-size:0.8rem; font-weight:600; }
-
-/* Séparateur gold */
-.gold-hr { border: none; border-top: 2px solid var(--gold);
-           opacity: 0.4; margin: 1rem 0; }
-
-/* Zone texte / inputs */
-.stTextArea textarea, .stTextInput input {
-  background: #FFFFFF !important;
-  color: #1A1A2E !important;
-  border: 1px solid #C8C8D8 !important;
-  border-radius: 8px !important;
-}
-
-/* Slider */
-.stSlider > div { color: #1A1A2E; }
-
-/* Onglets */
 .stTabs [data-baseweb="tab"] {
-  color: #6B6B8A;
-  font-weight: 600;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  padding: 0.6rem 1rem !important;
+  border-radius: 0 !important;
+  transition: color .15s;
 }
 .stTabs [aria-selected="true"] {
   color: var(--gold) !important;
-  border-bottom: 2px solid var(--gold) !important;
+  border-bottom: 2.5px solid var(--gold) !important;
+  background: transparent !important;
 }
 
-/* Logo sidebar */
+/* ── Cards ─────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 0.875rem;
+  box-shadow: var(--shadow-sm);
+}
+.card:hover { border-color: var(--gold-border); box-shadow: var(--shadow); }
+
+.reel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.75rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+.reel-card:hover { border-color: var(--gold-border); box-shadow: var(--shadow-sm); }
+
+/* ── Step Indicator ─────────────────────────────────────────────────────────── */
+.step-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0.5rem 0 1.75rem;
+  padding: 0;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.step-item .step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-item.done .step-num {
+  background: var(--success-bg);
+  border-color: var(--success-bd);
+  color: var(--success);
+}
+.step-item.active .step-num {
+  background: var(--gold-light);
+  border-color: var(--gold-border);
+  color: var(--gold);
+}
+.step-item.active { color: var(--gold); }
+.step-item.done { color: var(--success); }
+.step-connector {
+  flex: 1;
+  height: 1.5px;
+  background: var(--border);
+  margin: 0 0.3rem;
+  max-width: 40px;
+}
+.step-connector.done { background: var(--success-bd); }
+
+/* ── Callouts ───────────────────────────────────────────────────────────────── */
+.callout {
+  border-radius: var(--r);
+  padding: 0.65rem 0.9rem;
+  margin: 0.6rem 0;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  border-left: 3.5px solid;
+}
+.callout-info    { background: var(--info-bg);    border-color: var(--info);    color: #1e40af; }
+.callout-success { background: var(--success-bg); border-color: var(--success); color: #065f46; }
+.callout-warning { background: var(--warning-bg); border-color: var(--warning); color: #92400e; }
+.callout-error   { background: var(--error-bg);   border-color: var(--error);   color: #991b1b; }
+
+/* ── Badges ─────────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 0.73rem; font-weight: 700;
+  border: 1px solid transparent;
+}
+.badge-ok      { background: var(--success-bg); color: var(--success); border-color: var(--success-bd); }
+.badge-miss    { background: var(--error-bg);   color: var(--error);   border-color: var(--error-bd); }
+.badge-warn    { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
+.badge-gen     { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-bd); }
+.badge-info    { background: var(--info-bg);    color: var(--info);    border-color: var(--info-bd); }
+.badge-gold    { background: var(--gold-light); color: var(--gold);    border-color: var(--gold-border); }
+
+/* ── Gold divider ───────────────────────────────────────────────────────────── */
+.gold-hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.25rem 0;
+}
+
+/* ── Script lines ───────────────────────────────────────────────────────────── */
+.script-line {
+  display: flex; gap: 0.75rem; align-items: flex-start;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--r-sm);
+  margin-bottom: 4px;
+  transition: background .1s;
+}
+.script-line:hover { background: var(--surface); }
+.script-label {
+  min-width: 68px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 2px;
+}
+.script-text { color: var(--text); font-size: 0.92rem; line-height: 1.5; }
+
+/* ── Hook cards ─────────────────────────────────────────────────────────────── */
+.hook-winner {
+  background: var(--gold-light);
+  border: 2px solid var(--gold-border);
+  border-radius: var(--r-lg);
+  padding: 1rem 1.2rem;
+  margin: 0.75rem 0;
+  box-shadow: var(--shadow-sm);
+}
+.hook-accepted {
+  background: var(--success-bg);
+  border: 1px solid var(--success-bd);
+  border-radius: var(--r);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.hook-rejected {
+  background: var(--error-bg);
+  border: 1px solid var(--error-bd);
+  border-radius: var(--r);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.hook-score-bar { height: 6px; border-radius: 3px; margin: 4px 0 10px 0; }
+
+/* ── Section title ──────────────────────────────────────────────────────────── */
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────────── */
 .sidebar-logo {
   text-align: center;
-  padding: 1rem 0 1.5rem 0;
-  font-size: 1.4rem;
+  padding: 1.25rem 0 0.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--gold);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 .sidebar-sub {
   text-align: center;
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-top: -1.2rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
+.sidebar-stat {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.35rem 0;
+  font-size: 0.82rem;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-stat:last-child { border-bottom: none; }
+.sidebar-stat strong { color: var(--text); font-weight: 700; }
 
-/* ── Hook score card ──────────────────────────────────────── */
-.hook-score-bar { height: 8px; border-radius: 4px; margin: 4px 0 10px 0; }
-.hook-accepted  { background:#d1fae5; border:1px solid #6ee7b7;
-                  border-radius:10px; padding:1rem; margin-bottom:1rem; }
-.hook-rejected  { background:#fee2e2; border:1px solid #fca5a5;
-                  border-radius:10px; padding:1rem; margin-bottom:1rem; }
-.hook-winner    { background:#FFF8EC; border:2px solid #C8972A;
-                  border-radius:10px; padding:1rem; margin:0.75rem 0; }
-
-/* ── Responsive mobile ────────────────────────────────────── */
-/* Tous les boutons : hauteur min 48px (touch target) */
-.stButton > button {
-  min-height: 48px !important;
-  font-size: 0.95rem !important;
+/* ── Expanders ───────────────────────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  color: var(--text) !important;
 }
 
-/* Cards 3 colonnes → 1 colonne sur mobile */
+/* ── Mobile ──────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Colonnes Streamlit empilées */
   [data-testid="column"] {
-    width: 100% !important;
-    flex: 1 1 100% !important;
-    min-width: 100% !important;
+    width: 100% !important; flex: 1 1 100% !important; min-width: 100% !important;
   }
-  /* Sidebar réduite */
-  section[data-testid="stSidebar"] {
-    min-width: 0 !important;
-    width: 100% !important;
-  }
-  /* Titres plus petits */
-  h1 { font-size: 1.4rem !important; }
-  h2 { font-size: 1.2rem !important; }
-  h3 { font-size: 1.05rem !important; }
-  /* Inputs pleine largeur */
-  .stTextInput input, .stTextArea textarea {
-    font-size: 1rem !important;
-  }
-  /* Métriques sidebar côte à côte */
-  [data-testid="metric-container"] {
-    padding: 0.3rem !important;
-  }
-  /* Tabs scrollables horizontalement */
-  .stTabs [data-baseweb="tab-list"] {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-  }
+  h1 { font-size: 1.3rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 0.95rem !important; }
+  .stTabs [data-baseweb="tab-list"] { overflow-x: auto !important; flex-wrap: nowrap !important; }
   .stTabs [data-baseweb="tab"] {
-    white-space: nowrap !important;
-    font-size: 0.82rem !important;
-    padding: 0.4rem 0.6rem !important;
+    white-space: nowrap !important; font-size: 0.78rem !important; padding: 0.4rem 0.7rem !important;
   }
+  .step-bar { flex-wrap: wrap; gap: 0.3rem; }
+  .step-connector { display: none; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -403,39 +565,45 @@ def _form_to_config(f: dict, base: dict | None = None) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown('<div class="sidebar-logo">🎬 REELS GEN</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-sub">@ownyourtime.ai</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sidebar-logo">🎬 Reels Generator</div>'
+        '<div class="sidebar-sub">@ownyourtime.ai</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
-    # Stats rapides
+    # Stats
     n_videos = len(_available_videos())
     n_music  = len(_available_music())
     n_batch  = len(_batch_configs())
     n_output = len(list((ROOT / "output" / "batch").glob("*.mp4"))) if (ROOT / "output" / "batch").exists() else 0
 
-    col1, col2 = st.columns(2)
-    col1.metric("Vidéos", n_videos)
-    col2.metric("Musiques", n_music)
-    col1.metric("Configs", n_batch)
-    col2.metric("Reels", n_output)
-
+    st.markdown(
+        f'<div class="sidebar-stat"><span>📹 Vidéos stock</span><strong>{n_videos}</strong></div>'
+        f'<div class="sidebar-stat"><span>🎵 Musiques</span><strong>{n_music}</strong></div>'
+        f'<div class="sidebar-stat"><span>⚙️ Configs batch</span><strong>{n_batch}</strong></div>'
+        f'<div class="sidebar-stat"><span>✅ Reels générés</span><strong>{n_output}</strong></div>',
+        unsafe_allow_html=True,
+    )
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
-    # Clé API Pexels (persistée en session)
-    st.markdown("**🔑 Pexels API Key**")
+    # Clé API Pexels
+    st.markdown("**🔑 Clé Pexels** *(B-roll gratuit)*")
     pexels_key = st.text_input(
         "Clé API", type="password",
         value=st.session_state.get("pexels_key", ""),
-        help="Gratuite sur pexels.com/api",
+        placeholder="Obtenir sur pexels.com/api",
         label_visibility="collapsed",
         key="sidebar_pexels_key",
     )
     if pexels_key:
         st.session_state["pexels_key"] = pexels_key
         st.success("Clé enregistrée", icon="✅")
+    else:
+        st.caption("Optionnelle — permet le téléchargement automatique de B-roll.")
 
     st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
-    st.caption("v2.0 — Python + Pillow + MoviePy")
+    st.caption("v2.1 · Python · Pillow · MoviePy · FFmpeg")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -463,11 +631,15 @@ _ANGLE_LABELS = {
 }
 
 with tab_auto:
-    st.markdown("## ✨ Idée → Reel en 1 clic")
-    st.caption("Tape quelques mots. Claude génère 3 concepts. Tu choisis. C'est parti.")
+    st.markdown("## ✨ Idée → Reel")
+    st.caption("Décris ton idée en quelques mots — Claude génère 3 concepts complets, tu choisis et tu génères.")
 
     if not _GEN_AVAILABLE:
-        st.error("Module `generate.py` non disponible. Vérifie que `ANTHROPIC_API_KEY` est définie dans `.env`.")
+        st.markdown(
+            '<div class="callout callout-error">🔑 <strong>ANTHROPIC_API_KEY manquante</strong> — '
+            'Configure la clé dans <code>.env</code> ou dans les secrets Streamlit Cloud.</div>',
+            unsafe_allow_html=True,
+        )
         if _GEN_IMPORT_ERROR:
             with st.expander("Détail de l'erreur d'import"):
                 st.code(_GEN_IMPORT_ERROR)
@@ -916,29 +1088,54 @@ with tab_auto:
 
 with tab_script:
     st.markdown("## 📝 Script Viral")
-    st.caption("Génère un script complet optimisé pour stopper le scroll — avant de créer le reel.")
 
     if not _GEN_AVAILABLE:
-        st.error("ANTHROPIC_API_KEY non définie.")
+        st.markdown(
+            '<div class="callout callout-error">🔑 <strong>ANTHROPIC_API_KEY manquante</strong> — '
+            'Configure la clé dans <code>.env</code> ou dans les secrets Streamlit Cloud.</div>',
+            unsafe_allow_html=True,
+        )
         if _GEN_IMPORT_ERROR:
             with st.expander("Détail de l'erreur d'import"):
                 st.code(_GEN_IMPORT_ERROR)
     else:
+        # ── Étape en cours ───────────────────────────────────────────────────
+        _has_script   = bool(st.session_state.get("sv_result") or st.session_state.get("sv_ab_result"))
+        _has_caption  = bool(st.session_state.get("sv_caption"))
+        _has_montage  = bool(st.session_state.get("sv_montage"))
+        _s1 = "done" if _has_script else "active"
+        _s2 = "done" if _has_caption else ("active" if _has_script else "")
+        _s3 = "done" if _has_montage else ("active" if _has_caption else "")
+        _s4 = "active" if _has_montage else ""
+        st.markdown(
+            f'<div class="step-bar">'
+            f'<div class="step-item {_s1}"><div class="step-num">{"✓" if _s1=="done" else "1"}</div>Script</div>'
+            f'<div class="step-connector {_s1}"></div>'
+            f'<div class="step-item {_s2}"><div class="step-num">{"✓" if _s2=="done" else "2"}</div>Caption</div>'
+            f'<div class="step-connector {"done" if _has_caption else ""}"></div>'
+            f'<div class="step-item {_s3}"><div class="step-num">{"✓" if _s3=="done" else "3"}</div>Montage</div>'
+            f'<div class="step-connector {"done" if _has_montage else ""}"></div>'
+            f'<div class="step-item {_s4}"><div class="step-num">4</div>Reel</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ── Saisie idée ──────────────────────────────────────────────────────
         sv_idea = st.text_input(
-            "Ton idée",
+            "💡 Ton idée",
             placeholder="ex: automatiser ses emails avec GPT, gagner 1h par jour sur Excel…",
             key="sv_idea_input",
         )
 
-        _opt_col1, _opt_col2 = st.columns(2)
-        with _opt_col1:
+        _opt_col1, _opt_col2, _opt_col3 = st.columns([3, 2, 2])
+        with _opt_col2:
             _lang_choice = st.radio(
                 "Langue",
                 ["Français", "English"],
                 horizontal=True,
                 key="sv_lang_radio",
             )
-        with _opt_col2:
+        with _opt_col3:
             _mode_choice = st.radio(
                 "Mode",
                 ["Standard", "A/B Testing"],
@@ -949,17 +1146,27 @@ with tab_script:
         sv_mode = "ab" if _mode_choice == "A/B Testing" else "standard"
         st.session_state["sv_lang"] = sv_lang
 
-        sv_col1, sv_col2 = st.columns([3, 1])
-        with sv_col1:
+        with _opt_col1:
             sv_clicked = st.button(
-                "Générer A/B/C" if sv_mode == "ab" else "Générer le script viral",
+                "🚀 Générer les 3 versions A/B/C" if sv_mode == "ab" else "🚀 Générer le script",
                 type="primary",
                 disabled=not sv_idea.strip(),
                 use_container_width=True,
                 key="btn_sv",
             )
-        with sv_col2:
-            if st.button("Reset", type="secondary", use_container_width=True, key="btn_sv_reset"):
+
+        if not sv_idea.strip() and not _has_script:
+            st.markdown(
+                '<div class="callout callout-info" style="margin-top:0.5rem">'
+                '💡 <strong>Comment ça marche ?</strong> Entre une idée courte (3–10 mots), '
+                'clique Générer. Claude crée hook · tension · shift · solution · résultat · CTA '
+                'et optimise les hooks automatiquement.</div>',
+                unsafe_allow_html=True,
+            )
+
+        _reset_col, _ = st.columns([1, 5])
+        with _reset_col:
+            if st.button("↺ Réinitialiser", type="secondary", key="btn_sv_reset"):
                 for _k in ("sv_result", "sv_ab_result", "sv_caption", "sv_montage",
                            "sv_ab_selected", "sv_pexels_paths", "sv_optimized"):
                     st.session_state.pop(_k, None)
@@ -1383,11 +1590,56 @@ with tab_script:
 
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
+            # ── Caption Instagram (après le script, avant le montage) ─────────
+            st.markdown('<div class="section-title">📣 Étape 2 — Caption Instagram</div>', unsafe_allow_html=True)
+            _cap_lang   = st.session_state.get("sv_lang", "fr")
+            _cap_stored = st.session_state.get("sv_caption", "")
+            _cap_col1, _cap_col2 = st.columns([1, 3])
+            with _cap_col1:
+                if st.button(
+                    "Générer le caption" if _cap_lang == "fr" else "Generate caption",
+                    type="secondary",
+                    use_container_width=True,
+                    key="btn_sv_caption",
+                ):
+                    with st.spinner("Génération…"):
+                        try:
+                            _cap_text = generate_caption(
+                                st.session_state.get("sv_result", {}),
+                                st.session_state.get("sv_montage", {}),
+                                st.session_state.get("sv_idea_stored", ""),
+                                lang=_cap_lang,
+                            )
+                            st.session_state["sv_caption"] = _cap_text
+                            _cap_stored = _cap_text
+                        except Exception as _ce:
+                            st.error(f"Erreur : {_ce}")
+            if _cap_stored:
+                with _cap_col2:
+                    st.text_area(
+                        "caption_output",
+                        value=_cap_stored,
+                        height=160,
+                        key="sv_caption_display",
+                        label_visibility="collapsed",
+                    )
+            else:
+                with _cap_col2:
+                    st.markdown(
+                        '<div class="callout callout-info" style="margin:0">'
+                        'Génère d\'abord le script, puis clique <strong>Générer le caption</strong> '
+                        'pour obtenir la description Instagram optimisée.</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
+
             # ── Overlay + Angle viral + CTA ───────────────────────────────────
+            st.markdown('<div class="section-title">🎬 Détails visuels</div>', unsafe_allow_html=True)
             ov_col, info_col = st.columns([1, 1])
 
             with ov_col:
-                st.markdown("### 3. Overlay texte")
+                st.markdown("**Overlay texte** *(scènes vidéo)*")
                 for line in sv.get("overlay_lines", []):
                     st.markdown(
                         f'<div style="background:#1A1A2E;color:#F2F0EA;font-weight:700;'
@@ -1397,7 +1649,7 @@ with tab_script:
                     )
 
             with info_col:
-                st.markdown("### 4. Angle viral")
+                st.markdown("**Angle viral**")
                 viral = sv.get("viral_angle", {})
                 st.markdown(
                     f'<div style="background:#FFF8EC;border:1px solid #C8972A;border-radius:8px;'
@@ -1426,7 +1678,7 @@ with tab_script:
             ab = sv.get("ab_variant", {})
             if ab:
                 st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
-                with st.expander("### 5. Variante A/B — Version agressive", expanded=False):
+                with st.expander("⚡ Variante agressive (version C)", expanded=False):
                     st.markdown(
                         f'<div class="hook-rejected" style="margin-bottom:0.75rem">'
                         f'<div style="font-size:0.72rem;color:#991b1b;font-weight:700;margin-bottom:4px">HOOK AGRESSIF</div>'
@@ -1448,8 +1700,8 @@ with tab_script:
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
             # ── Plan de montage ───────────────────────────────────────────────
-            st.markdown("### 6. Plan de montage TEXT-CENTRIC")
-            st.caption("Une phrase par scène · minimum 2.5s · animations sur le texte uniquement.")
+            st.markdown('<div class="section-title">🎬 Étape 3 — Plan de montage</div>', unsafe_allow_html=True)
+            st.caption("Une scène = une phrase · min 2.5 s · animations sur le texte uniquement.")
 
             montage_col1, montage_col2 = st.columns([3, 1])
             with montage_col2:
@@ -1583,7 +1835,7 @@ with tab_script:
                                         st.error(f"Pexels : {_pe}")
 
                 st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
-                st.markdown("### Générer le Reel")
+                st.markdown('<div class="section-title">🚀 Étape 4 — Générer le Reel</div>', unsafe_allow_html=True)
 
                 idea_for_reel = st.session_state.get("sv_idea_stored", "")
                 _reel_lang = st.session_state.get("sv_lang", "fr")
@@ -1745,42 +1997,6 @@ with tab_script:
                             st.error("Génération échouée.")
                             with st.expander("Logs"):
                                 st.code("\n".join(log_lines[-30:]))
-
-            # ── Caption Instagram ──────────────────────────────────────────
-            st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
-            st.markdown("### Caption Instagram")
-
-            _cap_lang  = st.session_state.get("sv_lang", "fr")
-            _cap_stored = st.session_state.get("sv_caption", "")
-
-            cap_col1, cap_col2 = st.columns([1, 3])
-            with cap_col1:
-                if st.button(
-                    "Générer le caption" if _cap_lang == "fr" else "Generate caption",
-                    type="secondary",
-                    use_container_width=True,
-                    key="btn_sv_caption",
-                ):
-                    with st.spinner("Génération du caption…" if _cap_lang == "fr" else "Generating caption…"):
-                        try:
-                            _cap_idea = st.session_state.get("sv_idea_stored", "")
-                            _cap_montage = st.session_state.get("sv_montage", {})
-                            _cap_sv = st.session_state.get("sv_result", {})
-                            _cap_text = generate_caption(_cap_sv, _cap_montage, _cap_idea, lang=_cap_lang)
-                            st.session_state["sv_caption"] = _cap_text
-                            _cap_stored = _cap_text
-                        except Exception as _ce:
-                            st.error(f"Erreur caption : {_ce}")
-
-            if _cap_stored:
-                with cap_col2:
-                    st.text_area(
-                        "caption_output",
-                        value=_cap_stored,
-                        height=200,
-                        key="sv_caption_display",
-                        label_visibility="collapsed",
-                    )
 
             st.markdown('<hr class="gold-hr">', unsafe_allow_html=True)
 
