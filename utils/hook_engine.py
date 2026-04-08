@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 utils/hook_engine.py — Moteur local d'optimisation de hooks Instagram Reels.
 

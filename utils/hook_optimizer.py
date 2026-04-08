@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 utils/hook_optimizer.py — Analyse et optimisation automatique des hooks Instagram.
 Score sur 5 critères. Si < 7.5 → génère 10 alternatives et sélectionne le gagnant.
 """
+from __future__ import annotations
 
 import json
 import os

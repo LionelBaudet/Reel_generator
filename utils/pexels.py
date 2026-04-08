@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 utils/pexels.py — Intégration Pexels pour B-roll automatique.
 Nécessite PEXELS_API_KEY dans .env ou st.secrets.
@@ -6,6 +7,7 @@ Usage :
     from utils.pexels import get_pexels_videos
     paths = get_pexels_videos(["man working laptop night", "minimal desk typing"])
 """
+from __future__ import annotations
 
 import hashlib
 import logging

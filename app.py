@@ -27,6 +27,7 @@ except Exception:
     pass
 
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
+_GEN_IMPORT_ERROR: str = ""
 try:
     from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, optimize_script_hooks, BROLL_CATEGORIES
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
@@ -35,8 +36,10 @@ try:
     from utils.pexels import get_pexels_videos, _api_key as _pexels_key_fn
     from utils.validation import validate_config, self_check
     _GEN_AVAILABLE = bool(_os.environ.get("ANTHROPIC_API_KEY"))
-except Exception:
+except Exception as _e:
+    import traceback as _tb
     _GEN_AVAILABLE = False
+    _GEN_IMPORT_ERROR = f"{type(_e).__name__}: {_e}\n{_tb.format_exc()}"
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
@@ -465,6 +468,9 @@ with tab_auto:
 
     if not _GEN_AVAILABLE:
         st.error("Module `generate.py` non disponible. Vérifie que `ANTHROPIC_API_KEY` est définie dans `.env`.")
+        if _GEN_IMPORT_ERROR:
+            with st.expander("Détail de l'erreur d'import"):
+                st.code(_GEN_IMPORT_ERROR)
     else:
         # ── Input ─────────────────────────────────────────────────────────────
         idea_input = st.text_input(
@@ -914,6 +920,9 @@ with tab_script:
 
     if not _GEN_AVAILABLE:
         st.error("ANTHROPIC_API_KEY non définie.")
+        if _GEN_IMPORT_ERROR:
+            with st.expander("Détail de l'erreur d'import"):
+                st.code(_GEN_IMPORT_ERROR)
     else:
         sv_idea = st.text_input(
             "Ton idée",

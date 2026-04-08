@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 utils/idea_classifier.py — Classification locale d'idées Instagram Reels.
 
