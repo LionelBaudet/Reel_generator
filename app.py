@@ -2210,13 +2210,23 @@ with tab_script:
                         "Stabilité", 0.2, 1.0, 0.5, 0.05, key="sv_vo_stability"
                     )
 
-                _vo_sync_mode = st.toggle(
-                    "Mode synchronisé (une voix par scène)",
-                    value=st.session_state.get("sv_vo_sync_mode", False),
-                    key="sv_vo_sync_toggle",
-                    help="Génère un audio par scène. La durée de chaque scène s'adapte automatiquement à la voix.",
-                )
-                st.session_state["sv_vo_sync_mode"] = _vo_sync_mode
+                _toggle_col1, _toggle_col2 = st.columns(2)
+                with _toggle_col1:
+                    _vo_sync_mode = st.toggle(
+                        "Mode synchronisé (une voix par scène)",
+                        value=st.session_state.get("sv_vo_sync_mode", False),
+                        key="sv_vo_sync_toggle",
+                        help="Génère un audio par scène. La durée de chaque scène s'adapte automatiquement à la voix.",
+                    )
+                    st.session_state["sv_vo_sync_mode"] = _vo_sync_mode
+                with _toggle_col2:
+                    _bg_music_on = st.toggle(
+                        "Musique de fond",
+                        value=st.session_state.get("sv_bg_music_on", False),
+                        key="sv_bg_music_toggle",
+                        help="Désactivé par défaut : ajoute ta musique directement sur Instagram.",
+                    )
+                    st.session_state["sv_bg_music_on"] = _bg_music_on
 
                 _vo_btn_col, _vo_status_col = st.columns([1, 2])
                 with _vo_btn_col:
@@ -2313,6 +2323,7 @@ with tab_script:
                     lang=_reel_lang,
                     voiceover_path=st.session_state.get("sv_voiceover_path", ""),
                     scene_voiceovers=st.session_state.get("sv_scene_voiceovers") or None,
+                    bg_music_volume=0.28 if st.session_state.get("sv_bg_music_on") else 0.0,
                 )
 
                 # ── Self-check validation ──────────────────────────────────────

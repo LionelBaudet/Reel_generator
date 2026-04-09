@@ -472,7 +472,8 @@ def build_yaml_from_viral_script(sv: dict, montage: dict, idea: str,
                                    video_paths: list | None = None,
                                    lang: str = "fr",
                                    voiceover_path: str = "",
-                                   scene_voiceovers: list | None = None) -> tuple:
+                                   scene_voiceovers: list | None = None,
+                                   bg_music_volume: float = 0.0) -> tuple:
     """
     Construit un YAML viral_text_centric_v1 depuis le script viral + plan de montage.
     video_paths : liste de chemins locaux de vidéos Pexels (optionnel).
@@ -518,10 +519,12 @@ def build_yaml_from_viral_script(sv: dict, montage: dict, idea: str,
             bg_videos_yaml = f'    - path: "{fallback_video}"\n      query: ""\n'
 
     # Build scene_voiceovers YAML block if provided
+    # Always normalize to forward slashes so YAML stays valid on Windows
     if scene_voiceovers:
         _svo_lines = "  scene_voiceovers:\n"
         for item in scene_voiceovers:
             p = item if isinstance(item, str) else item.get("path", "")
+            p = p.replace("\\", "/")
             _svo_lines += f'    - "{p}"\n'
         scene_vo_block = _svo_lines
     else:
@@ -551,7 +554,7 @@ broll_video: "{fallback_video}"
 
 audio:
   background_music: "{audio_path}"
-  volume: 0.28
+  volume: {bg_music_volume}
   voiceover: "{voiceover_path}"
   voiceover_volume: 1.0
 {scene_vo_block}

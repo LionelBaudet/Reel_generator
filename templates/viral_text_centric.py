@@ -534,9 +534,11 @@ class ViralTextCentricTemplate:
         n_banks  = len([b for b in self._banks if b])
         n_scenes = len(self.scenes_cfg)
 
-        # Sync mode: one audio file per scene drives scene duration
+        # Sync mode: one audio file per scene drives scene duration.
+        # gold_outro is excluded from the count (it has no voiceover).
         scene_vo_paths: list[str] = self.audio_cfg.get("scene_voiceovers", [])
-        sync_mode = bool(scene_vo_paths) and len(scene_vo_paths) >= n_scenes
+        _n_voiced = sum(1 for sc in self.scenes_cfg if sc.get("type") != "gold_outro")
+        sync_mode = bool(scene_vo_paths) and len(scene_vo_paths) >= _n_voiced
 
         # Attribution par blocs : video 1 → scènes 0..k, video 2 → scènes k+1..2k…
         block_size = max(1, math.ceil(n_scenes / n_banks)) if n_banks > 0 else n_scenes
