@@ -2176,22 +2176,43 @@ with tab_script:
 
                 _vo_path_existing = st.session_state.get("sv_voiceover_path", "")
 
-                # Derive default voiceover text from scene texts
-                _scenes_text = " ".join(
-                    str(sc.get("text", ""))
-                    for sc in montage.get("scenes", [])
-                    if sc.get("text")
-                )
-                _vo_text_default = st.session_state.get("sv_voiceover_text") or _scenes_text
+                # ── Textes par scène (éditables) ──────────────────────────
+                _raw_scenes = [
+                    sc for sc in montage.get("scenes", [])
+                    if sc.get("text") and sc.get("type") != "gold_outro"
+                ]
+                # Seed from session state or from montage
+                if "sv_scene_texts" not in st.session_state or \
+                        len(st.session_state["sv_scene_texts"]) != len(_raw_scenes):
+                    st.session_state["sv_scene_texts"] = [
+                        str(sc.get("text", "")) for sc in _raw_scenes
+                    ]
+
+                with st.expander("✏️ Éditer le texte de chaque scène", expanded=False):
+                    _edited_scene_texts = []
+                    for _si, _sc in enumerate(_raw_scenes):
+                        _sc_type = _sc.get("type", "scene")
+                        _default_txt = st.session_state["sv_scene_texts"][_si]
+                        _new_txt = st.text_input(
+                            f"Scène {_si+1} [{_sc_type}]",
+                            value=_default_txt,
+                            key=f"sv_scene_text_{_si}",
+                        )
+                        _edited_scene_texts.append(_new_txt)
+                    # Persist edits
+                    st.session_state["sv_scene_texts"] = _edited_scene_texts
+
+                # Full text = join of all (edited) scene texts (used by single-MP3 mode)
+                _vo_text_default = " ".join(st.session_state["sv_scene_texts"])
 
                 _vo_col1, _vo_col2 = st.columns([3, 1])
                 with _vo_col1:
                     _vo_text = st.text_area(
-                        "Texte de la voix-off",
+                        "Texte complet (mode MP3 unique)",
                         value=_vo_text_default,
-                        height=120,
+                        height=100,
                         key="sv_vo_text_area",
-                        help="Texte que lira ElevenLabs. Dérive automatiquement des scènes du montage.",
+                        help="Concaténation des scènes éditées ci-dessus. Modifiable librement pour le mode MP3 unique.",
                     )
                 with _vo_col2:
                     _VOICES = {
@@ -2280,8 +2301,11 @@ with tab_script:
 
                                 _vo_voice_cfg = _vo_cfg["voiceover"]
                                 if _vo_sync_mode:
-                                    # Per-scene mode: one MP3 per scene
-                                    _scenes_for_vo = montage.get("scenes", [])
+                                    # Per-scene mode: one MP3 per scene using edited texts
+                                    _edited_texts = st.session_state.get("sv_scene_texts", [])
+                                    _scenes_for_vo = [
+                                        {"text": t} for t in _edited_texts if t.strip()
+                                    ]
                                     _vo_scene_dir  = Path("assets/voiceover") / _idea_slug
                                     _scene_results = generate_scene_voiceovers(
                                         _scenes_for_vo, _vo_voice_cfg,
