@@ -481,6 +481,52 @@ class ViralTextCentricTemplate:
         img.save(output_path)
         logger.info(f"Preview {segment} → {output_path}")
 
+    def _build_synced_audio(self, scene_vo_paths: list[str], total_duration: float):
+        """
+        Builds a CompositeAudioClip where each scene voiceover is placed at
+        the correct time offset, mixed under the background music.
+        Returns the composite clip or None on failure.
+        """
+        from moviepy.editor import AudioFileClip, CompositeAudioClip
+        try:
+            from moviepy.audio.AudioClip import concatenate_audioclips
+        except ImportError:
+            concatenate_audioclips = None
+
+        vo_clips = []
+        t_cursor = 0.0
+        for path in scene_vo_paths:
+            if path and Path(path).exists():
+                try:
+                    c = AudioFileClip(path).set_start(t_cursor)
+                    vo_clips.append(c)
+                    t_cursor += c.duration + 0.35   # 350 ms buffer between scenes
+                except Exception as e:
+                    logger.warning(f"Scène audio ignorée ({path}): {e}")
+                    t_cursor += 2.8  # fallback advance
+            else:
+                t_cursor += 2.8
+
+        # Background music
+        bg_path  = self.audio_cfg.get("background_music", "")
+        bg_vol   = float(self.audio_cfg.get("volume", 0.28))
+        bg_clips = []
+        if bg_path and Path(bg_path).exists():
+            try:
+                bg = AudioFileClip(bg_path).volumex(bg_vol)
+                if concatenate_audioclips and bg.duration < total_duration:
+                    repeats = int(total_duration / bg.duration) + 1
+                    bg = concatenate_audioclips([bg] * repeats)
+                bg = bg.subclip(0, total_duration)
+                bg_clips = [bg]
+            except Exception as e:
+                logger.warning(f"Musique de fond ignorée : {e}")
+
+        all_clips = bg_clips + vo_clips
+        if not all_clips:
+            return None
+        return CompositeAudioClip(all_clips)
+
     def generate(self, output_path: str, use_remotion: bool = False) -> str:
         from moviepy.editor import VideoClip, AudioFileClip, concatenate_videoclips
 
@@ -488,13 +534,17 @@ class ViralTextCentricTemplate:
         n_banks  = len([b for b in self._banks if b])
         n_scenes = len(self.scenes_cfg)
 
+        # Sync mode: one audio file per scene drives scene duration
+        scene_vo_paths: list[str] = self.audio_cfg.get("scene_voiceovers", [])
+        sync_mode = bool(scene_vo_paths) and len(scene_vo_paths) >= n_scenes
+
         # Attribution par blocs : video 1 → scènes 0..k, video 2 → scènes k+1..2k…
         block_size = max(1, math.ceil(n_scenes / n_banks)) if n_banks > 0 else n_scenes
 
         logger.info(
             f"ViralTextCentric : {n_scenes} scènes · "
-            f"{self.total_duration:.1f}s · {n_banks} vidéo(s) · "
-            f"blocs de {block_size} scènes · "
+            f"{'SYNC' if sync_mode else 'fixed'} audio · "
+            f"{n_banks} vidéo(s) · "
             f"{self.fps}fps · rendu {RENDER_W}×{RENDER_H} → upscale {CANVAS_W}×{CANVAS_H}"
         )
 
@@ -503,7 +553,21 @@ class ViralTextCentricTemplate:
         bank_offsets = [0] * max(n_banks, 1)
 
         for i, sc in enumerate(self.scenes_cfg):
-            dur      = float(sc.get("duration", 2.8))
+            # In sync mode, scene duration = audio clip duration + 350 ms buffer
+            if sync_mode and i < len(scene_vo_paths):
+                vo_path = scene_vo_paths[i]
+                if vo_path and Path(vo_path).exists():
+                    try:
+                        _probe = AudioFileClip(vo_path)
+                        dur = round(_probe.duration + 0.35, 3)
+                        _probe.close()
+                    except Exception:
+                        dur = float(sc.get("duration", 2.8))
+                else:
+                    dur = float(sc.get("duration", 2.8))
+            else:
+                dur = float(sc.get("duration", 2.8))
+
             n_frames = int(dur * self.fps)
 
             # Attribution bloc : video 1 pour scènes 0..k, video 2 pour k+1..2k…
@@ -523,15 +587,19 @@ class ViralTextCentricTemplate:
 
             logger.info(
                 f"  Scène {i+1}/{n_scenes} [{sc.get('type','')}] "
-                f"bank={bank_idx} · {dur}s · "
+                f"bank={bank_idx} · {dur:.2f}s · "
                 f"{sc.get('text_animation', sc.get('animation', 'fade_in'))}"
+                + (" [sync]" if sync_mode else "")
             )
 
         final = concatenate_videoclips(clips, method="compose")
 
         try:
-            from utils.audio import get_audio_clip
-            audio_clip = get_audio_clip(self.audio_cfg, final.duration)
+            if sync_mode:
+                audio_clip = self._build_synced_audio(scene_vo_paths, final.duration)
+            else:
+                from utils.audio import get_audio_clip
+                audio_clip = get_audio_clip(self.audio_cfg, final.duration)
             if audio_clip is not None:
                 final = final.set_audio(audio_clip)
         except Exception as e:

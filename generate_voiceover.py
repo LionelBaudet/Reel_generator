@@ -164,6 +164,113 @@ def generate_voiceover(
 
 
 # ---------------------------------------------------------------------------
+# Per-scene voiceover (sync mode)
+# ---------------------------------------------------------------------------
+
+def generate_scene_voiceovers(
+    scenes:       list[dict],
+    voice_config: dict,
+    output_dir:   str | Path,
+    api_key:      str | None = None,
+) -> list[dict]:
+    """
+    Generate one MP3 per scene for frame-accurate voiceover sync.
+
+    Args:
+        scenes:       list of scene dicts, each must have a 'text' key.
+        voice_config: voiceover settings (voice_id, speed, stability, …)
+                      same shape as the 'voiceover' section in YAML.
+        output_dir:   folder where per-scene MP3s are saved.
+        api_key:      ElevenLabs API key. If None, loaded from .env.
+
+    Returns:
+        list of dicts: [{text, path, duration_hint}, …]
+        duration_hint is None until ffprobe confirms; caller can use
+        it to set scene duration in the YAML / template.
+    """
+    if api_key is None:
+        api_key = _load_env()
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    voice_id         = voice_config.get("voice_id", "EXAVITQu4vr4xnSDxMaL")
+    stability        = float(voice_config.get("stability", 0.5))
+    similarity_boost = float(voice_config.get("similarity_boost", 0.75))
+    style            = float(voice_config.get("style", 0.0))
+    speed            = float(voice_config.get("speed", 1.0))
+    model_id         = voice_config.get("model_id", DEFAULT_MODEL_ID)
+
+    url = f"{ELEVENLABS_API_BASE}/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key":   api_key,
+        "Content-Type": "application/json",
+        "Accept":       "audio/mpeg",
+    }
+
+    results = []
+    for i, scene in enumerate(scenes):
+        text = str(scene.get("text", "")).strip()
+        if not text:
+            results.append({"text": text, "path": "", "duration_hint": None})
+            continue
+
+        out_path = output_dir / f"scene_{i:02d}.mp3"
+        payload = {
+            "text":     text,
+            "model_id": model_id,
+            "voice_settings": {
+                "stability":        stability,
+                "similarity_boost": similarity_boost,
+                "style":            style,
+                "use_speaker_boost": True,
+                "speed":            speed,
+            },
+        }
+
+        print(f"[voiceover] Scene {i+1}/{len(scenes)}: {text[:60]}")
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=30)
+        except requests.exceptions.Timeout:
+            print(f"[voiceover] Timeout on scene {i} — skipping")
+            results.append({"text": text, "path": "", "duration_hint": None})
+            continue
+        except requests.exceptions.ConnectionError as exc:
+            print(f"[voiceover] Connection error on scene {i}: {exc}")
+            results.append({"text": text, "path": "", "duration_hint": None})
+            continue
+
+        if r.status_code == 401:
+            sys.exit("Error: Invalid ElevenLabs API key (401 Unauthorized).")
+        if r.status_code == 429:
+            sys.exit("Error: ElevenLabs rate limit (429). Try again later.")
+        if not r.ok:
+            print(f"[voiceover] API error {r.status_code} on scene {i} — skipping")
+            results.append({"text": text, "path": "", "duration_hint": None})
+            continue
+
+        out_path.write_bytes(r.content)
+        print(f"[voiceover]   -> {out_path.name} ({out_path.stat().st_size // 1024} KB)")
+        results.append({"text": text, "path": str(out_path), "duration_hint": None})
+
+    # Probe durations with mutagen or wave fallback (no ffprobe needed)
+    for item in results:
+        p = item["path"]
+        if not p or not Path(p).exists():
+            continue
+        try:
+            import mutagen.mp3
+            audio = mutagen.mp3.MP3(p)
+            item["duration_hint"] = audio.info.length
+        except Exception:
+            # Raw estimation: MP3 at 128 kbps ~ 128 bits/ms → bytes * 8 / 128000
+            size = Path(p).stat().st_size
+            item["duration_hint"] = round(size * 8 / 128_000, 2)
+
+    return results
+
+
+# ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
 

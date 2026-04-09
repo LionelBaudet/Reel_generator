@@ -2210,6 +2210,14 @@ with tab_script:
                         "Stabilité", 0.2, 1.0, 0.5, 0.05, key="sv_vo_stability"
                     )
 
+                _vo_sync_mode = st.toggle(
+                    "Mode synchronisé (une voix par scène)",
+                    value=st.session_state.get("sv_vo_sync_mode", False),
+                    key="sv_vo_sync_toggle",
+                    help="Génère un audio par scène. La durée de chaque scène s'adapte automatiquement à la voix.",
+                )
+                st.session_state["sv_vo_sync_mode"] = _vo_sync_mode
+
                 _vo_btn_col, _vo_status_col = st.columns([1, 2])
                 with _vo_btn_col:
                     _btn_vo = st.button(
@@ -2237,7 +2245,7 @@ with tab_script:
                         }
                         with st.spinner("Génération de la voix-off via ElevenLabs..."):
                             try:
-                                from generate_voiceover import generate_voiceover
+                                from generate_voiceover import generate_voiceover, generate_scene_voiceovers
                                 _el_key = (
                                     _os.environ.get("ELEVENLABS_API_KEY", "")
                                     or st.secrets.get("ELEVENLABS_API_KEY", "")
@@ -2249,7 +2257,7 @@ with tab_script:
                                 # Quick pre-flight test to surface exact API error
                                 import requests as _req
                                 _test_r = _req.post(
-                                    f"https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL",
+                                    "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL",
                                     headers={"xi-api-key": _el_key, "Content-Type": "application/json", "Accept": "audio/mpeg"},
                                     json={"text": "test", "model_id": "eleven_multilingual_v2",
                                           "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}},
@@ -2258,11 +2266,33 @@ with tab_script:
                                 if not _test_r.ok:
                                     st.error(f"ElevenLabs pré-test {_test_r.status_code} : `{_test_r.text[:300]}`")
                                     st.stop()
-                                _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out, api_key=_el_key)
-                                st.session_state["sv_voiceover_path"] = str(_vo_result)
-                                st.session_state["sv_voiceover_text"] = _vo_text
-                                _vo_path_existing = str(_vo_result)
-                                st.success(f"Voix-off prête : `{_vo_result.name}` ({_vo_result.stat().st_size // 1024} KB)")
+
+                                _vo_voice_cfg = _vo_cfg["voiceover"]
+                                if _vo_sync_mode:
+                                    # Per-scene mode: one MP3 per scene
+                                    _scenes_for_vo = montage.get("scenes", [])
+                                    _vo_scene_dir  = Path("assets/voiceover") / _idea_slug
+                                    _scene_results = generate_scene_voiceovers(
+                                        _scenes_for_vo, _vo_voice_cfg,
+                                        output_dir=_vo_scene_dir, api_key=_el_key,
+                                    )
+                                    _scene_paths = [r["path"] for r in _scene_results]
+                                    st.session_state["sv_scene_voiceovers"]  = _scene_paths
+                                    st.session_state["sv_voiceover_path"]    = ""   # no single MP3
+                                    st.session_state["sv_voiceover_text"]    = _vo_text
+                                    _valid = sum(1 for p in _scene_paths if p)
+                                    st.success(f"Voix-off synchronisée : {_valid}/{len(_scenes_for_vo)} scènes générées")
+                                    for _j, _item in enumerate(_scene_results):
+                                        if _item["path"] and Path(_item["path"]).exists():
+                                            st.audio(_item["path"], format="audio/mp3")
+                                else:
+                                    # Standard mode: single MP3
+                                    _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out, api_key=_el_key)
+                                    st.session_state["sv_voiceover_path"]   = str(_vo_result)
+                                    st.session_state["sv_voiceover_text"]   = _vo_text
+                                    st.session_state["sv_scene_voiceovers"] = []
+                                    _vo_path_existing = str(_vo_result)
+                                    st.success(f"Voix-off prête : `{_vo_result.name}` ({_vo_result.stat().st_size // 1024} KB)")
                             except SystemExit as _e:
                                 st.error(f"Erreur ElevenLabs : {_e}")
                             except Exception as _e:
@@ -2282,6 +2312,7 @@ with tab_script:
                     video_paths=_pexels_paths or None,
                     lang=_reel_lang,
                     voiceover_path=st.session_state.get("sv_voiceover_path", ""),
+                    scene_voiceovers=st.session_state.get("sv_scene_voiceovers") or None,
                 )
 
                 # ── Self-check validation ──────────────────────────────────────
@@ -2303,12 +2334,14 @@ with tab_script:
                 except Exception:
                     pass
 
-                # If voiceover path changed since last YAML build, refresh the editor
-                _cur_vo = st.session_state.get("sv_voiceover_path", "")
-                if _cur_vo and st.session_state.get("sv_reel_yaml_vo") != _cur_vo:
+                # Refresh YAML editor when voiceover (single or per-scene) changes
+                _cur_vo  = st.session_state.get("sv_voiceover_path", "")
+                _cur_svo = str(st.session_state.get("sv_scene_voiceovers", ""))
+                _yaml_sig = _cur_vo + "|" + _cur_svo
+                if _yaml_sig and st.session_state.get("sv_reel_yaml_vo") != _yaml_sig:
                     st.session_state["sv_reel_edit_val"] = reel_yaml
                     st.session_state["sv_reel_edit_v"] = st.session_state.get("sv_reel_edit_v", 0) + 1
-                    st.session_state["sv_reel_yaml_vo"] = _cur_vo
+                    st.session_state["sv_reel_yaml_vo"] = _yaml_sig
 
                 with st.expander("📄 YAML reel — modifiable", expanded=False):
                     _sv_edit_v = st.session_state.get("sv_reel_edit_v", 0)
