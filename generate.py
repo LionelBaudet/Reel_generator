@@ -39,6 +39,41 @@ def _client() -> anthropic.Anthropic:
         raise ValueError("ANTHROPIC_API_KEY non définie.")
     return anthropic.Anthropic(api_key=key)
 
+
+def _call_with_retry(**kwargs) -> anthropic.types.Message:
+    """
+    Wrapper autour de messages.create avec retry exponentiel.
+    Gère les erreurs 529 (overloaded) et 500 transitoires.
+    Retries : 3 tentatives, délais 3s → 6s → 12s.
+    """
+    import time
+    import logging
+    _log = logging.getLogger(__name__)
+
+    max_retries = 3
+    delay = 3.0
+    for attempt in range(max_retries + 1):
+        try:
+            return _client().messages.create(**kwargs)
+        except anthropic.InternalServerError as e:
+            # 529 overloaded or 500 transient
+            if attempt < max_retries:
+                _log.warning(
+                    f"Anthropic API surchargée (tentative {attempt+1}/{max_retries}) "
+                    f"— nouvelle tentative dans {delay:.0f}s…"
+                )
+                time.sleep(delay)
+                delay *= 2
+            else:
+                raise
+        except anthropic.RateLimitError as e:
+            if attempt < max_retries:
+                _log.warning(f"Rate limit Anthropic — attente {delay:.0f}s…")
+                time.sleep(delay)
+                delay *= 2
+            else:
+                raise
+
 BROLL_CATEGORIES = {
     "night_work":  "assets/video/night_work.mp4",
     "meetings":    "assets/video/meeting_prep.mp4",
@@ -119,7 +154,7 @@ def _parse_json(raw: str) -> object:
 
 
 def call_claude(idea: str) -> dict:
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=1500,
         system=SYSTEM_PROMPT,
@@ -459,7 +494,7 @@ def generate_montage_plan(script: dict, lang: str = "fr", idea_type: str = "") -
     ])
     prompt = script_lines + cta_hint + MONTAGE_JSON_TEMPLATE
 
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=2000,
         system=_montage_system(lang),
@@ -736,7 +771,7 @@ def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
     system = _AB_SYSTEM_EN if lang == "en" else _AB_SYSTEM_FR
     prompt = lang_prefix + type_ctx + type_rules + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
 
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=3000,
         system=system,
@@ -792,7 +827,7 @@ def generate_viral_script(idea: str, lang: str = "fr") -> dict:
         type_rules=type_rules,
     )
 
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=2000,
         system=_viral_script_system(lang),
@@ -855,7 +890,7 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> st
             '{"caption": "<2-4 lignes percutantes>\\n\\n<ligne CTA : Follow @ownyourtime.ai pour plus>\\n\\n<10-12 hashtags sans saut de ligne>"}'
         )
 
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=600,
         system=system,
@@ -868,7 +903,7 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> st
 def generate_variants(idea: str) -> list:
     """Génère 3 variantes de concept reel pour une même idée (un seul appel API)."""
     slug_base = re.sub(r"[^\w]", "_", idea.lower().strip())[:20]
-    message = _client().messages.create(
+    message = _call_with_retry(
         model=MODEL,
         max_tokens=3500,
         system=SYSTEM_PROMPT,
