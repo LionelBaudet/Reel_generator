@@ -2198,6 +2198,7 @@ with tab_script:
                         "Sarah — claire, pro (fr/en)": "EXAVITQu4vr4xnSDxMaL",
                         "Adam — profond, autorité":    "pNInz6obpgDQGcFmaJgB",
                         "Antoni — naturel, convers.":  "ErXwobaYiN019PkySvjV",
+                        "Laurent - Warm, friendly" : "necQJzI1X0vLpdnJteap",
                     }
                     _vo_voice_label = st.selectbox(
                         "Voix", list(_VOICES.keys()), key="sv_vo_voice"
