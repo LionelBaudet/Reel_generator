@@ -2303,6 +2303,13 @@ with tab_script:
                 except Exception:
                     pass
 
+                # If voiceover path changed since last YAML build, refresh the editor
+                _cur_vo = st.session_state.get("sv_voiceover_path", "")
+                if _cur_vo and st.session_state.get("sv_reel_yaml_vo") != _cur_vo:
+                    st.session_state["sv_reel_edit_val"] = reel_yaml
+                    st.session_state["sv_reel_edit_v"] = st.session_state.get("sv_reel_edit_v", 0) + 1
+                    st.session_state["sv_reel_yaml_vo"] = _cur_vo
+
                 with st.expander("📄 YAML reel — modifiable", expanded=False):
                     _sv_edit_v = st.session_state.get("sv_reel_edit_v", 0)
                     _sv_edit_val = st.session_state.get("sv_reel_edit_val", reel_yaml)

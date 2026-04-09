@@ -529,16 +529,13 @@ class ViralTextCentricTemplate:
 
         final = concatenate_videoclips(clips, method="compose")
 
-        apath  = self.audio_cfg.get("background_music", "")
-        volume = float(self.audio_cfg.get("volume", 0.28))
-        if apath and Path(apath).exists():
-            try:
-                music = AudioFileClip(apath).volumex(volume)
-                if music.duration > final.duration:
-                    music = music.subclip(0, final.duration)
-                final = final.set_audio(music)
-            except Exception as e:
-                logger.warning(f"Audio ignoré : {e}")
+        try:
+            from utils.audio import get_audio_clip
+            audio_clip = get_audio_clip(self.audio_cfg, final.duration)
+            if audio_clip is not None:
+                final = final.set_audio(audio_clip)
+        except Exception as e:
+            logger.warning(f"Audio ignoré : {e}")
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         final.write_videofile(
