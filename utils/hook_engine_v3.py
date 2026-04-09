@@ -66,9 +66,13 @@ except ImportError:
 _TOOL_OK_TYPES = {"tool_demo", "comparison"}
 
 PATTERN_TYPES = [
+    # V3 original
     "user_pain", "loss", "time_contrast", "transformation",
     "discovery", "prompt_reveal", "authority", "controversial",
     "comparison", "tool_demo", "generic",
+    # V4 provocation layer
+    "social_tension", "hidden_truth", "contrast_choc",
+    "micro_provocation", "second_person_trigger", "invisible_comparison",
 ]
 
 _TOOL_FIRST_PREFIXES = [
@@ -416,6 +420,46 @@ _FR_TEMPLATES: list[tuple[str, str, str, list[str]]] = [
     ("Apres {number} essais sur {topic}. Mon verdict.","authority","proof",        ["number","topic"]),
     ("J'ai analyse {topic} pendant 6 mois",       "authority",  "authority",       ["topic"]),
     ("Mon verdict honnete sur {topic}",           "authority",  "proof",           ["topic"]),
+    # ── V4 PROVOCATION LAYER ──────────────────────────────────────────────────
+    # SOCIAL TENSION — expose le decalage viewer vs autres
+    ("Ton travail est fini. Tes collegues pensent que tu bosses.", "social_tension", "tension", []),
+    ("Tu travailles. D'autres automatisent.",      "social_tension", "tension",     []),
+    ("Tu remplis ton temps. Eux livrent en {time_str}.", "social_tension", "tension", ["time_str"]),
+    ("Certains font ca en {time_str}. Toi ?",     "social_tension", "tension",     ["time_str"]),
+    ("Pendant que tu fais ca a la main...",        "social_tension", "tension",     []),
+    ("D'autres ont deja automatise {topic}.",      "social_tension", "tension",     ["topic"]),
+    # HIDDEN TRUTH — ce que la personne ne voit pas
+    ("Ton budget fuit deja. Tu le vois pas.",      "hidden_truth",   "invisible_problem", []),
+    ("La moitie de ton job est inutile.",          "hidden_truth",   "opinion",     []),
+    ("Tu crois bosser. Tu repetes.",               "hidden_truth",   "opinion",     []),
+    ("Ton {topic} te coute plus que tu crois.",    "hidden_truth",   "invisible_problem", ["topic"]),
+    ("Tu perds {time_str} par semaine. Tu le vois pas.", "hidden_truth", "loss",    ["time_str"]),
+    ("Ton agenda te ment.",                        "hidden_truth",   "opinion",     []),
+    # CONTRAST CHOC — opposition brute, simple
+    ("40h. 20h sont evitables.",                   "contrast_choc",  "time_gain",  []),
+    ("{time_before}. Maintenant {time_str}.",       "contrast_choc",  "time_gain",  ["time_before", "time_str"]),
+    ("Avant : {time_before}. Aujourd'hui : {time_str}.", "contrast_choc", "time_gain", ["time_before", "time_str"]),
+    ("Ton {topic} : {time_before}. Avec ca : {time_str}.", "contrast_choc", "time_gain", ["topic", "time_before", "time_str"]),
+    ("{time_before} -> {time_str}. Meme resultat.", "contrast_choc", "time_gain",  ["time_before", "time_str"]),
+    # MICRO PROVOCATION — remet en question sans agresser
+    ("Tu bosses vraiment... ou tu remplis ?",      "micro_provocation", "opinion",  []),
+    ("C'est du travail... ou de l'habitude ?",     "micro_provocation", "opinion",  []),
+    ("Tu fais ca a la main ? Serieusement ?",      "micro_provocation", "pain",     []),
+    ("T'as vraiment besoin de {time_before} pour ca ?", "micro_provocation", "opinion", ["time_before"]),
+    ("Pourquoi {time_before} sur {topic} ?",       "micro_provocation", "opinion",  ["time_before", "topic"]),
+    ("C'est necessaire ou c'est l'habitude ?",     "micro_provocation", "opinion",  []),
+    # SECOND PERSON TRIGGER — projection directe, intime
+    ("Tu perds du temps sans le voir.",            "second_person_trigger", "loss", []),
+    ("Ton lundi te bouffe deja.",                  "second_person_trigger", "pain", []),
+    ("Tes taches te controlent.",                  "second_person_trigger", "pain", []),
+    ("Tu travailles {time_before}. {time_str} sont evitables.", "second_person_trigger", "time_gain", ["time_before", "time_str"]),
+    ("Tu passes {time_str} sur ca chaque semaine.", "second_person_trigger", "pain", ["time_str"]),
+    ("Ton {topic} mange tes journees.",            "second_person_trigger", "pain", ["topic"]),
+    # INVISIBLE COMPARISON — implicite, sans nommer
+    ("Certains font ca en 10 min.",                "invisible_comparison", "comparison", []),
+    ("D'autres ont deja resolu ca.",               "invisible_comparison", "comparison", []),
+    ("Pendant que tu fais ca manuellement...",     "invisible_comparison", "comparison", []),
+    ("Certains font {topic} en {time_str}. Toi combien ?", "invisible_comparison", "comparison", ["topic", "time_str"]),
 ]
 
 _EN_TEMPLATES: list[tuple[str, str, str, list[str]]] = [
@@ -463,6 +507,41 @@ _EN_TEMPLATES: list[tuple[str, str, str, list[str]]] = [
     ("After {number} attempts on {topic}. My verdict.","authority","proof",       ["number","topic"]),
     ("I analyzed {topic} for 6 months",           "authority",  "authority",       ["topic"]),
     ("My honest verdict on {topic}",              "authority",  "proof",           ["topic"]),
+    # ── V4 PROVOCATION LAYER ──────────────────────────────────────────────────
+    # SOCIAL TENSION
+    ("Your work is done. Your colleagues think you're busy.", "social_tension", "tension", []),
+    ("You work. Others automate.",                 "social_tension", "tension",    []),
+    ("You fill your time. They ship in {time_str}.", "social_tension", "tension",  ["time_str"]),
+    ("Some people do this in {time_str}. You?",    "social_tension", "tension",    ["time_str"]),
+    ("While you do this manually…",               "social_tension", "tension",    []),
+    ("Others already automated {topic}.",          "social_tension", "tension",    ["topic"]),
+    # HIDDEN TRUTH
+    ("Your budget is already leaking. You don't see it.", "hidden_truth", "invisible_problem", []),
+    ("Half your job is pointless.",                "hidden_truth",   "opinion",    []),
+    ("You think you're working. You're repeating.", "hidden_truth",  "opinion",    []),
+    ("Your {topic} costs more than you think.",    "hidden_truth",   "invisible_problem", ["topic"]),
+    ("You lose {time_str} per week. You don't notice.", "hidden_truth", "loss",    ["time_str"]),
+    # CONTRAST CHOC
+    ("40h. 20 are avoidable.",                     "contrast_choc",  "time_gain",  []),
+    ("{time_before}. Now {time_str}.",              "contrast_choc",  "time_gain",  ["time_before", "time_str"]),
+    ("Before: {time_before}. Now: {time_str}. Same output.", "contrast_choc", "time_gain", ["time_before", "time_str"]),
+    ("{time_before} → {time_str}. Same result.",   "contrast_choc",  "time_gain",  ["time_before", "time_str"]),
+    # MICRO PROVOCATION
+    ("Are you actually working… or just busy?",    "micro_provocation", "opinion", []),
+    ("Is this work… or just habit?",               "micro_provocation", "opinion", []),
+    ("You still do this manually? Seriously?",     "micro_provocation", "pain",    []),
+    ("Do you really need {time_before} for this?", "micro_provocation", "opinion", ["time_before"]),
+    # SECOND PERSON TRIGGER
+    ("You're losing time without noticing.",       "second_person_trigger", "loss", []),
+    ("Your Monday is already gone.",               "second_person_trigger", "pain", []),
+    ("Your tasks control you.",                    "second_person_trigger", "pain", []),
+    ("You work {time_before}. {time_str} are avoidable.", "second_person_trigger", "time_gain", ["time_before", "time_str"]),
+    ("You spend {time_str} on this every week.",   "second_person_trigger", "pain", ["time_str"]),
+    # INVISIBLE COMPARISON
+    ("Some people do this in 10 min.",             "invisible_comparison", "comparison", []),
+    ("Others have already solved this.",           "invisible_comparison", "comparison", []),
+    ("While you do this manually…",               "invisible_comparison", "comparison", []),
+    ("Some do {topic} in {time_str}. How long does it take you?", "invisible_comparison", "comparison", ["topic", "time_str"]),
 ]
 
 
@@ -571,19 +650,84 @@ def generate_hook_candidates(
 # SECTION 5  --  HOOK PATTERN CLASSIFIER
 # ===========================================================================
 
+def has_social_tension(hook: str) -> bool:
+    """True if hook contrasts viewer with others (social gap)."""
+    h = hook.lower()
+    return bool(re.search(
+        r"(d'autres|certains|eux |they |others |pendant que|while you|"
+        r"tes collegues|your colleagues|tu travailles.*automatisent|"
+        r"you work.*automate|they ship|ils livrent)",
+        h
+    ))
+
+
+def has_personal_projection(hook: str) -> bool:
+    """True if hook directly addresses the viewer with a present-tense situation."""
+    h = hook.lower()
+    return bool(re.search(r"^(tu |ton |tes |you |your )", h))
+
+
+def has_strong_contrast(hook: str) -> bool:
+    """True if hook contains an explicit before/after contrast."""
+    h = hook.lower()
+    return bool(
+        "→" in hook or "->" in hook
+        or re.search(r"\d+h?\s*(vs|->|→)\s*\d+", h)
+        or re.search(r"(avant|before)\s*:\s*.{1,20}(maintenant|now|aujourd)", h)
+        or re.search(r"\d+\s*(min|h|sec|heures?)\s*[.]\s*\d+\s*(min|sec|h)", h)
+    )
+
+
+def has_implicit_tension(hook: str) -> bool:
+    """True if hook carries any form of provocative tension (question, contradiction, hidden truth)."""
+    h = hook.lower()
+    return bool(
+        h.endswith("?")
+        or re.search(r"\.\s*(tu le vois pas|you don.t see|serieusement|seriously)", h)
+        or re.search(r"(crois bosser|crois gerer|think you.re|tu repetes|you.re repeating)", h)
+        or re.search(r"(inutile|pour rien|pointless|for nothing|useless)", h)
+        or re.search(r"(fuit|leaking|bouffe|eating your)", h)
+    )
+
+
 def classify_hook_pattern(hook: str) -> str:
     """
     Identifies the dominant pattern type of a hook.
-    Returns one of: user_pain, tool_first, curiosity, loss, time_contrast,
-                    transformation, authority, opinion, comparison, generic.
+    V4: adds social_tension, hidden_truth, contrast_choc,
+        micro_provocation, second_person_trigger, invisible_comparison.
     """
-    h    = hook.strip().lower()
+    h     = hook.strip().lower()
     words = h.split()
 
     # Tool-first (check before user_pain)
     if any(h.startswith(p) for p in _TOOL_FIRST_PREFIXES):
         return "tool_first"
 
+    # V4 — Social tension (others vs viewer)
+    if has_social_tension(hook):
+        return "social_tension"
+
+    # V4 — Invisible comparison (implicit, no explicit comparison word)
+    if re.search(r"(certains font|some people do|d'autres ont|others have|pendant que tu)", h):
+        return "invisible_comparison"
+
+    # V4 — Micro provocation (question that challenges)
+    if h.endswith("?") and re.search(r"(vraiment|serieusement|seriously|really|pourquoi|why|t'as besoin|do you need)", h):
+        return "micro_provocation"
+
+    # V4 — Hidden truth (tu crois… mais faux)
+    if re.search(r"(crois bosser|crois gerer|tu repetes|you.re repeating|tu le vois pas|you don.t see it|fuit deja|already leaking)", h):
+        return "hidden_truth"
+
+    # V4 — Contrast choc (brutal number opposition)
+    if has_strong_contrast(hook):
+        return "contrast_choc"
+
+    # V4 — Second person trigger (tu + present tension, no "encore")
+    if re.search(r"^(tu |ton |tes )", h) and re.search(r"(te bouffe|te controlent|te prend|t'as|te coute|te ment)", h):
+        return "second_person_trigger"
+
+    # V3 patterns (kept in order)
     # Time contrast: contains arrow or avant/apres with time
     if "→" in hook or "->" in hook:
         return "time_contrast"
@@ -595,11 +739,9 @@ def classify_hook_pattern(hook: str) -> str:
                               "lose", "losing", "lost", "waste", "wasting"]):
         return "loss"
 
-    # User pain (starts with tu/you/ton/your + douleur)
+    # User pain
     if re.search(r"^(tu |ton |tes |you |your )", h):
-        if any(w in h for w in ["encore", "still", "trop", "too long", "trop de"]):
-            return "user_pain"
-        return "user_pain"  # default for viewer-first hooks
+        return "user_pain"
 
     # Curiosity / discovery
     if any(w in h for w in ["personne ne", "nobody", "sans le voir", "cache",
@@ -630,7 +772,6 @@ def classify_hook_pattern(hook: str) -> str:
     if any(w in h for w in ["prompt", "1 prompt", "le prompt", "the prompt"]):
         return "prompt_reveal"
 
-    # Length-based fallback: very short = probably strong, long = generic
     if len(words) <= 5:
         return "user_pain"
 
@@ -939,6 +1080,55 @@ def score_hook_v3(
     if re.search(r"\b(incroyable|fascinant|revolutionnaire|amazing|incredible)\b", h):
         composite -= 1.5
 
+    # ── V4 Provocation bonuses ────────────────────────────────────────────────
+    prov_bonus = 0.0
+
+    # +2.5 social tension (viewer vs others)
+    if has_social_tension(hook):
+        prov_bonus += 2.5
+
+    # +2.0 direct personal projection ("tu/ton/tes" opening)
+    if has_personal_projection(hook):
+        prov_bonus += 2.0
+
+    # +1.5 strong contrast (before/after numbers)
+    if has_strong_contrast(hook):
+        prov_bonus += 1.5
+
+    # +1.5 extreme simplicity (≤ 5 words)
+    if len(words) <= 5:
+        prov_bonus += 1.5
+    elif len(words) <= 7:
+        prov_bonus += 0.5
+
+    # +1.5 implicit tension / provocative question
+    if has_implicit_tension(hook):
+        prov_bonus += 1.5
+
+    # Cap: max +4 so high-tension hooks win but don't all collapse at 10
+    composite += min(prov_bonus, 4.0)
+
+    # ── V4 Provocation penalties ──────────────────────────────────────────────
+    # -3 if purely informative (describes without addressing viewer)
+    _informative_signals = [
+        "voici comment", "here is how", "cela permet", "this allows",
+        "cette methode", "this method", "on peut", "you can",
+        "il existe", "there is a", "il suffit", "you just need",
+    ]
+    if any(s in h for s in _informative_signals):
+        composite -= 3.0
+
+    # -3 if completely neutral (no tension, no viewer address, no contrast)
+    _has_any_tension = (
+        has_social_tension(hook)
+        or has_personal_projection(hook)
+        or has_strong_contrast(hook)
+        or has_implicit_tension(hook)
+        or re.search(r"(perds|fuit|coute|inutile|pour rien|lose|wasting|leaking)", h)
+    )
+    if not _has_any_tension and len(words) > 5:
+        composite -= 3.0
+
     # History pattern boosts (small but meaningful)
     if history_patterns:
         composite += _apply_history_boosts(hook, history_patterns)
@@ -1121,7 +1311,108 @@ def boost_patterns_from_history(
 
 
 # ===========================================================================
-# SECTION 8b --  TOOL-FIRST → HUMAN-FIRST REWRITER
+# SECTION 8b --  PROVOCATION INJECTOR (V4)
+# ===========================================================================
+
+def inject_provocation_layer(
+    hook:      str,
+    idea:      str = "",
+    idea_type: str = "",
+    language:  str = "fr",
+) -> str:
+    """
+    Transforms a clean/informative hook into a provocateur hook.
+    Called when a hook lacks both tension AND personal projection.
+
+    Priority:
+      1. Extract time/money from idea → build contrast_choc
+      2. Detect social gap (others vs viewer) → social_tension
+      3. Hidden truth (invisible problem) → hidden_truth
+      4. Micro provocation (rhetorical question)
+      5. Second-person trigger (default)
+    """
+    h        = hook.strip()
+    h_low    = h.lower()
+    idea_low = idea.lower()
+
+    # ── 1. Numbers → contrast choc ───────────────────────────────────────────
+    time_m  = re.search(r"(\d+\s*(?:h\b|min\b|sec\b|heures?|minutes?|secondes?))", h_low + " " + idea_low)
+    money_m = re.search(r"((?:chf|€|\$)\s?\d+|\d+\s*(?:chf|€|\$|francs?))", h_low + " " + idea_low)
+
+    if time_m:
+        val = time_m.group(1).strip()
+        if language == "en":
+            return f"You spend {val} on this every week. Is it necessary?"
+        return f"Tu passes {val} sur ca chaque semaine. C'est necessaire ?"
+
+    if money_m:
+        val = money_m.group(1).strip()
+        if language == "en":
+            return f"{val} leaking from your budget. You don't see it."
+        return f"{val} qui fuitent de ton budget. Tu le vois pas."
+
+    # ── 2. Social tension from idea keywords ─────────────────────────────────
+    social_signals_fr = {
+        "automatis":  "Tu travailles. D'autres automatisent.",
+        "email":      "Tu ecris encore tes emails a la main ?",
+        "rapport":    "Tu fais encore tes rapports a la main ?",
+        "planning":   "Tu fais ton planning a la main ?",
+        "budget":     "Ton budget fuit deja. Tu le vois pas.",
+        "client":     "Tu reponds encore a tes clients manuellement ?",
+        "reunio":     "La moitie de tes reunions est inutile.",
+        "salaire":    "Tu gagnes moins que tu ne devrais.",
+        "cv":         "Ton CV passe a la poubelle en 6 sec.",
+    }
+    social_signals_en = {
+        "automat":    "You work. Others automate.",
+        "email":      "You're still writing emails manually?",
+        "report":     "You still do reports manually?",
+        "planning":   "You do planning manually?",
+        "budget":     "Your budget leaks. You don't notice.",
+        "client":     "You still reply to clients manually?",
+        "meeting":    "Half your meetings are pointless.",
+        "salary":     "You earn less than you should.",
+    }
+    signals = social_signals_en if language == "en" else social_signals_fr
+    for kw, prov_hook in signals.items():
+        if kw in idea_low:
+            return prov_hook
+
+    # ── 3. Hidden truth by idea_type ─────────────────────────────────────────
+    hidden_by_type = {
+        "fr": {
+            "before_after_time":     "Tu crois bosser. Tu repetes.",
+            "prompt_reveal":         "Tu ecris encore ca a la main.",
+            "budget_finance":        "Ton budget fuit. Tu le vois pas.",
+            "career_work":           "La moitie de ta semaine est du remplissage.",
+            "data_workflow":         "Tu fais encore ca a la main ?",
+            "educational_explainer": "La plupart des gens font ca mal.",
+            "controversial_opinion": "Personne ne te dit ca.",
+            "storytelling_personal": "J'ai fait cette erreur pendant des annees.",
+        },
+        "en": {
+            "before_after_time":     "You think you're working. You're repeating.",
+            "prompt_reveal":         "You're still doing this manually.",
+            "budget_finance":        "Your budget is leaking. You don't see it.",
+            "career_work":           "Half your week is pointless busywork.",
+            "data_workflow":         "You still do this manually?",
+            "educational_explainer": "Most people do this wrong.",
+            "controversial_opinion": "Nobody tells you this.",
+            "storytelling_personal": "I made this mistake for years.",
+        },
+    }
+    by_type = hidden_by_type.get(language, hidden_by_type["fr"])
+    if idea_type in by_type:
+        return by_type[idea_type]
+
+    # ── 4. Generic micro provocation ─────────────────────────────────────────
+    if language == "en":
+        return "You're still doing this the hard way. Seriously?"
+    return "Tu fais encore ca a la main. Serieusement ?"
+
+
+# ===========================================================================
+# SECTION 8d --  TOOL-FIRST → HUMAN-FIRST REWRITER
 # ===========================================================================
 
 def rewrite_tool_first_to_human_first(
@@ -1802,6 +2093,18 @@ def generate_best_hook(
         if fixed_val["is_publishable"] or len(fixed_val["issues"]) < len(validation["issues"]):
             best       = {**best, "text": fixed, "score": fixed_val["score"]}
             validation = fixed_val
+
+    # ---- Step 11b: V4 Provocation check — inject tension if hook is flat ----
+    _lacks_tension     = not has_implicit_tension(best["text"]) and not has_social_tension(best["text"])
+    _lacks_projection  = not has_personal_projection(best["text"])
+    if _lacks_tension and _lacks_projection:
+        prov_text = inject_provocation_layer(best["text"], idea, detected, language)
+        prov_score = score_hook_v3(prov_text, idea_type=detected, language=language)
+        # Only replace if provocation version scores better
+        if prov_score > best.get("score", 0.0):
+            best       = {**best, "text": prov_text, "score": prov_score,
+                          "was_rewritten": True, "rewrite_strategy": "inject_provocation"}
+            validation = validate_hook_final(prov_text, detected, language)
 
     # ---- Step 12: Output ------------------------------------------------
     return {
