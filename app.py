@@ -2241,9 +2241,22 @@ with tab_script:
                                 _el_key = (
                                     _os.environ.get("ELEVENLABS_API_KEY", "")
                                     or st.secrets.get("ELEVENLABS_API_KEY", "")
-                                )
+                                ).strip().strip('"').strip("'")
                                 if not _el_key:
                                     st.error("ELEVENLABS_API_KEY non configurée. Ajoute-la dans `.env` ou `st.secrets`.")
+                                    st.stop()
+                                st.caption(f"Clé ElevenLabs : `{_el_key[:8]}...{_el_key[-4:]}` ({len(_el_key)} cars)")
+                                # Quick pre-flight test to surface exact API error
+                                import requests as _req
+                                _test_r = _req.post(
+                                    f"https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL",
+                                    headers={"xi-api-key": _el_key, "Content-Type": "application/json", "Accept": "audio/mpeg"},
+                                    json={"text": "test", "model_id": "eleven_multilingual_v2",
+                                          "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}},
+                                    timeout=15,
+                                )
+                                if not _test_r.ok:
+                                    st.error(f"ElevenLabs pré-test {_test_r.status_code} : `{_test_r.text[:300]}`")
                                     st.stop()
                                 _vo_result = generate_voiceover(_vo_cfg, output_path=_vo_out, api_key=_el_key)
                                 st.session_state["sv_voiceover_path"] = str(_vo_result)
