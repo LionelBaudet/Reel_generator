@@ -60,7 +60,10 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
-_TOOL_OK_TYPES = {"tool_demo", "prompt_reveal", "comparison"}
+# Only these two types allow tool-first hooks to win.
+# prompt_reveal is intentionally excluded: even a prompt-reveal reel
+# must open with a human/viewer-first hook, not "Ce prompt fait..."
+_TOOL_OK_TYPES = {"tool_demo", "comparison"}
 
 PATTERN_TYPES = [
     "user_pain", "loss", "time_contrast", "transformation",
@@ -69,10 +72,18 @@ PATTERN_TYPES = [
 ]
 
 _TOOL_FIRST_PREFIXES = [
-    "ce prompt", "chatgpt", "l'ia", "cet outil", "cette app",
-    "ce script", "cette formule", "ce workflow", "claude ", "gpt-", "gpt ",
+    # French
+    "ce prompt", "ce prompt m'a", "ce prompt fait", "ce prompt te",
+    "chatgpt", "l'ia", "l'ia m'a", "l'ia a", "cette ia",
+    "cet outil", "cette app", "cette application",
+    "ce script", "cette formule", "ce workflow",
+    "claude ", "gpt-", "gpt ", "copilot", "perplexity", "notebooklm",
+    "mistral ", "gemini ", "midjourney", "dall-e",
     "power automate", "notion ", "zapier ", "openai ",
-    "this prompt", "this tool", "this app", "this script", "the ai ",
+    # English
+    "this prompt", "this prompt will", "this prompt makes",
+    "this tool", "this app", "this script", "the ai ",
+    "chatgpt will", "chatgpt can", "ai will", "ai can",
 ]
 
 _WEAK_STARTERS_V3 = [
@@ -909,7 +920,7 @@ def score_hook_v3(
     words = hook.split()
 
     if is_tool_first(hook) and idea_type not in _TOOL_OK_TYPES:
-        composite -= 3.0
+        composite -= 5.0  # hard block: tool-first never wins outside tool_demo/comparison
 
     if len(words) > 12:
         composite -= 3.0
@@ -1107,6 +1118,114 @@ def boost_patterns_from_history(
             "score": round(min(10.0, hk.get("score", 0.0) + b), 1),
         })
     return boosted
+
+
+# ===========================================================================
+# SECTION 8b --  TOOL-FIRST → HUMAN-FIRST REWRITER
+# ===========================================================================
+
+def rewrite_tool_first_to_human_first(
+    hook:      str,
+    idea:      str = "",
+    idea_type: str = "",
+    language:  str = "fr",
+) -> str:
+    """
+    Rewrites a tool-first hook into a viewer/pain/gain-first hook.
+    Called automatically before ranking when idea_type is not tool_demo/comparison.
+
+    Strategy (in order):
+      1. Extract a concrete number/time from the hook or idea → build result-first hook
+      2. Look for a pain/loss signal in the idea → build pain-first hook
+      3. Look for a time/money saving in the idea → build gain-first hook
+      4. Fall back to a generic viewer-first reframe
+    """
+    h     = hook.strip()
+    h_low = h.lower()
+    idea_low = idea.lower()
+
+    # ── 1. Concrete number already in hook or idea ─────────────────────────
+    # e.g. "90 secondes", "20 min", "CHF 400", "40h"
+    time_m   = re.search(r"(\d+\s*(?:h|min|sec|s\b|heures?|minutes?|secondes?))", h_low + " " + idea_low)
+    money_m  = re.search(r"((?:chf|€|\$|eur)\s?\d+|\d+\s*(?:chf|€|\$|eur|francs?))", h_low + " " + idea_low)
+    number_m = re.search(r"\b(\d+)\b", h_low + " " + idea_low)
+
+    if time_m:
+        val = time_m.group(1).strip()
+        if language == "en":
+            return f"You're wasting {val} on this every week"
+        return f"Tu perds {val} par semaine sur ca"
+
+    if money_m:
+        val = money_m.group(1).strip()
+        if language == "en":
+            return f"{val} hidden in your budget right now"
+        return f"{val} qui fuitent de ton budget sans que tu le voies"
+
+    # ── 2. Pain / loss signal in idea ─────────────────────────────────────
+    pain_signals = {
+        "fr": {
+            "email":    ("20 min pour ecrire un email ?", "Tu ecris encore tes emails a la main"),
+            "budget":   ("Ton budget fuit deja", "Tu perds de l'argent sans le voir"),
+            "rapport":  ("2h pour un rapport que personne ne lit", "Ton rapport te prend encore 2h"),
+            "meeting":  ("La moitie de tes reunions ne servent a rien", "Tu passes encore 3h en reunions inutiles"),
+            "planning": ("30 min de planning chaque semaine", "Ton planning te prend encore 30 min"),
+            "meal":     ("Tu perds 30 min chaque dimanche", "7 repas + courses en 90 sec"),
+            "client":   ("Tes clients attendent encore", "Tu reponds encore a la main"),
+            "cv":       ("Ton CV passe a la poubelle en 6 sec", "Les recruteurs ne lisent pas ton CV"),
+            "salaire":  ("Tu laisses de l'argent sur la table", "Tu gagnes moins que tu ne devrais"),
+        },
+        "en": {
+            "email":    ("20 min to write one email?", "You're still writing emails from scratch"),
+            "budget":   ("Your budget is leaking right now", "You're losing money without seeing it"),
+            "report":   ("2h on a report nobody reads", "Your report still takes 2 hours"),
+            "meeting":  ("Half your meetings are pointless", "You spend 3h in useless meetings"),
+            "planning": ("30 min planning every week", "Your planning still takes 30 min"),
+            "meal":     ("You lose 30 min every Sunday", "7 meals + shopping in 90 sec"),
+            "client":   ("Your clients are still waiting", "You're still replying manually"),
+            "salary":   ("You're leaving money on the table", "You earn less than you should"),
+        },
+    }
+    lang_signals = pain_signals.get(language, pain_signals["fr"])
+    for keyword, (pain_hook, alt_hook) in lang_signals.items():
+        if keyword in idea_low:
+            return pain_hook
+
+    # ── 3. Generic viewer-first by idea_type ──────────────────────────────
+    type_fallbacks = {
+        "fr": {
+            "before_after_time":     "La moitie de ta semaine est repetitive",
+            "prompt_reveal":         "Tu ecris encore ca a la main",
+            "budget_finance":        "Ton budget fuit sans que tu le saches",
+            "career_work":           "Tu travailles plus que necessaire",
+            "controversial_opinion": "Personne ne te dit ca",
+            "build_in_public":       "Voila ce que j'ai appris en faisant ca",
+            "storytelling_personal": "J'ai fait cette erreur pendant des annees",
+            "educational_explainer": "La plupart des gens font ca mal",
+            "reactive_reply":        "Tout le monde dit ca. C'est faux.",
+            "data_workflow":         "Tu fais encore ca a la main",
+        },
+        "en": {
+            "before_after_time":     "Half your week is repetitive",
+            "prompt_reveal":         "You're still doing this manually",
+            "budget_finance":        "Your budget is leaking",
+            "career_work":           "You're working harder than you need to",
+            "controversial_opinion": "Nobody tells you this",
+            "build_in_public":       "Here's what I learned building this",
+            "storytelling_personal": "I made this mistake for years",
+            "educational_explainer": "Most people do this wrong",
+            "reactive_reply":        "Everyone says this. It's wrong.",
+            "data_workflow":         "You're still doing this manually",
+        },
+    }
+    lang_fallbacks = type_fallbacks.get(language, type_fallbacks["fr"])
+    if idea_type in lang_fallbacks:
+        return lang_fallbacks[idea_type]
+
+    # ── 4. Last-resort generic ─────────────────────────────────────────────
+    if language == "en":
+        return "You're still doing this the hard way"
+    return "Tu fais encore ca a la main"
 
 
 # ===========================================================================
@@ -1345,26 +1464,59 @@ def rewrite_until_strong(
 # SECTION 10  --  TOP SELECTION + FINAL VALIDATOR
 # ===========================================================================
 
-def select_top_hooks(hooks: list[dict], n: int = 5) -> list[dict]:
+def select_top_hooks(hooks: list[dict], n: int = 5, idea_type: str = "") -> list[dict]:
     """
     Returns top n hooks by score with semantic diversity.
     Avoids hooks starting with the same 3 words.
+
+    Hard rule: if idea_type is not tool_demo/comparison,
+    no tool-first hook is allowed in the top 3 positions,
+    and at most 1 tool-first hook can appear in the full top 5.
     """
+    allow_tool_first = idea_type in _TOOL_OK_TYPES
     ranked = sorted(hooks, key=lambda x: x.get("score", 0), reverse=True)
+
+    # Separate human-first from tool-first
+    human_first = [hk for hk in ranked if not is_tool_first(hk.get("text", ""))]
+    tool_first  = [hk for hk in ranked if     is_tool_first(hk.get("text", ""))]
+
+    if allow_tool_first:
+        pool = ranked  # no restriction
+    else:
+        # Top 3 must be human-first; at most 1 tool-first in slots 4-5
+        pool = human_first[:3] + human_first[3:] + tool_first[:1]
+        # Re-sort combined pool by score so diversity pass works naturally
+        pool = sorted(pool, key=lambda x: x.get("score", 0), reverse=True)
+
     selected: list[dict] = []
     seen_starts: set[str] = set()
+    tool_first_count = 0
 
-    for hk in ranked:
-        start = " ".join(hk["text"].lower().split()[:3])
+    for hk in pool:
+        text  = hk.get("text", "")
+        start = " ".join(text.lower().split()[:3])
+        tf    = is_tool_first(text)
+
+        # Hard cap: 0 tool-first in top 3, max 1 overall (when not allowed type)
+        if not allow_tool_first:
+            if tf and len(selected) < 3:
+                continue  # never in top 3
+            if tf and tool_first_count >= 1:
+                continue  # max 1 in full top 5
+
         if start not in seen_starts:
             seen_starts.add(start)
             selected.append(hk)
+            if tf:
+                tool_first_count += 1
+
         if len(selected) >= n:
             break
 
-    # Fill remaining slots without diversity constraint
+    # Fill remaining slots without diversity constraint (human-first priority)
+    fill_pool = human_first if not allow_tool_first else ranked
     if len(selected) < n:
-        for hk in ranked:
+        for hk in fill_pool:
             if hk not in selected:
                 selected.append(hk)
             if len(selected) >= n:
@@ -1373,10 +1525,13 @@ def select_top_hooks(hooks: list[dict], n: int = 5) -> list[dict]:
     return selected[:n]
 
 
-def choose_best_hook(top_hooks: list[dict], language: str = "fr") -> dict:
+def choose_best_hook(top_hooks: list[dict], language: str = "fr", idea_type: str = "") -> dict:
     """
     Final selection from top hooks.
     Uses a readability-weighted tiebreak over the score.
+
+    Hard rule: if winner is tool-first and idea_type not in _TOOL_OK_TYPES,
+    skip it and pick the next human-first hook.
     """
     if not top_hooks:
         return {"text": "", "score": 0.0}
@@ -1401,7 +1556,17 @@ def choose_best_hook(top_hooks: list[dict], language: str = "fr") -> dict:
         rank += min(bonus, 0.3)  # cap: tiebreak can't override a real score difference
         return rank
 
-    return sorted(top_hooks, key=_final_rank, reverse=True)[0]
+    sorted_hooks = sorted(top_hooks, key=_final_rank, reverse=True)
+
+    # Hard block: if winner is tool-first and type does not allow it, pick next human-first
+    if idea_type not in _TOOL_OK_TYPES:
+        for hk in sorted_hooks:
+            if not is_tool_first(hk.get("text", "")):
+                return hk
+        # All hooks are tool-first (extremely rare) — return best anyway
+        return sorted_hooks[0]
+
+    return sorted_hooks[0]
 
 
 def validate_hook_final(
@@ -1565,8 +1730,38 @@ def generate_best_hook(
     # ---- Step 7: History pattern boost ----------------------------------
     scored = boost_patterns_from_history(scored, winning_patterns)
 
+    # ---- Step 7b: Auto-rewrite tool-first hooks BEFORE ranking -------------
+    # (so they never contaminate the top-5 even with the penalty)
+    if detected not in _TOOL_OK_TYPES:
+        rewrote_pre = 0
+        scored_clean = []
+        for hk in scored:
+            if is_tool_first(hk.get("text", "")):
+                new_text = rewrite_tool_first_to_human_first(
+                    hk["text"], idea, detected, language
+                )
+                if new_text != hk["text"]:
+                    new_score = score_hook_v3(
+                        new_text, idea_type=detected,
+                        angle=hk.get("angle", dominant_angle),
+                        language=language,
+                        history_patterns=winning_patterns,
+                    )
+                    scored_clean.append({
+                        **hk,
+                        "text":             new_text,
+                        "score":            new_score,
+                        "was_rewritten":    True,
+                        "original_text":    hk["text"],
+                        "rewrite_strategy": "tool_first_to_human_first",
+                    })
+                    rewrote_pre += 1
+                    continue
+            scored_clean.append(hk)
+        scored = scored_clean
+
     # ---- Step 8: Select top hooks (before rewrite) ----------------------
-    top_5 = select_top_hooks(scored, n=5)
+    top_5 = select_top_hooks(scored, n=5, idea_type=detected)
 
     # ---- Step 9: Rewrite weak hooks ------------------------------------
     rewrites = 0
@@ -1584,18 +1779,24 @@ def generate_best_hook(
         else:
             top_5_final.append({
                 **hk,
-                "was_rewritten":   False,
-                "original_text":   hk["text"],
-                "rewrite_strategy": None,
+                "was_rewritten":   hk.get("was_rewritten", False),
+                "original_text":   hk.get("original_text", hk["text"]),
+                "rewrite_strategy": hk.get("rewrite_strategy"),
             })
 
     # ---- Step 10: Final selection ----------------------------------------
-    best = choose_best_hook(top_5_final, language)
+    best = choose_best_hook(top_5_final, language, idea_type=detected)
 
     # ---- Step 11: Validate + last-resort fix ----------------------------
     validation = validate_hook_final(best["text"], detected, language)
 
-    if not validation["is_publishable"] and not validation["checks"].get("no_bad_tool_first", True):
+    # Hard last-resort: if best_hook is still tool-first, force rewrite
+    if is_tool_first(best["text"]) and detected not in _TOOL_OK_TYPES:
+        fixed_text = rewrite_tool_first_to_human_first(best["text"], idea, detected, language)
+        fixed_val  = validate_hook_final(fixed_text, detected, language)
+        best       = {**best, "text": fixed_text, "score": fixed_val["score"]}
+        validation = fixed_val
+    elif not validation["is_publishable"] and not validation["checks"].get("no_bad_tool_first", True):
         fixed     = rewrite_hook(best["text"], "convert_to_user_focus", language)
         fixed_val = validate_hook_final(fixed, detected, language)
         if fixed_val["is_publishable"] or len(fixed_val["issues"]) < len(validation["issues"]):
