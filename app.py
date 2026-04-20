@@ -30,7 +30,7 @@ except Exception:
 # Import du moteur génératif (nécessite ANTHROPIC_API_KEY)
 _GEN_IMPORT_ERROR: str = ""
 try:
-    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, optimize_script_hooks, BROLL_CATEGORIES
+    from generate import generate_variants, generate_viral_script, generate_montage_plan, build_yaml, build_yaml_from_viral_script, generate_caption, generate_ab_versions, optimize_script_hooks, BROLL_CATEGORIES, generate_daily_ideas, FORMAT_LABELS, EMOTION_COLORS
     from utils.hook_optimizer import analyze_hook, analyze_solution, inject_winner
     from utils.hook_engine import optimize_hooks, save_hook_result
     from utils.idea_classifier import classify_idea, CATEGORIES
@@ -1434,6 +1434,88 @@ with tab_script:
             f'</div>',
             unsafe_allow_html=True,
         )
+
+        # ── Ideas du jour ────────────────────────────────────────────────────
+        with st.expander("💡 Ideas du jour", expanded=not _has_script):
+            _di_col1, _di_col2 = st.columns([3, 1])
+            with _di_col1:
+                st.markdown(
+                    '<span style="color:var(--text-muted);font-size:.85rem">'
+                    'Claude génère 3 idées filtrées par qualité, ancrées dans l\'actu — '
+                    'clique sur une pour la charger directement.'
+                    '</span>',
+                    unsafe_allow_html=True,
+                )
+            with _di_col2:
+                _di_clicked = st.button(
+                    "Générer",
+                    type="primary",
+                    use_container_width=True,
+                    key="btn_daily_ideas",
+                )
+
+            if _di_clicked:
+                with st.spinner("Analyse de l'actu et sélection des 3 meilleures idées…"):
+                    try:
+                        _daily = generate_daily_ideas()
+                        st.session_state["daily_ideas"] = _daily
+                    except Exception as _exc:
+                        st.error(f"Erreur : {_exc}")
+
+            _daily_data = st.session_state.get("daily_ideas")
+            if _daily_data:
+                _note = _daily_data.get("note", "")
+                if _note:
+                    st.markdown(
+                        f'<div style="font-size:.8rem;color:var(--text-muted);'
+                        f'margin:.5rem 0 1rem;font-style:italic">📡 {_note}</div>',
+                        unsafe_allow_html=True,
+                    )
+                _ideas = _daily_data.get("ideas", [])
+                _di_cols = st.columns(len(_ideas)) if _ideas else []
+                for _col, _idea_item in zip(_di_cols, _ideas):
+                    with _col:
+                        _fmt    = _idea_item.get("format", "")
+                        _emoji, _label = FORMAT_LABELS.get(_fmt, ("💡", _fmt))
+                        _emo    = _idea_item.get("emotion", "")
+                        _emo_c  = EMOTION_COLORS.get(_emo, "#9CA3AF")
+                        _hook   = _idea_item.get("hook_preview", "")
+                        _idea_t = _idea_item.get("idea", "")
+                        _why    = _idea_item.get("why", "")
+                        _actu   = _idea_item.get("actu_link", "")
+                        _actu_html = (
+                            '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.5rem">'
+                            f'📡 {_actu}</div>'
+                        ) if _actu else ""
+                        st.markdown(
+                            f'<div style="border:1px solid var(--border);border-radius:10px;'
+                            f'padding:1rem;background:var(--surface);height:100%">'
+                            f'<div style="display:flex;justify-content:space-between;'
+                            f'align-items:center;margin-bottom:.5rem">'
+                            f'<span style="font-size:.75rem;font-weight:600;'
+                            f'background:var(--surface-2);padding:.2rem .5rem;'
+                            f'border-radius:4px;color:var(--text-muted)">'
+                            f'{_emoji} {_label}</span>'
+                            f'<span style="font-size:.7rem;font-weight:700;'
+                            f'color:{_emo_c};text-transform:uppercase">{_emo}</span>'
+                            f'</div>'
+                            f'<div style="font-size:.95rem;font-weight:700;'
+                            f'color:var(--text);margin:.5rem 0">{_hook}</div>'
+                            f'<div style="font-size:.78rem;color:var(--text-muted);'
+                            f'margin-bottom:.4rem;font-style:italic">{_idea_t}</div>'
+                            f'<div style="font-size:.75rem;color:var(--text-faint);'
+                            f'margin-bottom:.75rem">{_why}</div>'
+                            f'{_actu_html}'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                        if st.button(
+                            "Utiliser cette idée →",
+                            key=f"btn_use_idea_{_idea_t[:20]}",
+                            use_container_width=True,
+                        ):
+                            st.session_state["sv_idea_input"] = _idea_t
+                            st.rerun()
 
         # ── Saisie idée ──────────────────────────────────────────────────────
         sv_idea = st.text_input(

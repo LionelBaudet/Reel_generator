@@ -900,6 +900,136 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> st
     return data.get("caption", "")
 
 
+_DAILY_IDEAS_SYSTEM = """\
+Tu es un stratège de contenu Instagram pour le compte @ownyourtime.ai en 2026.
+Audience : professionnels 25-45 ans (corporate, startup, solopreneurs).
+Ton de la marque : direct, un peu provocateur, jamais corporate, jamais LinkedIn.
+
+OBJECTIF : générer des idées de reels qui stoppent le scroll et génèrent des commentaires.
+
+FORMATS DISPONIBLES (utilise chacun au moins une fois) :
+- provocateur : affirmation qui choque ou crée de la dissonance cognitive
+- transformation : avant / après concret et chiffré
+- storytelling : expérience vécue avec tension et résolution
+- reaction_actu : lié à un événement actuel (IA en entreprise, layoffs, burn-out, inflation, remote work, no-code)
+- comparaison : outil A vs outil B, ancienne façon vs nouvelle façon
+- education_simple : 1 concept utile expliqué en moins de 20 secondes
+- tu_fais_encore : "tu fais encore ça à la main ?" — honte positive
+- ton_job_change : "ton métier change déjà, pas dans 2 ans"
+
+STYLE OBLIGATOIRE :
+- Parle au viewer : "Tu", "Ton", "Tes" — jamais "L'IA va...", "Ce prompt..."
+- Résultats concrets > tension conceptuelle
+- Court, immédiat, parlé — jamais LinkedIn
+- Le hook doit fonctionner en moins d'1 seconde
+
+FILTRE QUALITÉ (applique avant de répondre) :
+Rejette toute idée qui est :
+- trop générique ("utiliser l'IA pour gagner du temps")
+- trop technique (outils, API, configurations)
+- trop abstraite ("repenser ta relation au travail")
+- similaire à un post LinkedIn
+- trop large pour tenir en 18 secondes
+
+RÈGLE DE SÉLECTION :
+Génère 10 idées en interne. Note chacune de 1 à 10 sur :
+- arrêt du scroll (0-3)
+- potentiel commentaires (0-3)
+- fit brand @ownyourtime.ai (0-2)
+- ancrage actu 2025-2026 (0-2)
+Garde les 3 meilleures. Refuse les idées sous 6/10.
+
+Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
+"""
+
+_DAILY_IDEAS_PROMPT = """\
+Date du jour : {date}
+
+Génère les 3 meilleures idées de reels Instagram pour @ownyourtime.ai aujourd'hui.
+
+Contraintes :
+- Les 3 idées doivent avoir des formats différents
+- Chaque "idea" doit être une phrase courte (5-8 mots max) prête à passer directement au générateur de script
+- Le "hook_preview" doit sonner comme quelqu'un qui parle, pas comme un slogan
+- Les idées doivent être ancrées dans la réalité de 2025-2026
+
+Retourne exactement ce JSON :
+{{
+  "ideas": [
+    {{
+      "idea": "<5-8 mots, concis, passable directement au générateur>",
+      "format": "<un des 8 formats ci-dessus>",
+      "hook_preview": "<hook exemple max 8 mots — stoppe le scroll>",
+      "emotion": "<frustration | curiosité | FOMO | contradiction | envie>",
+      "actu_link": "<événement actuel lié — 1 phrase courte>",
+      "score": 0,
+      "why": "<pourquoi quelqu'un s'arrêterait — 1 phrase directe>"
+    }},
+    {{
+      "idea": "...",
+      "format": "...",
+      "hook_preview": "...",
+      "emotion": "...",
+      "actu_link": "...",
+      "score": 0,
+      "why": "..."
+    }},
+    {{
+      "idea": "...",
+      "format": "...",
+      "hook_preview": "...",
+      "emotion": "...",
+      "actu_link": "...",
+      "score": 0,
+      "why": "..."
+    }}
+  ],
+  "date": "{date}",
+  "note": "<contexte actu du jour utilisé pour ancrer les idées — 1 phrase>"
+}}
+"""
+
+FORMAT_LABELS = {
+    "provocateur":      ("🔥", "Provocateur"),
+    "transformation":   ("⚡", "Avant / Après"),
+    "storytelling":     ("🎭", "Storytelling"),
+    "reaction_actu":    ("📡", "Réaction Actu"),
+    "comparaison":      ("⚖️", "Comparaison"),
+    "education_simple": ("💡", "Éducatif"),
+    "tu_fais_encore":   ("😤", "Tu fais encore ça ?"),
+    "ton_job_change":   ("📈", "Ton job change"),
+}
+
+EMOTION_COLORS = {
+    "frustration":    "#f87171",
+    "curiosité":      "#60a5fa",
+    "FOMO":           "#f59e0b",
+    "contradiction":  "#a78bfa",
+    "envie":          "#34d399",
+}
+
+
+def generate_daily_ideas(date: str | None = None) -> dict:
+    """
+    Génère 3 idées de reels du jour filtrées par qualité.
+    Chaque idée est directement passable à generate_viral_script().
+    date : format 'YYYY-MM-DD', défaut = aujourd'hui.
+    """
+    if not date:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    message = _call_with_retry(
+        model=MODEL,
+        max_tokens=1200,
+        system=_DAILY_IDEAS_SYSTEM,
+        messages=[{
+            "role": "user",
+            "content": _DAILY_IDEAS_PROMPT.format(date=date),
+        }],
+    )
+    return _parse_json(message.content[0].text)
+
+
 def generate_variants(idea: str) -> list:
     """Génère 3 variantes de concept reel pour une même idée (un seul appel API)."""
     slug_base = re.sub(r"[^\w]", "_", idea.lower().strip())[:20]
