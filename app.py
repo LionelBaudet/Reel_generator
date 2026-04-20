@@ -1481,7 +1481,7 @@ with tab_script:
                         st.warning("Aucune idée générée — réessaie.")
                     else:
                         _di_cols = st.columns(len(_ideas))
-                        for _col, _idea_item in zip(_di_cols, _ideas):
+                        for _idx, (_col, _idea_item) in enumerate(zip(_di_cols, _ideas)):
                             with _col:
                                 if not isinstance(_idea_item, dict):
                                     continue
@@ -1539,7 +1539,7 @@ with tab_script:
                         )
                         if st.button(
                             "Utiliser cette idée →",
-                            key=f"btn_use_idea_{_idea_t[:20]}",
+                            key=f"btn_use_idea_{_idx}",
                             use_container_width=True,
                         ):
                             st.session_state["sv_idea_input"]   = _idea_t

@@ -39,40 +39,56 @@ class Signal:
 
 
 # ── RSS feeds ─────────────────────────────────────────────────────────────────
-# Google News RSS (no API key, public) + a few direct feeds.
-# Queries cover: IA au travail, productivité, layoffs, burn-out, remote work,
-# no-code, compétences, salaires, semaine 4 jours.
+# Priority: Swiss + francophone sources, then globally recognized publications.
+# Google News RSS (no API key) with CH locale first, then FR, then EN.
 
-_GOOGLE_RSS = "https://news.google.com/rss/search?hl=fr&gl=FR&ceid=FR:fr&q={query}"
+_GOOGLE_RSS_CH = "https://news.google.com/rss/search?hl=fr&gl=CH&ceid=CH:fr&q={query}"
+_GOOGLE_RSS_FR = "https://news.google.com/rss/search?hl=fr&gl=FR&ceid=FR:fr&q={query}"
 _GOOGLE_RSS_EN = "https://news.google.com/rss/search?hl=en&gl=US&ceid=US:en&q={query}"
+
+# Swiss + francophone Google News queries
+_CH_QUERIES = [
+    "intelligence+artificielle+entreprise+Suisse",
+    "IA+emploi+travail+Suisse+2025",
+    "automatisation+compétences+Suisse",
+]
 
 _FR_QUERIES = [
     "intelligence+artificielle+entreprise+travail",
     "IA+productivité+emploi+2025",
     "burn-out+travail+salariés",
-    "layoffs+licenciements+tech+2025",
     "télétravail+remote+work+entreprise",
-    "no-code+automatisation+métier",
-    "semaine+4+jours+travail",
     "ChatGPT+Claude+travail+bureau",
 ]
 
+# English queries targeting globally recognized publications
 _EN_QUERIES = [
-    "AI+workplace+productivity+2025",
-    "AI+replacing+jobs+workers+2025",
-    "workforce+AI+adoption+enterprise",
+    "AI+workplace+productivity+Harvard+Business+Review",
+    "AI+replacing+jobs+MIT+Technology+Review",
+    "workforce+AI+adoption+McKinsey+Gartner",
+    "artificial+intelligence+future+work+Economist+Forbes",
 ]
 
-# Direct RSS feeds (supplement Google News)
+# Direct RSS feeds — Swiss/francophone first, then global recognized
 _DIRECT_FEEDS = [
-    ("Numerama",   "https://www.numerama.com/feed/"),
-    ("01net",      "https://www.01net.com/rss/"),
-    ("TechCrunch", "https://techcrunch.com/feed/"),
+    # Swiss francophone
+    ("Le Temps",          "https://www.letemps.ch/feeds/rss"),
+    ("RTS Info",          "https://www.rts.ch/info/rss/actualites.xml"),
+    ("Bilan",             "https://www.bilan.ch/feed"),
+    # French
+    ("Les Echos",         "https://syndication.lesechos.fr/rss/rss_la_une.xml"),
+    ("Le Monde",          "https://www.lemonde.fr/rss/une.xml"),
+    ("Numerama",          "https://www.numerama.com/feed/"),
+    # Global recognized (English)
+    ("MIT Tech Review",   "https://www.technologyreview.com/feed/"),
+    ("Harvard Biz Review","https://feeds.hbr.org/harvardbusiness"),
+    ("The Economist",     "https://www.economist.com/sections/business/rss.xml"),
+    ("TechCrunch",        "https://techcrunch.com/feed/"),
 ]
 
 _FETCH_TIMEOUT = 8    # seconds per feed
-_MAX_PER_FEED  = 5    # items to keep per feed
-_MAX_TOTAL     = 40   # max signals before filtering
+_MAX_PER_FEED  = 4    # items to keep per feed
+_MAX_TOTAL     = 50   # max signals before filtering
 
 
 # ── Relevance keywords ────────────────────────────────────────────────────────
@@ -149,36 +165,43 @@ def _parse_rss(url: str, source_name: str) -> list[Signal]:
     return signals
 
 
-def fetch_daily_signals(include_en: bool = True) -> list[Signal]:
+def fetch_daily_signals() -> list[Signal]:
     """
-    Fetch fresh signals from Google News RSS + direct feeds.
-    Returns up to _MAX_TOTAL signals (unfiltered).
+    Fetch fresh signals. Priority order:
+    1. Swiss Google News (CH locale)
+    2. French Google News (FR locale)
+    3. Direct feeds: Swiss/francophone first, then global recognized
+    4. English Google News targeting HBR/MIT/McKinsey/Economist
     """
     all_signals: list[Signal] = []
 
-    # French Google News queries
-    for query in _FR_QUERIES:
-        url = _GOOGLE_RSS.format(query=query)
-        signals = _parse_rss(url, _source_from_query(query))
+    # 1. Swiss francophone Google News
+    for query in _CH_QUERIES:
+        signals = _parse_rss(_GOOGLE_RSS_CH.format(query=query), "Google News CH")
         all_signals.extend(signals)
+        time.sleep(0.15)
+
+    # 2. French Google News
+    for query in _FR_QUERIES:
+        signals = _parse_rss(_GOOGLE_RSS_FR.format(query=query), "Google News FR")
+        all_signals.extend(signals)
+        time.sleep(0.15)
+
+    # 3. Direct feeds (Swiss + francophone + global recognized)
+    for name, feed_url in _DIRECT_FEEDS:
         if len(all_signals) >= _MAX_TOTAL:
             break
-        time.sleep(0.15)  # polite crawling
+        signals = _parse_rss(feed_url, name)
+        all_signals.extend(signals)
+        time.sleep(0.1)
 
-    # English queries
-    if include_en and len(all_signals) < _MAX_TOTAL:
-        for query in _EN_QUERIES:
-            url = _GOOGLE_RSS_EN.format(query=query)
-            signals = _parse_rss(url, _source_from_query(query))
-            all_signals.extend(signals)
-            time.sleep(0.15)
-
-    # Direct feeds (supplement)
-    if len(all_signals) < _MAX_TOTAL:
-        for name, feed_url in _DIRECT_FEEDS:
-            signals = _parse_rss(feed_url, name)
-            all_signals.extend(signals)
-            time.sleep(0.15)
+    # 4. English queries (globally recognized sources)
+    for query in _EN_QUERIES:
+        if len(all_signals) >= _MAX_TOTAL:
+            break
+        signals = _parse_rss(_GOOGLE_RSS_EN.format(query=query), "Google News EN")
+        all_signals.extend(signals)
+        time.sleep(0.15)
 
     # Deduplicate by URL
     seen: set[str] = set()
@@ -190,11 +213,6 @@ def fetch_daily_signals(include_en: bool = True) -> list[Signal]:
 
     logger.info(f"fetch_daily_signals: {len(unique)} unique signals fetched")
     return unique[:_MAX_TOTAL]
-
-
-def _source_from_query(query: str) -> str:
-    """Derive a readable source label from a query string."""
-    return "Google News"
 
 
 # ── Filter ────────────────────────────────────────────────────────────────────
