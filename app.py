@@ -1536,15 +1536,15 @@ with tab_script:
                                     f'{_source_html}'
                                     f'</div>',
                                     unsafe_allow_html=True,
-                        )
-                        if st.button(
-                            "Utiliser cette idée →",
-                            key=f"btn_use_idea_{_idx}",
-                            use_container_width=True,
-                        ):
-                            st.session_state["sv_idea_input"]   = _idea_t
-                            st.session_state["sv_daily_context"] = _idea_item
-                            st.rerun()
+                                )
+                                if st.button(
+                                    "Utiliser cette idée →",
+                                    key=f"btn_use_idea_{_idx}",
+                                    use_container_width=True,
+                                ):
+                                    st.session_state["sv_idea_input"]   = _idea_t
+                                    st.session_state["sv_daily_context"] = _idea_item
+                                    st.rerun()
                 except Exception as _render_exc:
                     st.error(f"Erreur d'affichage des idées : {_render_exc}")
                     st.session_state.pop("daily_ideas", None)
