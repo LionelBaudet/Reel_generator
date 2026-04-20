@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
+
+logger = logging.getLogger(__name__)
 import textwrap
 from datetime import datetime
 from pathlib import Path
