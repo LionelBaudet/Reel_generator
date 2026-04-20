@@ -1122,13 +1122,15 @@ def generate_daily_ideas(date: str | None = None) -> dict:
         logger.info(f"Injecting {len(relevant)} signals into prompt")
 
     # 2. Call Claude with real signals
+    # Escape any { } in signal titles to prevent KeyError in .format()
+    signals_block_safe = signals_block.replace("{", "{{").replace("}", "}}")
     message = _call_with_retry(
         model=MODEL,
         max_tokens=1600,
         system=_DAILY_IDEAS_SYSTEM,
         messages=[{
             "role": "user",
-            "content": _DAILY_IDEAS_PROMPT.format(date=date, signals_block=signals_block),
+            "content": _DAILY_IDEAS_PROMPT.format(date=date, signals_block=signals_block_safe),
         }],
     )
     result = _parse_json(message.content[0].text)

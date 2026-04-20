@@ -1464,72 +1464,78 @@ with tab_script:
 
             _daily_data = st.session_state.get("daily_ideas")
             if _daily_data:
-                _note     = _daily_data.get("note", "")
-                _n_fetch  = _daily_data.get("_signals_fetched", 0)
-                _n_rel    = _daily_data.get("_signals_relevant", 0)
-                _meta_str = f"— {_n_rel} signaux pertinents / {_n_fetch} fetchés" if _n_fetch else ""
-                if _note:
-                    st.markdown(
-                        f'<div style="font-size:.8rem;color:var(--text-muted);'
-                        f'margin:.5rem 0 1rem;font-style:italic">'
-                        f'📡 {_note} <span style="color:var(--text-faint)">{_meta_str}</span></div>',
-                        unsafe_allow_html=True,
-                    )
-                _ideas = _daily_data.get("ideas", [])
-                _di_cols = st.columns(len(_ideas)) if _ideas else []
-                for _col, _idea_item in zip(_di_cols, _ideas):
-                    with _col:
-                        _fmt           = _idea_item.get("format", "")
-                        _emoji, _label = FORMAT_LABELS.get(_fmt, ("💡", _fmt))
-                        _emo           = _idea_item.get("emotion", "")
-                        _emo_c         = EMOTION_COLORS.get(_emo, "#9CA3AF")
-                        _hook          = _idea_item.get("hook_preview", "")
-                        _idea_t        = _idea_item.get("idea", "")
-                        _why           = _idea_item.get("why", "")
-                        _actu          = _idea_item.get("actu_link", "")
-                        _source_title  = _idea_item.get("source_title", _idea_item.get("source_stat", ""))
-                        _source_label  = _idea_item.get("source_label", "")
-                        _source_url    = _idea_item.get("source_url", "")
-                        _actu_html = (
-                            '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.4rem">'
-                            f'📡 {_actu}</div>'
-                        ) if _actu else ""
-                        _url_line = (
-                            f'<a href="{_source_url}" target="_blank" '
-                            f'style="color:var(--text-faint);font-size:.68rem;'
-                            f'word-break:break-all">{_source_url}</a>'
-                        ) if _source_url else ""
-                        _source_html = (
-                            '<div style="font-size:.72rem;color:var(--text-muted);'
-                            'border-top:1px solid var(--border);margin-top:.5rem;'
-                            'padding-top:.5rem">'
-                            f'🔗 <strong>{_source_label}</strong><br>'
-                            f'<em>{_source_title}</em><br>'
-                            f'{_url_line}'
-                            '</div>'
-                        ) if (_source_title or _source_url) else ""
+                try:
+                    _note     = _daily_data.get("note", "") if isinstance(_daily_data, dict) else ""
+                    _n_fetch  = _daily_data.get("_signals_fetched", 0) if isinstance(_daily_data, dict) else 0
+                    _n_rel    = _daily_data.get("_signals_relevant", 0) if isinstance(_daily_data, dict) else 0
+                    _meta_str = f"— {_n_rel} signaux pertinents / {_n_fetch} fetchés" if _n_fetch else ""
+                    if _note:
                         st.markdown(
-                            f'<div style="border:1px solid var(--border);border-radius:10px;'
-                            f'padding:1rem;background:var(--surface);height:100%">'
-                            f'<div style="display:flex;justify-content:space-between;'
-                            f'align-items:center;margin-bottom:.5rem">'
-                            f'<span style="font-size:.75rem;font-weight:600;'
-                            f'background:var(--surface-2);padding:.2rem .5rem;'
-                            f'border-radius:4px;color:var(--text-muted)">'
-                            f'{_emoji} {_label}</span>'
-                            f'<span style="font-size:.7rem;font-weight:700;'
-                            f'color:{_emo_c};text-transform:uppercase">{_emo}</span>'
-                            f'</div>'
-                            f'<div style="font-size:.95rem;font-weight:700;'
-                            f'color:var(--text);margin:.5rem 0">{_hook}</div>'
-                            f'<div style="font-size:.78rem;color:var(--text-muted);'
-                            f'margin-bottom:.4rem;font-style:italic">{_idea_t}</div>'
-                            f'<div style="font-size:.75rem;color:var(--text-faint);'
-                            f'margin-bottom:.4rem">{_why}</div>'
-                            f'{_actu_html}'
-                            f'{_source_html}'
-                            f'</div>',
+                            f'<div style="font-size:.8rem;color:var(--text-muted);'
+                            f'margin:.5rem 0 1rem;font-style:italic">'
+                            f'📡 {_note} <span style="color:var(--text-faint)">{_meta_str}</span></div>',
                             unsafe_allow_html=True,
+                        )
+                    _ideas = _daily_data.get("ideas", []) if isinstance(_daily_data, dict) else []
+                    if not isinstance(_ideas, list) or not _ideas:
+                        st.warning("Aucune idée générée — réessaie.")
+                    else:
+                        _di_cols = st.columns(len(_ideas))
+                        for _col, _idea_item in zip(_di_cols, _ideas):
+                            with _col:
+                                if not isinstance(_idea_item, dict):
+                                    continue
+                                _fmt           = str(_idea_item.get("format", ""))
+                                _emoji, _label = FORMAT_LABELS.get(_fmt, ("💡", _fmt))
+                                _emo           = str(_idea_item.get("emotion", ""))
+                                _emo_c         = EMOTION_COLORS.get(_emo, "#9CA3AF")
+                                _hook          = str(_idea_item.get("hook_preview", ""))
+                                _idea_t        = str(_idea_item.get("idea", ""))
+                                _why           = str(_idea_item.get("why", ""))
+                                _actu          = str(_idea_item.get("actu_link", ""))
+                                _source_title  = str(_idea_item.get("source_title", _idea_item.get("source_stat", "")))
+                                _source_label  = str(_idea_item.get("source_label", ""))
+                                _source_url    = str(_idea_item.get("source_url", ""))
+                                _actu_html = (
+                                    '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.4rem">'
+                                    f'📡 {_actu}</div>'
+                                ) if _actu else ""
+                                _url_line = (
+                                    f'<a href="{_source_url}" target="_blank" '
+                                    f'style="color:var(--text-faint);font-size:.68rem;'
+                                    f'word-break:break-all">{_source_url}</a>'
+                                ) if _source_url else ""
+                                _source_html = (
+                                    '<div style="font-size:.72rem;color:var(--text-muted);'
+                                    'border-top:1px solid var(--border);margin-top:.5rem;'
+                                    'padding-top:.5rem">'
+                                    f'🔗 <strong>{_source_label}</strong><br>'
+                                    f'<em>{_source_title}</em><br>'
+                                    f'{_url_line}'
+                                    '</div>'
+                                ) if (_source_title or _source_url) else ""
+                                st.markdown(
+                                    f'<div style="border:1px solid var(--border);border-radius:10px;'
+                                    f'padding:1rem;background:var(--surface);height:100%">'
+                                    f'<div style="display:flex;justify-content:space-between;'
+                                    f'align-items:center;margin-bottom:.5rem">'
+                                    f'<span style="font-size:.75rem;font-weight:600;'
+                                    f'background:var(--surface-2);padding:.2rem .5rem;'
+                                    f'border-radius:4px;color:var(--text-muted)">'
+                                    f'{_emoji} {_label}</span>'
+                                    f'<span style="font-size:.7rem;font-weight:700;'
+                                    f'color:{_emo_c};text-transform:uppercase">{_emo}</span>'
+                                    f'</div>'
+                                    f'<div style="font-size:.95rem;font-weight:700;'
+                                    f'color:var(--text);margin:.5rem 0">{_hook}</div>'
+                                    f'<div style="font-size:.78rem;color:var(--text-muted);'
+                                    f'margin-bottom:.4rem;font-style:italic">{_idea_t}</div>'
+                                    f'<div style="font-size:.75rem;color:var(--text-faint);'
+                                    f'margin-bottom:.4rem">{_why}</div>'
+                                    f'{_actu_html}'
+                                    f'{_source_html}'
+                                    f'</div>',
+                                    unsafe_allow_html=True,
                         )
                         if st.button(
                             "Utiliser cette idée →",
@@ -1539,6 +1545,9 @@ with tab_script:
                             st.session_state["sv_idea_input"]   = _idea_t
                             st.session_state["sv_daily_context"] = _idea_item
                             st.rerun()
+                except Exception as _render_exc:
+                    st.error(f"Erreur d'affichage des idées : {_render_exc}")
+                    st.session_state.pop("daily_ideas", None)
 
         # ── Saisie idée ──────────────────────────────────────────────────────
         sv_idea = st.text_input(
