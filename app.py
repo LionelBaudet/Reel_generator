@@ -1514,7 +1514,8 @@ with tab_script:
                             key=f"btn_use_idea_{_idea_t[:20]}",
                             use_container_width=True,
                         ):
-                            st.session_state["sv_idea_input"] = _idea_t
+                            st.session_state["sv_idea_input"]   = _idea_t
+                            st.session_state["sv_daily_context"] = _idea_item
                             st.rerun()
 
         # ── Saisie idée ──────────────────────────────────────────────────────
@@ -1568,15 +1569,38 @@ with tab_script:
         with _reset_col:
             if st.button("↺ Réinitialiser", type="secondary", key="btn_sv_reset"):
                 for _k in ("sv_result", "sv_ab_result", "sv_caption", "sv_montage",
-                           "sv_ab_selected", "sv_pexels_paths", "sv_optimized"):
+                           "sv_ab_selected", "sv_pexels_paths", "sv_optimized",
+                           "sv_daily_context"):
                     st.session_state.pop(_k, None)
                 st.rerun()
+
+        # Contexte riche venant de "Ideas du jour" (actu, émotion, format…)
+        _sv_daily_ctx = st.session_state.get("sv_daily_context")
+        if _sv_daily_ctx and sv_idea.strip():
+            _ctx_actu = _sv_daily_ctx.get("actu_link", "")
+            _ctx_fmt  = FORMAT_LABELS.get(_sv_daily_ctx.get("format", ""), ("", ""))[1]
+            _ctx_emo  = _sv_daily_ctx.get("emotion", "")
+            if _ctx_actu or _ctx_fmt:
+                st.markdown(
+                    f'<div style="font-size:.8rem;color:var(--text-muted);'
+                    f'background:var(--surface-2);border-radius:6px;'
+                    f'padding:.5rem .75rem;margin-bottom:.5rem;display:flex;gap:1rem">'
+                    f'<span>📡 <strong>Actu :</strong> {_ctx_actu}</span>'
+                    f'{"<span>🎭 <strong>Format :</strong> " + _ctx_fmt + "</span>" if _ctx_fmt else ""}'
+                    f'{"<span>💥 <strong>Émotion :</strong> " + _ctx_emo + "</span>" if _ctx_emo else ""}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
 
         if sv_clicked and sv_idea.strip():
             if sv_mode == "ab":
                 with st.spinner("Génération des 3 versions A/B/C…"):
                     try:
-                        ab_result = generate_ab_versions(sv_idea.strip(), lang=sv_lang)
+                        ab_result = generate_ab_versions(
+                            sv_idea.strip(),
+                            lang=sv_lang,
+                            context=st.session_state.get("sv_daily_context"),
+                        )
                         st.session_state["sv_ab_result"]   = ab_result
                         st.session_state["sv_idea_stored"] = sv_idea.strip()
                         st.session_state.pop("sv_result",  None)
@@ -1588,7 +1612,11 @@ with tab_script:
             else:
                 with st.spinner("Génération du script viral…"):
                     try:
-                        sv_result = generate_viral_script(sv_idea.strip(), lang=sv_lang)
+                        sv_result = generate_viral_script(
+                            sv_idea.strip(),
+                            lang=sv_lang,
+                            context=st.session_state.get("sv_daily_context"),
+                        )
                         st.session_state["sv_result"] = sv_result
                         st.session_state["sv_idea_stored"] = sv_idea.strip()
                         st.session_state.pop("sv_caption",   None)

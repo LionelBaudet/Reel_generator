@@ -341,6 +341,7 @@ VIRAL_SCRIPT_PROMPT = """\
 Idée : "{idea}"
 
 {type_rules}
+{daily_context}
 Génère un script reel Instagram viral pour @ownyourtime.ai (compte faceless).
 
 ÉTAPE 1 — Génère 10 hooks. Score chacun avec le système ci-dessous.
@@ -757,8 +758,10 @@ Retourne ce JSON exact :
 }}
 """
 
-def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
-    """Génère 3 versions A/B/C (safe / curiosité / agressif) pour une même idée."""
+def generate_ab_versions(idea: str, lang: str = "fr", context: dict | None = None) -> dict:
+    """Génère 3 versions A/B/C (safe / curiosité / agressif) pour une même idée.
+    context : dict optionnel venant de generate_daily_ideas() — enrichit le prompt.
+    """
     from utils.idea_classifier import classify_idea, build_ab_type_context
     from utils.hook_templates import build_type_rules
     from utils.quality_validator import post_process_script
@@ -766,10 +769,11 @@ def generate_ab_versions(idea: str, lang: str = "fr") -> dict:
     classification = classify_idea(idea)
     type_ctx       = build_ab_type_context(classification, lang=lang)
     type_rules     = build_type_rules(classification["type"], lang=lang)
+    daily_context  = _build_daily_context_block(context, lang=lang)
 
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
     system = _AB_SYSTEM_EN if lang == "en" else _AB_SYSTEM_FR
-    prompt = lang_prefix + type_ctx + type_rules + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
+    prompt = lang_prefix + type_ctx + type_rules + daily_context + _AB_PROMPT_TEMPLATE.format(idea=idea, lang_prefix="")
 
     message = _call_with_retry(
         model=MODEL,
@@ -811,8 +815,45 @@ def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
     )
 
 
-def generate_viral_script(idea: str, lang: str = "fr") -> dict:
-    """Génère un script reel viral complet depuis une idée courte."""
+def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
+    """
+    Construit le bloc contexte à injecter dans le prompt de script
+    quand l'idée vient de generate_daily_ideas().
+    """
+    if not context:
+        return ""
+    actu    = context.get("actu_link", "")
+    emotion = context.get("emotion", "")
+    fmt     = context.get("format", "")
+    hook    = context.get("hook_preview", "")
+    why     = context.get("why", "")
+
+    if lang == "en":
+        lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (use this to anchor the script):"]
+        if actu:    lines.append(f"- Current event: {actu}")
+        if emotion: lines.append(f"- Target emotion: {emotion}")
+        if fmt:     lines.append(f"- Format: {fmt}")
+        if hook:    lines.append(f"- Suggested hook direction: {hook}")
+        if why:     lines.append(f"- Why it stops scroll: {why}")
+        lines.append("→ The script must reflect this current event and emotional angle.\n")
+    else:
+        lines = ["CONTEXTE DE L'IDÉE DU JOUR (intègre-le dans le script) :"]
+        if actu:    lines.append(f"- Actualité : {actu}")
+        if emotion: lines.append(f"- Émotion cible : {emotion}")
+        if fmt:     lines.append(f"- Format : {fmt}")
+        if hook:    lines.append(f"- Direction hook suggérée : {hook}")
+        if why:     lines.append(f"- Pourquoi ça stoppe : {why}")
+        lines.append("→ Le script doit ancrer cette actualité et cet angle émotionnel.\n")
+
+    return "\n".join(lines) + "\n"
+
+
+def generate_viral_script(idea: str, lang: str = "fr", context: dict | None = None) -> dict:
+    """
+    Génère un script reel viral complet depuis une idée courte.
+    context : dict optionnel venant de generate_daily_ideas() — enrichit le prompt
+              avec l'actu, l'émotion, le format et le hook suggéré.
+    """
     from utils.idea_classifier import classify_idea, build_type_context
     from utils.hook_templates import build_type_rules
     from utils.quality_validator import post_process_script
@@ -820,11 +861,13 @@ def generate_viral_script(idea: str, lang: str = "fr") -> dict:
     classification = classify_idea(idea)
     type_ctx       = build_type_context(classification, lang=lang)
     type_rules     = build_type_rules(classification["type"], lang=lang)
+    daily_context  = _build_daily_context_block(context, lang=lang)
 
     lang_prefix = "IMPORTANT: Generate ALL text values in English.\n\n" if lang == "en" else ""
     prompt = lang_prefix + type_ctx + VIRAL_SCRIPT_PROMPT.format(
         idea=idea,
         type_rules=type_rules,
+        daily_context=daily_context,
     )
 
     message = _call_with_retry(
