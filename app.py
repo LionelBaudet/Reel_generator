@@ -1464,44 +1464,50 @@ with tab_script:
 
             _daily_data = st.session_state.get("daily_ideas")
             if _daily_data:
-                _note = _daily_data.get("note", "")
+                _note     = _daily_data.get("note", "")
+                _n_fetch  = _daily_data.get("_signals_fetched", 0)
+                _n_rel    = _daily_data.get("_signals_relevant", 0)
+                _meta_str = f"— {_n_rel} signaux pertinents / {_n_fetch} fetchés" if _n_fetch else ""
                 if _note:
                     st.markdown(
                         f'<div style="font-size:.8rem;color:var(--text-muted);'
-                        f'margin:.5rem 0 1rem;font-style:italic">📡 {_note}</div>',
+                        f'margin:.5rem 0 1rem;font-style:italic">'
+                        f'📡 {_note} <span style="color:var(--text-faint)">{_meta_str}</span></div>',
                         unsafe_allow_html=True,
                     )
                 _ideas = _daily_data.get("ideas", [])
                 _di_cols = st.columns(len(_ideas)) if _ideas else []
                 for _col, _idea_item in zip(_di_cols, _ideas):
                     with _col:
-                        _fmt          = _idea_item.get("format", "")
+                        _fmt           = _idea_item.get("format", "")
                         _emoji, _label = FORMAT_LABELS.get(_fmt, ("💡", _fmt))
-                        _emo          = _idea_item.get("emotion", "")
-                        _emo_c        = EMOTION_COLORS.get(_emo, "#9CA3AF")
-                        _hook         = _idea_item.get("hook_preview", "")
-                        _idea_t       = _idea_item.get("idea", "")
-                        _why          = _idea_item.get("why", "")
-                        _actu         = _idea_item.get("actu_link", "")
-                        _source_stat  = _idea_item.get("source_stat", "")
-                        _source_label = _idea_item.get("source_label", "")
-                        _source_url   = _idea_item.get("source_url", "")
+                        _emo           = _idea_item.get("emotion", "")
+                        _emo_c         = EMOTION_COLORS.get(_emo, "#9CA3AF")
+                        _hook          = _idea_item.get("hook_preview", "")
+                        _idea_t        = _idea_item.get("idea", "")
+                        _why           = _idea_item.get("why", "")
+                        _actu          = _idea_item.get("actu_link", "")
+                        _source_title  = _idea_item.get("source_title", _idea_item.get("source_stat", ""))
+                        _source_label  = _idea_item.get("source_label", "")
+                        _source_url    = _idea_item.get("source_url", "")
                         _actu_html = (
                             '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.4rem">'
                             f'📡 {_actu}</div>'
                         ) if _actu else ""
                         _url_line = (
-                            f'<br><span style="color:var(--text-faint);font-size:.68rem">'
-                            f'{_source_url}</span>'
+                            f'<a href="{_source_url}" target="_blank" '
+                            f'style="color:var(--text-faint);font-size:.68rem;'
+                            f'word-break:break-all">{_source_url}</a>'
                         ) if _source_url else ""
                         _source_html = (
                             '<div style="font-size:.72rem;color:var(--text-muted);'
                             'border-top:1px solid var(--border);margin-top:.5rem;'
                             'padding-top:.5rem">'
-                            f'📊 <strong>{_source_label}</strong> — {_source_stat}'
+                            f'🔗 <strong>{_source_label}</strong><br>'
+                            f'<em>{_source_title}</em><br>'
                             f'{_url_line}'
                             '</div>'
-                        ) if _source_stat else ""
+                        ) if (_source_title or _source_url) else ""
                         st.markdown(
                             f'<div style="border:1px solid var(--border);border-radius:10px;'
                             f'padding:1rem;background:var(--surface);height:100%">'

@@ -822,41 +822,44 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     """
     if not context:
         return ""
-    actu         = context.get("actu_link", "")
-    emotion      = context.get("emotion", "")
-    fmt          = context.get("format", "")
-    hook         = context.get("hook_preview", "")
-    why          = context.get("why", "")
-    source_stat  = context.get("source_stat", "")
-    source_label = context.get("source_label", "")
+    actu          = context.get("actu_link", "")
+    emotion       = context.get("emotion", "")
+    fmt           = context.get("format", "")
+    hook          = context.get("hook_preview", "")
+    why           = context.get("why", "")
+    source_title  = context.get("source_title", context.get("source_stat", ""))
+    source_label  = context.get("source_label", "")
+    source_url    = context.get("source_url", "")
 
     if lang == "en":
         lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (use this to anchor the script):"]
-        if actu:         lines.append(f"- Current event: {actu}")
-        if emotion:      lines.append(f"- Target emotion: {emotion}")
-        if fmt:          lines.append(f"- Format: {fmt}")
-        if hook:         lines.append(f"- Suggested hook direction: {hook}")
-        if why:          lines.append(f"- Why it stops scroll: {why}")
-        if source_stat:  lines.append(f"- Real stat to use in the script: {source_stat}")
-        if source_label: lines.append(f"- Source label (for on-screen display): {source_label}")
+        if actu:          lines.append(f"- Current event: {actu}")
+        if emotion:       lines.append(f"- Target emotion: {emotion}")
+        if fmt:           lines.append(f"- Format: {fmt}")
+        if hook:          lines.append(f"- Suggested hook direction: {hook}")
+        if why:           lines.append(f"- Why it stops scroll: {why}")
+        if source_title:  lines.append(f"- Real news source title: {source_title}")
+        if source_label:  lines.append(f"- Source label (for display): {source_label}")
+        if source_url:    lines.append(f"- Source URL (real, verified): {source_url}")
         lines.append(
             "→ The script must reflect this current event and emotional angle.\n"
-            "→ IMPORTANT: include the real stat naturally in the hook or pain scene text.\n"
-            "→ The source label must appear as a short line below or after the stat scene.\n"
+            "→ Reference the news source naturally in the pain or hook scene.\n"
+            "→ NEVER invent statistics — only use what is in the source title above.\n"
         )
     else:
         lines = ["CONTEXTE DE L'IDÉE DU JOUR (intègre-le dans le script) :"]
-        if actu:         lines.append(f"- Actualité : {actu}")
-        if emotion:      lines.append(f"- Émotion cible : {emotion}")
-        if fmt:          lines.append(f"- Format : {fmt}")
-        if hook:         lines.append(f"- Direction hook suggérée : {hook}")
-        if why:          lines.append(f"- Pourquoi ça stoppe : {why}")
-        if source_stat:  lines.append(f"- Stat réelle à intégrer dans le script : {source_stat}")
-        if source_label: lines.append(f"- Label source (affichage à l'écran) : {source_label}")
+        if actu:          lines.append(f"- Actualité : {actu}")
+        if emotion:       lines.append(f"- Émotion cible : {emotion}")
+        if fmt:           lines.append(f"- Format : {fmt}")
+        if hook:          lines.append(f"- Direction hook suggérée : {hook}")
+        if why:           lines.append(f"- Pourquoi ça stoppe : {why}")
+        if source_title:  lines.append(f"- Titre de la source réelle : {source_title}")
+        if source_label:  lines.append(f"- Label source (affichage à l'écran) : {source_label}")
+        if source_url:    lines.append(f"- URL source (réelle, vérifiée) : {source_url}")
         lines.append(
             "→ Le script doit ancrer cette actualité et cet angle émotionnel.\n"
-            "→ IMPORTANT : intègre la stat réelle naturellement dans le hook ou la scène pain.\n"
-            "→ Le label source doit apparaître comme une courte ligne sous ou après la scène stat.\n"
+            "→ Référence la source naturellement dans la scène pain ou hook.\n"
+            "→ N'INVENTE AUCUNE STAT — utilise uniquement ce qui est dans le titre source ci-dessus.\n"
         )
 
     return "\n".join(lines) + "\n"
@@ -932,7 +935,7 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr",
     # Build source block for caption
     source_block = ""
     if daily_context:
-        source_stat  = daily_context.get("source_stat", "")
+        source_stat  = daily_context.get("source_title", daily_context.get("source_stat", ""))
         source_url   = daily_context.get("source_url", "")
         source_label = daily_context.get("source_label", "")
         if source_stat or source_url:
@@ -989,39 +992,34 @@ Tu es un stratège de contenu Instagram pour le compte @ownyourtime.ai en 2026.
 Audience : professionnels 25-45 ans (corporate, startup, solopreneurs).
 Ton de la marque : direct, un peu provocateur, jamais corporate, jamais LinkedIn.
 
-OBJECTIF : générer des idées de reels qui stoppent le scroll et génèrent des commentaires.
+OBJECTIF : générer des idées de reels viraux ancrées dans des signaux d'actualité réels.
 
-FORMATS DISPONIBLES (utilise chacun au moins une fois) :
+RÈGLE ABSOLUE — ZÉRO INVENTION :
+Tu reçois une liste de signaux d'actualité réels (titres + URLs).
+Tu DOIS utiliser ces signaux pour ancrer tes idées.
+Tu ne dois PAS inventer de statistiques, de rapports, ou d'URLs.
+Pour chaque idée : cite exactement le signal utilisé (titre + URL fournis).
+
+FORMATS (utilise des formats différents pour les 3 idées) :
 - provocateur : affirmation qui choque ou crée de la dissonance cognitive
 - transformation : avant / après concret et chiffré
-- storytelling : expérience vécue avec tension et résolution
-- reaction_actu : lié à un événement actuel (IA en entreprise, layoffs, burn-out, inflation, remote work, no-code)
-- comparaison : outil A vs outil B, ancienne façon vs nouvelle façon
-- education_simple : 1 concept utile expliqué en moins de 20 secondes
+- reaction_actu : réaction directe à un signal d'actualité reçu
+- comparaison : ancienne façon vs nouvelle façon
 - tu_fais_encore : "tu fais encore ça à la main ?" — honte positive
 - ton_job_change : "ton métier change déjà, pas dans 2 ans"
+- education_simple : 1 concept utile expliqué en 18 secondes
+- storytelling : expérience vécue avec tension et résolution
 
-STYLE OBLIGATOIRE :
-- Parle au viewer : "Tu", "Ton", "Tes" — jamais "L'IA va...", "Ce prompt..."
+STYLE :
+- Parle au viewer : "Tu", "Ton", "Tes"
 - Résultats concrets > tension conceptuelle
 - Court, immédiat, parlé — jamais LinkedIn
-- Le hook doit fonctionner en moins d'1 seconde
+- Hook fonctionnel en moins d'1 seconde
 
-FILTRE QUALITÉ (applique avant de répondre) :
-Rejette toute idée qui est :
-- trop générique ("utiliser l'IA pour gagner du temps")
-- trop technique (outils, API, configurations)
-- trop abstraite ("repenser ta relation au travail")
-- similaire à un post LinkedIn
-- trop large pour tenir en 18 secondes
-
-RÈGLE DE SÉLECTION :
-Génère 10 idées en interne. Note chacune de 1 à 10 sur :
-- arrêt du scroll (0-3)
-- potentiel commentaires (0-3)
-- fit brand @ownyourtime.ai (0-2)
-- ancrage actu 2025-2026 (0-2)
-Garde les 3 meilleures. Refuse les idées sous 6/10.
+FILTRE QUALITÉ :
+Rejette : trop générique, trop technique, trop abstrait, trop LinkedIn, trop large.
+Note chaque idée : scroll-stop (0-3) + commentaires (0-3) + fit brand (0-2) + actu (0-2).
+Garde les 3 meilleures. Minimum 6/10.
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
@@ -1029,52 +1027,44 @@ Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après
 _DAILY_IDEAS_PROMPT = """\
 Date du jour : {date}
 
+{signals_block}
+
 Génère les 3 meilleures idées de reels Instagram pour @ownyourtime.ai aujourd'hui.
 
-Contraintes :
+RÈGLES :
 - Les 3 idées doivent avoir des formats différents
-- Chaque "idea" doit être une phrase courte (5-8 mots max) prête à passer directement au générateur de script
-- Le "hook_preview" doit sonner comme quelqu'un qui parle, pas comme un slogan
-- Les idées doivent être ancrées dans la réalité de 2025-2026
-
-RÈGLE SOURCE (OBLIGATOIRE) :
-Pour chaque idée, fournis une stat ou donnée réelle issue d'un rapport connu
-(McKinsey, Slack Workforce Index, Microsoft Work Trend Index, Gartner, Gallup, etc.).
-- "source_stat" : la stat exacte, courte, en français — max 10 mots — intégrable dans le script
-  Exemples : "65% des managers utilisent déjà l'IA — Slack 2025"
-             "1 employé sur 3 pense que son job va changer — McKinsey 2025"
-             "18h/semaine perdues en tâches répétitives — Microsoft 2025"
-- "source_label" : nom court pour affichage à l'écran (ex: "McKinsey 2025", "Slack 2025")
-- "source_url" : URL réelle du rapport ou de l'article source (utilise ton knowledge — vérifie que l'URL est plausible)
+- Chaque "idea" = phrase courte (5-8 mots max), passable directement au générateur
+- "hook_preview" = exemple de hook max 8 mots, parlé
+- "source_title" = titre EXACT du signal utilisé (copié depuis la liste ci-dessus)
+- "source_url" = URL EXACTE du signal (copiée depuis la liste ci-dessus)
+- "source_label" = publication + date (ex: "Le Monde, 2025-04-20")
+- N'invente AUCUNE URL, AUCUNE stat, AUCUN chiffre non présent dans les signaux
 
 Retourne exactement ce JSON :
 {{
   "ideas": [
     {{
-      "idea": "<5-8 mots, concis, passable directement au générateur>",
-      "format": "<un des 8 formats ci-dessus>",
-      "hook_preview": "<hook exemple max 8 mots — stoppe le scroll>",
+      "idea": "<5-8 mots>",
+      "format": "<format>",
+      "hook_preview": "<max 8 mots>",
       "emotion": "<frustration | curiosité | FOMO | contradiction | envie>",
-      "actu_link": "<événement actuel lié — 1 phrase courte>",
-      "source_stat": "<stat réelle courte avec source — max 10 mots>",
-      "source_label": "<nom court — ex: McKinsey 2025>",
-      "source_url": "<URL réelle du rapport>",
+      "actu_link": "<résumé de l'actualité du signal — 1 phrase>",
+      "source_title": "<titre exact du signal>",
+      "source_label": "<publication + date>",
+      "source_url": "<URL exacte du signal>",
       "score": 0,
-      "why": "<pourquoi quelqu'un s'arrêterait — 1 phrase directe>"
+      "why": "<pourquoi ça stoppe — 1 phrase>"
     }},
-    {{
-      "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
-      "actu_link": "...", "source_stat": "...", "source_label": "...",
-      "source_url": "...", "score": 0, "why": "..."
-    }},
-    {{
-      "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
-      "actu_link": "...", "source_stat": "...", "source_label": "...",
-      "source_url": "...", "score": 0, "why": "..."
-    }}
+    {{ "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
+       "actu_link": "...", "source_title": "...", "source_label": "...",
+       "source_url": "...", "score": 0, "why": "..." }},
+    {{ "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
+       "actu_link": "...", "source_title": "...", "source_label": "...",
+       "source_url": "...", "score": 0, "why": "..." }}
   ],
   "date": "{date}",
-  "note": "<contexte actu du jour utilisé pour ancrer les idées — 1 phrase>"
+  "signals_used": <nombre de signaux reçus>,
+  "note": "<1 phrase sur l'angle actu dominant aujourd'hui>"
 }}
 """
 
@@ -1100,23 +1090,50 @@ EMOTION_COLORS = {
 
 def generate_daily_ideas(date: str | None = None) -> dict:
     """
-    Génère 3 idées de reels du jour filtrées par qualité.
-    Chaque idée est directement passable à generate_viral_script().
-    date : format 'YYYY-MM-DD', défaut = aujourd'hui.
+    Génère 3 idées de reels du jour basées sur de vrais signaux d'actualité.
+
+    Flow :
+      1. fetch_daily_signals()  — RSS Google News + feeds directs
+      2. filter_relevant_signals() — score et filtre par pertinence
+      3. Claude reçoit les signaux réels et génère 3 idées ancrées dedans
+         (zéro invention de stats ou d'URLs)
+
+    Retourne un dict avec "ideas" (list), "date", "signals_used", "note".
+    Chaque idée contient source_title + source_url copiés des vrais signaux.
     """
+    from utils.signals import fetch_daily_signals, filter_relevant_signals, signals_to_prompt_block
+
     if not date:
         date = datetime.now().strftime("%Y-%m-%d")
 
+    # 1. Fetch & filter real signals
+    logger.info("Fetching daily signals…")
+    raw_signals = fetch_daily_signals()
+    relevant    = filter_relevant_signals(raw_signals, top_n=12)
+
+    if not relevant:
+        logger.warning("No relevant signals found — falling back to date-only prompt")
+        signals_block = "Aucun signal d'actualité disponible — base-toi sur les tendances IA/travail 2025."
+    else:
+        signals_block = signals_to_prompt_block(relevant, lang="fr")
+        logger.info(f"Injecting {len(relevant)} signals into prompt")
+
+    # 2. Call Claude with real signals
     message = _call_with_retry(
         model=MODEL,
-        max_tokens=1200,
+        max_tokens=1600,
         system=_DAILY_IDEAS_SYSTEM,
         messages=[{
             "role": "user",
-            "content": _DAILY_IDEAS_PROMPT.format(date=date),
+            "content": _DAILY_IDEAS_PROMPT.format(date=date, signals_block=signals_block),
         }],
     )
-    return _parse_json(message.content[0].text)
+    result = _parse_json(message.content[0].text)
+
+    # 3. Attach raw signals for reference in the UI
+    result["_signals_fetched"] = len(raw_signals)
+    result["_signals_relevant"] = len(relevant)
+    return result
 
 
 def generate_variants(idea: str) -> list:
