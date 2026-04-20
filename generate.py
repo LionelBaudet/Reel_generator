@@ -212,6 +212,18 @@ Audience : professionnels 25-45 ans (corporate, freelance, solopreneurs, data/AI
 
 OBJECTIF ABSOLU : sortie publish-ready. Refuser les outputs moyens.
 
+─── CONCEPT ÉDITORIAL ───────────────────────────────────────────────────────
+
+Chaque reel suit cette logique :
+  ACTUALITÉ RÉELLE → PROBLÈME QUE ÇA CRÉE → COMMENT L'IA AIDE CONCRÈTEMENT → EXEMPLE LIVE
+
+Si un contexte d'actualité est fourni (actu, outil IA, prompt, résultat) :
+→ Ancre le hook ou la scène pain dans l'actualité réelle
+→ Montre l'outil IA exact dans la solution
+→ Affiche le prompt concret dans la scène solution ou overlay
+→ Montre le résultat obtenu de façon chiffrée ou très concrète
+→ Le prompt IA doit apparaître en anglais dans overlay_lines (1 ligne max 6 mots, ex: "Analyse my budget vs last month")
+
 ─── RÈGLES FONDAMENTALES ────────────────────────────────────────────────────
 
 RÈGLES D'ÉCRITURE :
@@ -243,30 +255,13 @@ RÈGLE CTA (OBLIGATOIRE) :
 -2 outil-first quand viewer-first attendu
 -2 CTA motivationnel ou imprécis
 
-─── EXEMPLES ────────────────────────────────────────────────────────────────
-
-✗ "Ton budget familial te ment chaque mois." → trop dramatique
-✓ "Tu perds de l'argent sans le voir."
-
-✗ "Tu ne gères pas. Tu subis." → trop abstrait
-✓ "Tu bosses. Mais l'argent part."
-
-✗ "Ce prompt va transformer ton travail." → outil-first, vague
-✓ "Tu écris encore ces emails toi-même ?"
-
-✗ "L'IA coupe ce que tu refuses." → vague, artificiel
-✓ "ChatGPT repère les dépenses inutiles." (OK pour budget_finance)
-
-✗ "Prouve que t'es prêt." → CTA motivationnel
-✓ "Commente BUDGET."
-
 ─── STRUCTURE DU SCRIPT ─────────────────────────────────────────────────────
 
-hook     → stoppe le scroll en < 1 seconde
-pain     → la douleur réelle que le viewer ressent
+hook     → stoppe le scroll en < 1 seconde (ancré dans l'actu si contexte fourni)
+pain     → la douleur réelle que le viewer ressent (le problème créé par l'actu)
 shift    → le retournement inattendu (mais / sauf que / j'ai trouvé)
-solution → l'action concrète (simple, rapide, actionnable)
-result   → le résultat chiffré ou ancré ("maintenant X / fini / plus jamais")
+solution → l'outil IA exact + le prompt concret (simple, actionnable)
+result   → le résultat chiffré ou très concret ("maintenant X / fini / plus jamais")
 cta      → "Commente MOT" ou "Écris MOT"
 
 AUTO-CHECK avant de répondre :
@@ -275,6 +270,8 @@ AUTO-CHECK avant de répondre :
 • C'est trop dramatique ou trop abstrait ?
 • Le hook parle-t-il au viewer (pas à l'outil) ?
 • Le CTA est-il court et frictionless ?
+• Si actu fournie → est-elle visible dans le hook ou la scène pain ?
+• Si prompt IA fourni → apparaît-il dans overlay_lines ?
 Si non → réécris avant de répondre.
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
@@ -825,43 +822,57 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     """
     if not context:
         return ""
-    actu          = context.get("actu_link", "")
-    emotion       = context.get("emotion", "")
-    fmt           = context.get("format", "")
-    hook          = context.get("hook_preview", "")
-    why           = context.get("why", "")
-    source_title  = context.get("source_title", context.get("source_stat", ""))
-    source_label  = context.get("source_label", "")
-    source_url    = context.get("source_url", "")
+    actu              = context.get("actu_link", "")
+    emotion           = context.get("emotion", "")
+    fmt               = context.get("format", "")
+    hook              = context.get("hook_preview", "")
+    why               = context.get("why", "")
+    source_title      = context.get("source_title", context.get("source_stat", ""))
+    source_label      = context.get("source_label", "")
+    source_url        = context.get("source_url", "")
+    ai_tool           = context.get("ai_tool", "")
+    ai_prompt_example = context.get("ai_prompt_example", "")
+    ai_result         = context.get("ai_result", "")
+    ctx_type          = context.get("context", "")  # pro | perso | mixte
 
     if lang == "en":
         lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (use this to anchor the script):"]
-        if actu:          lines.append(f"- Current event: {actu}")
-        if emotion:       lines.append(f"- Target emotion: {emotion}")
-        if fmt:           lines.append(f"- Format: {fmt}")
-        if hook:          lines.append(f"- Suggested hook direction: {hook}")
-        if why:           lines.append(f"- Why it stops scroll: {why}")
-        if source_title:  lines.append(f"- Real news source title: {source_title}")
-        if source_label:  lines.append(f"- Source label (for display): {source_label}")
-        if source_url:    lines.append(f"- Source URL (real, verified): {source_url}")
+        if actu:               lines.append(f"- Current event: {actu}")
+        if emotion:            lines.append(f"- Target emotion: {emotion}")
+        if fmt:                lines.append(f"- Format: {fmt}")
+        if hook:               lines.append(f"- Suggested hook direction: {hook}")
+        if why:                lines.append(f"- Why it stops scroll: {why}")
+        if ctx_type:           lines.append(f"- Context type: {ctx_type}")
+        if ai_tool:            lines.append(f"- AI tool to feature: {ai_tool}")
+        if ai_prompt_example:  lines.append(f"- Concrete AI prompt to show: {ai_prompt_example}")
+        if ai_result:          lines.append(f"- Concrete result to show: {ai_result}")
+        if source_title:       lines.append(f"- Real news source title: {source_title}")
+        if source_label:       lines.append(f"- Source label (for display): {source_label}")
+        if source_url:         lines.append(f"- Source URL (real, verified): {source_url}")
         lines.append(
             "→ The script must reflect this current event and emotional angle.\n"
             "→ Reference the news source naturally in the pain or hook scene.\n"
+            "→ Show the concrete AI prompt and result as a live demo in the script.\n"
             "→ NEVER invent statistics — only use what is in the source title above.\n"
         )
     else:
         lines = ["CONTEXTE DE L'IDÉE DU JOUR (intègre-le dans le script) :"]
-        if actu:          lines.append(f"- Actualité : {actu}")
-        if emotion:       lines.append(f"- Émotion cible : {emotion}")
-        if fmt:           lines.append(f"- Format : {fmt}")
-        if hook:          lines.append(f"- Direction hook suggérée : {hook}")
-        if why:           lines.append(f"- Pourquoi ça stoppe : {why}")
-        if source_title:  lines.append(f"- Titre de la source réelle : {source_title}")
-        if source_label:  lines.append(f"- Label source (affichage à l'écran) : {source_label}")
-        if source_url:    lines.append(f"- URL source (réelle, vérifiée) : {source_url}")
+        if actu:               lines.append(f"- Actualité : {actu}")
+        if emotion:            lines.append(f"- Émotion cible : {emotion}")
+        if fmt:                lines.append(f"- Format : {fmt}")
+        if hook:               lines.append(f"- Direction hook suggérée : {hook}")
+        if why:                lines.append(f"- Pourquoi ça stoppe : {why}")
+        if ctx_type:           lines.append(f"- Contexte : {ctx_type}")
+        if ai_tool:            lines.append(f"- Outil IA à montrer : {ai_tool}")
+        if ai_prompt_example:  lines.append(f"- Prompt IA concret à afficher : {ai_prompt_example}")
+        if ai_result:          lines.append(f"- Résultat concret à montrer : {ai_result}")
+        if source_title:       lines.append(f"- Titre de la source réelle : {source_title}")
+        if source_label:       lines.append(f"- Label source (affichage à l'écran) : {source_label}")
+        if source_url:         lines.append(f"- URL source (réelle, vérifiée) : {source_url}")
         lines.append(
             "→ Le script doit ancrer cette actualité et cet angle émotionnel.\n"
             "→ Référence la source naturellement dans la scène pain ou hook.\n"
+            "→ Montre le prompt IA concret et le résultat comme un exemple live dans le script.\n"
             "→ N'INVENTE AUCUNE STAT — utilise uniquement ce qui est dans le titre source ci-dessus.\n"
         )
 
@@ -991,38 +1002,40 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr",
 
 
 _DAILY_IDEAS_SYSTEM = """\
-Tu es un stratège de contenu Instagram pour le compte @ownyourtime.ai en 2026.
-Audience : professionnels 25-45 ans (corporate, startup, solopreneurs).
-Ton de la marque : direct, un peu provocateur, jamais corporate, jamais LinkedIn.
+Tu es un créateur de contenu Instagram pour @ownyourtime.ai en 2026.
+Audience : professionnels 25-45 ans (corporate, startup, solopreneurs, vie perso).
+Ton : direct, concret, jamais corporate.
 
-OBJECTIF : générer des idées de reels viraux ancrées dans des signaux d'actualité réels.
+CONCEPT ÉDITORIAL :
+Chaque reel suit cette logique :
+  ACTUALITÉ RÉELLE → PROBLÈME QUE ÇA CRÉE → COMMENT L'IA AIDE CONCRÈTEMENT → EXEMPLE LIVE
+
+Le viewer ne regarde pas pour apprendre "l'IA en général".
+Il regarde parce qu'une actu le touche aujourd'hui, et tu lui montres quoi faire avec l'IA maintenant.
 
 RÈGLE ABSOLUE — ZÉRO INVENTION :
-Tu reçois une liste de signaux d'actualité réels (titres + URLs).
-Tu DOIS utiliser ces signaux pour ancrer tes idées.
-Tu ne dois PAS inventer de statistiques, de rapports, ou d'URLs.
-Pour chaque idée : cite exactement le signal utilisé (titre + URL fournis).
+Tu reçois des signaux d'actualité réels (titres + URLs).
+Utilise-les pour ancrer chaque idée. Ne cite que des titres et URLs fournis dans la liste.
 
-FORMATS (utilise des formats différents pour les 3 idées) :
-- provocateur : affirmation qui choque ou crée de la dissonance cognitive
-- transformation : avant / après concret et chiffré
-- reaction_actu : réaction directe à un signal d'actualité reçu
-- comparaison : ancienne façon vs nouvelle façon
-- tu_fais_encore : "tu fais encore ça à la main ?" — honte positive
-- ton_job_change : "ton métier change déjà, pas dans 2 ans"
-- education_simple : 1 concept utile expliqué en 18 secondes
-- storytelling : expérience vécue avec tension et résolution
+ANGLE IA CONCRET (OBLIGATOIRE) :
+Pour chaque idée, tu dois définir :
+- Le problème réel créé par l'actu (pro OU perso)
+- L'outil IA exact à utiliser (ChatGPT, Claude, Gemini, Perplexity, Copilot, etc.)
+- Un exemple de prompt concret (1-2 lignes, ce que le viewer taperait vraiment)
+- Le résultat obtenu (chiffré ou très concret)
+
+DOMAINES (vie pro ET perso — varie entre les 3 idées) :
+Pro : réunions, emails, rapports, veille, recrutement, négociation, présentation
+Perso : budget familial, santé, voyage, formation, reconversion, side hustle
 
 STYLE :
-- Parle au viewer : "Tu", "Ton", "Tes"
-- Résultats concrets > tension conceptuelle
-- Court, immédiat, parlé — jamais LinkedIn
-- Hook fonctionnel en moins d'1 seconde
+- Hook : parle au viewer — "Tu", "Ton", "Tes"
+- Concret et immédiat > abstrait et général
+- Sonne comme quelqu'un qui parle, pas un copywriter
 
 FILTRE QUALITÉ :
-Rejette : trop générique, trop technique, trop abstrait, trop LinkedIn, trop large.
-Note chaque idée : scroll-stop (0-3) + commentaires (0-3) + fit brand (0-2) + actu (0-2).
-Garde les 3 meilleures. Minimum 6/10.
+Note : scroll-stop (0-3) + commentaires (0-3) + IA concrète montrée (0-2) + actu ancrée (0-2)
+Minimum 7/10. Les 3 idées doivent toucher des situations différentes (pro / perso / mixte).
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
@@ -1032,42 +1045,48 @@ Date du jour : {date}
 
 {signals_block}
 
-Génère les 3 meilleures idées de reels Instagram pour @ownyourtime.ai aujourd'hui.
+Génère 3 idées de reels pour @ownyourtime.ai.
+Chaque idée = une actualité réelle + comment l'IA aide concrètement + exemple live.
 
 RÈGLES :
-- Les 3 idées doivent avoir des formats différents
-- Chaque "idea" = phrase courte (5-8 mots max), passable directement au générateur
-- "hook_preview" = exemple de hook max 8 mots, parlé
-- "source_title" = titre EXACT du signal utilisé (copié depuis la liste ci-dessus)
-- "source_url" = URL EXACTE du signal (copiée depuis la liste ci-dessus)
-- "source_label" = publication + date (ex: "Le Monde, 2025-04-20")
-- N'invente AUCUNE URL, AUCUNE stat, AUCUN chiffre non présent dans les signaux
+- "idea" = titre court (5-8 mots) pour le générateur de script
+- "hook_preview" = hook max 8 mots, parlé, stoppe le scroll
+- "ai_tool" = outil exact (ChatGPT / Claude / Gemini / Perplexity / Copilot / autre)
+- "ai_prompt_example" = prompt concret que le viewer taperait (1-2 lignes, naturel)
+- "ai_result" = résultat concret obtenu (chiffré si possible, max 10 mots)
+- "context" = pro | perso | mixte
+- "source_title" = titre EXACT du signal utilisé (copié depuis la liste)
+- "source_label" = publication + date (ex: "Le Temps, 2025-04-20")
+- "source_url" = URL EXACTE du signal (copiée depuis la liste)
+- N'invente AUCUNE URL, AUCUNE stat, AUCUN chiffre absent des signaux
 
 Retourne exactement ce JSON :
 {{
   "ideas": [
     {{
       "idea": "<5-8 mots>",
-      "format": "<format>",
-      "hook_preview": "<max 8 mots>",
-      "emotion": "<frustration | curiosité | FOMO | contradiction | envie>",
-      "actu_link": "<résumé de l'actualité du signal — 1 phrase>",
+      "context": "<pro | perso | mixte>",
+      "hook_preview": "<max 8 mots, parlé>",
+      "emotion": "<frustration | curiosité | FOMO | envie | surprise>",
+      "actu_link": "<résumé actu du signal — 1 phrase>",
+      "ai_tool": "<outil IA exact>",
+      "ai_prompt_example": "<prompt concret que le viewer taperait>",
+      "ai_result": "<résultat concret — max 10 mots>",
       "source_title": "<titre exact du signal>",
       "source_label": "<publication + date>",
       "source_url": "<URL exacte du signal>",
       "score": 0,
       "why": "<pourquoi ça stoppe — 1 phrase>"
     }},
-    {{ "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
-       "actu_link": "...", "source_title": "...", "source_label": "...",
-       "source_url": "...", "score": 0, "why": "..." }},
-    {{ "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
-       "actu_link": "...", "source_title": "...", "source_label": "...",
-       "source_url": "...", "score": 0, "why": "..." }}
+    {{ "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
+       "actu_link": "...", "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
+       "source_title": "...", "source_label": "...", "source_url": "...", "score": 0, "why": "..." }},
+    {{ "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
+       "actu_link": "...", "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
+       "source_title": "...", "source_label": "...", "source_url": "...", "score": 0, "why": "..." }}
   ],
   "date": "{date}",
-  "signals_used": <nombre de signaux reçus>,
-  "note": "<1 phrase sur l'angle actu dominant aujourd'hui>"
+  "note": "<angle actu dominant aujourd'hui — 1 phrase>"
 }}
 """
 
