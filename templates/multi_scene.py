@@ -241,7 +241,8 @@ class MultiSceneTemplate:
             n_frames = int(dur * self.fps)
             frames   = self._scene_frames(offset, n_frames)
             offset  += n_frames
-            renderer = SceneRenderer(sc, frames)
+            sc_runtime = {**sc, "duration": dur}
+            renderer = SceneRenderer(sc_runtime, frames)
             def make_frame(t, r=renderer): return r.make_frame(t)
             clips.append(VideoClip(make_frame, duration=dur).set_fps(self.fps))
             logger.info(

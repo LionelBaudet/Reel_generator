@@ -580,7 +580,9 @@ class ViralTextCentricTemplate:
             else:
                 frames = self._scene_frames(bank_idx, n_frames, bank_offsets[bank_idx])
                 bank_offsets[bank_idx] += n_frames
-                renderer = SceneRenderer(sc, frames)
+                # Pass the actual computed duration (sync mode may differ from YAML)
+                sc_runtime = {**sc, "duration": dur}
+                renderer = SceneRenderer(sc_runtime, frames)
 
             def make_frame(t, r=renderer): return r.make_frame(t)
 
