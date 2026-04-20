@@ -822,28 +822,42 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     """
     if not context:
         return ""
-    actu    = context.get("actu_link", "")
-    emotion = context.get("emotion", "")
-    fmt     = context.get("format", "")
-    hook    = context.get("hook_preview", "")
-    why     = context.get("why", "")
+    actu         = context.get("actu_link", "")
+    emotion      = context.get("emotion", "")
+    fmt          = context.get("format", "")
+    hook         = context.get("hook_preview", "")
+    why          = context.get("why", "")
+    source_stat  = context.get("source_stat", "")
+    source_label = context.get("source_label", "")
 
     if lang == "en":
         lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (use this to anchor the script):"]
-        if actu:    lines.append(f"- Current event: {actu}")
-        if emotion: lines.append(f"- Target emotion: {emotion}")
-        if fmt:     lines.append(f"- Format: {fmt}")
-        if hook:    lines.append(f"- Suggested hook direction: {hook}")
-        if why:     lines.append(f"- Why it stops scroll: {why}")
-        lines.append("→ The script must reflect this current event and emotional angle.\n")
+        if actu:         lines.append(f"- Current event: {actu}")
+        if emotion:      lines.append(f"- Target emotion: {emotion}")
+        if fmt:          lines.append(f"- Format: {fmt}")
+        if hook:         lines.append(f"- Suggested hook direction: {hook}")
+        if why:          lines.append(f"- Why it stops scroll: {why}")
+        if source_stat:  lines.append(f"- Real stat to use in the script: {source_stat}")
+        if source_label: lines.append(f"- Source label (for on-screen display): {source_label}")
+        lines.append(
+            "→ The script must reflect this current event and emotional angle.\n"
+            "→ IMPORTANT: include the real stat naturally in the hook or pain scene text.\n"
+            "→ The source label must appear as a short line below or after the stat scene.\n"
+        )
     else:
         lines = ["CONTEXTE DE L'IDÉE DU JOUR (intègre-le dans le script) :"]
-        if actu:    lines.append(f"- Actualité : {actu}")
-        if emotion: lines.append(f"- Émotion cible : {emotion}")
-        if fmt:     lines.append(f"- Format : {fmt}")
-        if hook:    lines.append(f"- Direction hook suggérée : {hook}")
-        if why:     lines.append(f"- Pourquoi ça stoppe : {why}")
-        lines.append("→ Le script doit ancrer cette actualité et cet angle émotionnel.\n")
+        if actu:         lines.append(f"- Actualité : {actu}")
+        if emotion:      lines.append(f"- Émotion cible : {emotion}")
+        if fmt:          lines.append(f"- Format : {fmt}")
+        if hook:         lines.append(f"- Direction hook suggérée : {hook}")
+        if why:          lines.append(f"- Pourquoi ça stoppe : {why}")
+        if source_stat:  lines.append(f"- Stat réelle à intégrer dans le script : {source_stat}")
+        if source_label: lines.append(f"- Label source (affichage à l'écran) : {source_label}")
+        lines.append(
+            "→ Le script doit ancrer cette actualité et cet angle émotionnel.\n"
+            "→ IMPORTANT : intègre la stat réelle naturellement dans le hook ou la scène pain.\n"
+            "→ Le label source doit apparaître comme une courte ligne sous ou après la scène stat.\n"
+        )
 
     return "\n".join(lines) + "\n"
 
@@ -904,13 +918,38 @@ No generic hashtags. No "Discover how". Natural, direct, punchy.
 Respond ONLY with valid JSON, no markdown, no text before or after.
 """
 
-def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> str:
-    """Génère un caption Instagram prêt à publier depuis le script viral."""
+def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr",
+                     daily_context: dict | None = None) -> str:
+    """Génère un caption Instagram prêt à publier depuis le script viral.
+    daily_context : dict optionnel de generate_daily_ideas() — ajoute la source en fin de caption.
+    """
     script = sv.get("script", {})
     hook   = sv.get("best_hook", {}).get("text", script.get("hook", ""))
     cta    = script.get("cta", "")
     scenes = montage.get("scenes", [])
     scene_texts = " / ".join(s.get("text", "") for s in scenes if s.get("text"))
+
+    # Build source block for caption
+    source_block = ""
+    if daily_context:
+        source_stat  = daily_context.get("source_stat", "")
+        source_url   = daily_context.get("source_url", "")
+        source_label = daily_context.get("source_label", "")
+        if source_stat or source_url:
+            if lang == "en":
+                source_block = (
+                    f'\nSource stat used in reel: "{source_stat}"\n'
+                    f'Source URL: "{source_url}"\n'
+                    "→ Add a 'Source: [label] → link in bio' line at the very end of the caption "
+                    "(after hashtags). Keep it short and factual.\n"
+                )
+            else:
+                source_block = (
+                    f'\nStat source utilisée dans le reel : "{source_stat}"\n'
+                    f'URL source : "{source_url}"\n'
+                    "→ Ajoute une ligne 'Source : [label] → lien en bio' tout à la fin du caption "
+                    "(après les hashtags). Courte et factuelle.\n"
+                )
 
     if lang == "en":
         system  = _CAPTION_SYSTEM_EN
@@ -918,9 +957,10 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> st
             f'Reel topic: "{idea}"\n'
             f'Hook: "{hook}"\n'
             f'Scene texts: "{scene_texts}"\n'
-            f'CTA: "{cta}"\n\n'
+            f'CTA: "{cta}"\n'
+            f'{source_block}\n'
             'Generate an Instagram caption. Return JSON:\n'
-            '{"caption": "<2-4 punchy lines>\\n\\n<CTA line: Follow @ownyourtime.ai for more>\\n\\n<10-12 hashtags without line break>"}'
+            '{"caption": "<2-4 punchy lines>\\n\\n<CTA line: Follow @ownyourtime.ai for more>\\n\\n<10-12 hashtags without line break>\\n\\n<Source line if provided>"}'
         )
     else:
         system  = _CAPTION_SYSTEM_FR
@@ -928,14 +968,15 @@ def generate_caption(sv: dict, montage: dict, idea: str, lang: str = "fr") -> st
             f'Sujet du reel : "{idea}"\n'
             f'Hook : "{hook}"\n'
             f'Textes des scènes : "{scene_texts}"\n'
-            f'CTA : "{cta}"\n\n'
+            f'CTA : "{cta}"\n'
+            f'{source_block}\n'
             'Génère un caption Instagram. Retourne ce JSON :\n'
-            '{"caption": "<2-4 lignes percutantes>\\n\\n<ligne CTA : Follow @ownyourtime.ai pour plus>\\n\\n<10-12 hashtags sans saut de ligne>"}'
+            '{"caption": "<2-4 lignes percutantes>\\n\\n<ligne CTA : Follow @ownyourtime.ai pour plus>\\n\\n<10-12 hashtags sans saut de ligne>\\n\\n<Ligne source si fournie>"}'
         )
 
     message = _call_with_retry(
         model=MODEL,
-        max_tokens=600,
+        max_tokens=700,
         system=system,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -996,6 +1037,16 @@ Contraintes :
 - Le "hook_preview" doit sonner comme quelqu'un qui parle, pas comme un slogan
 - Les idées doivent être ancrées dans la réalité de 2025-2026
 
+RÈGLE SOURCE (OBLIGATOIRE) :
+Pour chaque idée, fournis une stat ou donnée réelle issue d'un rapport connu
+(McKinsey, Slack Workforce Index, Microsoft Work Trend Index, Gartner, Gallup, etc.).
+- "source_stat" : la stat exacte, courte, en français — max 10 mots — intégrable dans le script
+  Exemples : "65% des managers utilisent déjà l'IA — Slack 2025"
+             "1 employé sur 3 pense que son job va changer — McKinsey 2025"
+             "18h/semaine perdues en tâches répétitives — Microsoft 2025"
+- "source_label" : nom court pour affichage à l'écran (ex: "McKinsey 2025", "Slack 2025")
+- "source_url" : URL réelle du rapport ou de l'article source (utilise ton knowledge — vérifie que l'URL est plausible)
+
 Retourne exactement ce JSON :
 {{
   "ideas": [
@@ -1005,26 +1056,21 @@ Retourne exactement ce JSON :
       "hook_preview": "<hook exemple max 8 mots — stoppe le scroll>",
       "emotion": "<frustration | curiosité | FOMO | contradiction | envie>",
       "actu_link": "<événement actuel lié — 1 phrase courte>",
+      "source_stat": "<stat réelle courte avec source — max 10 mots>",
+      "source_label": "<nom court — ex: McKinsey 2025>",
+      "source_url": "<URL réelle du rapport>",
       "score": 0,
       "why": "<pourquoi quelqu'un s'arrêterait — 1 phrase directe>"
     }},
     {{
-      "idea": "...",
-      "format": "...",
-      "hook_preview": "...",
-      "emotion": "...",
-      "actu_link": "...",
-      "score": 0,
-      "why": "..."
+      "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
+      "actu_link": "...", "source_stat": "...", "source_label": "...",
+      "source_url": "...", "score": 0, "why": "..."
     }},
     {{
-      "idea": "...",
-      "format": "...",
-      "hook_preview": "...",
-      "emotion": "...",
-      "actu_link": "...",
-      "score": 0,
-      "why": "..."
+      "idea": "...", "format": "...", "hook_preview": "...", "emotion": "...",
+      "actu_link": "...", "source_stat": "...", "source_label": "...",
+      "source_url": "...", "score": 0, "why": "..."
     }}
   ],
   "date": "{date}",

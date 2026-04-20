@@ -1475,18 +1475,33 @@ with tab_script:
                 _di_cols = st.columns(len(_ideas)) if _ideas else []
                 for _col, _idea_item in zip(_di_cols, _ideas):
                     with _col:
-                        _fmt    = _idea_item.get("format", "")
+                        _fmt          = _idea_item.get("format", "")
                         _emoji, _label = FORMAT_LABELS.get(_fmt, ("💡", _fmt))
-                        _emo    = _idea_item.get("emotion", "")
-                        _emo_c  = EMOTION_COLORS.get(_emo, "#9CA3AF")
-                        _hook   = _idea_item.get("hook_preview", "")
-                        _idea_t = _idea_item.get("idea", "")
-                        _why    = _idea_item.get("why", "")
-                        _actu   = _idea_item.get("actu_link", "")
+                        _emo          = _idea_item.get("emotion", "")
+                        _emo_c        = EMOTION_COLORS.get(_emo, "#9CA3AF")
+                        _hook         = _idea_item.get("hook_preview", "")
+                        _idea_t       = _idea_item.get("idea", "")
+                        _why          = _idea_item.get("why", "")
+                        _actu         = _idea_item.get("actu_link", "")
+                        _source_stat  = _idea_item.get("source_stat", "")
+                        _source_label = _idea_item.get("source_label", "")
+                        _source_url   = _idea_item.get("source_url", "")
                         _actu_html = (
-                            '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.5rem">'
+                            '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.4rem">'
                             f'📡 {_actu}</div>'
                         ) if _actu else ""
+                        _url_line = (
+                            f'<br><span style="color:var(--text-faint);font-size:.68rem">'
+                            f'{_source_url}</span>'
+                        ) if _source_url else ""
+                        _source_html = (
+                            '<div style="font-size:.72rem;color:var(--text-muted);'
+                            'border-top:1px solid var(--border);margin-top:.5rem;'
+                            'padding-top:.5rem">'
+                            f'📊 <strong>{_source_label}</strong> — {_source_stat}'
+                            f'{_url_line}'
+                            '</div>'
+                        ) if _source_stat else ""
                         st.markdown(
                             f'<div style="border:1px solid var(--border);border-radius:10px;'
                             f'padding:1rem;background:var(--surface);height:100%">'
@@ -1504,8 +1519,9 @@ with tab_script:
                             f'<div style="font-size:.78rem;color:var(--text-muted);'
                             f'margin-bottom:.4rem;font-style:italic">{_idea_t}</div>'
                             f'<div style="font-size:.75rem;color:var(--text-faint);'
-                            f'margin-bottom:.75rem">{_why}</div>'
+                            f'margin-bottom:.4rem">{_why}</div>'
                             f'{_actu_html}'
+                            f'{_source_html}'
                             f'</div>',
                             unsafe_allow_html=True,
                         )
@@ -2037,6 +2053,7 @@ with tab_script:
                                 st.session_state.get("sv_montage", {}),
                                 st.session_state.get("sv_idea_stored", ""),
                                 lang=_cap_lang,
+                                daily_context=st.session_state.get("sv_daily_context"),
                             )
                             st.session_state["sv_caption"] = _cap_text
                             _cap_stored = _cap_text
