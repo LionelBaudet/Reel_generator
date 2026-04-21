@@ -271,6 +271,72 @@ def filter_relevant_signals(signals: list[Signal],
     return relevant
 
 
+def enrich_signals_for_prompt(signals: list[Signal],
+                               lang: str = "fr") -> tuple[list[dict], str]:
+    """
+    Enrichit les signaux filtrés avec source_score, best_stat et angle actionnable.
+    Filtre les domaines blacklistés.
+
+    Retourne (enriched_list, prompt_block_string).
+
+    Chaque dict enrichi contient :
+      title, source, url, published, summary, relevance,
+      source_score, best_stat, angle (dict from concrete_angle_engine)
+    """
+    try:
+        from utils.source_blacklist import is_blacklisted_domain
+        from utils.source_scoring import score_source
+        from utils.stat_extractor import detect_best_stat
+        from utils.concrete_angle_engine import (
+            turn_signal_into_actionable_angle, enrich_signals_block
+        )
+    except ImportError as e:
+        logger.warning(f"Enrichment modules not available: {e} — using basic block")
+        block = signals_to_prompt_block(signals, lang)
+        return [{"title": s.title, "source": s.source, "url": s.url,
+                 "published": s.published, "summary": s.summary,
+                 "source_score": 5.0, "best_stat": "", "angle": {}}
+                for s in signals], block
+
+    enriched: list[dict] = []
+    for s in signals:
+        # Filter blacklisted domains
+        if is_blacklisted_domain(s.url):
+            logger.debug(f"Blacklisted signal skipped: {s.url}")
+            continue
+
+        full_text    = f"{s.title} {s.summary}"
+        source_score = score_source(s.source, s.url, s.title)
+        best_stat    = detect_best_stat(full_text)
+        angle        = turn_signal_into_actionable_angle(s.summary, s.title)
+
+        enriched.append({
+            "title":        s.title,
+            "source":       s.source,
+            "url":          s.url,
+            "published":    s.published,
+            "summary":      s.summary,
+            "relevance":    s.relevance,
+            "source_score": source_score,
+            "best_stat":    best_stat,
+            "angle":        angle,
+        })
+
+    # Sort: source reliability × relevance score
+    enriched.sort(
+        key=lambda x: x["source_score"] * (1.0 + x["relevance"]),
+        reverse=True
+    )
+
+    prompt_block = enrich_signals_block(enriched[:12], lang=lang)
+    logger.info(
+        f"enrich_signals_for_prompt: {len(enriched)} signals enriched "
+        f"(top score: {enriched[0]['source_score']:.1f})" if enriched else
+        f"enrich_signals_for_prompt: 0 signals after blacklist filter"
+    )
+    return enriched, prompt_block
+
+
 def signals_to_prompt_block(signals: list[Signal], lang: str = "fr") -> str:
     """
     Serialize signals into a prompt block for Claude.

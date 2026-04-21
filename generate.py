@@ -830,50 +830,67 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     source_title      = context.get("source_title", context.get("source_stat", ""))
     source_label      = context.get("source_label", "")
     source_url        = context.get("source_url", "")
+    source_score      = context.get("source_score", 0.0)
     ai_tool           = context.get("ai_tool", "")
     ai_prompt_example = context.get("ai_prompt_example", "")
     ai_result         = context.get("ai_result", "")
-    ctx_type          = context.get("context", "")  # pro | perso | mixte
+    ctx_type          = context.get("context", "")   # pro | perso | mixte
+    best_stat         = context.get("best_stat", "")
+    why_now           = context.get("why_now", "")
+    practical_tip     = context.get("practical_tip", "")
+    concrete_use_case = context.get("concrete_use_case", "")
 
     if lang == "en":
-        lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (use this to anchor the script):"]
+        lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (anchor the script to this):"]
         if actu:               lines.append(f"- Current event: {actu}")
+        if best_stat:          lines.append(f"- Key stat to use: \"{best_stat}\"")
+        if why_now:            lines.append(f"- Why it matters now: {why_now}")
         if emotion:            lines.append(f"- Target emotion: {emotion}")
         if fmt:                lines.append(f"- Format: {fmt}")
         if hook:               lines.append(f"- Suggested hook direction: {hook}")
         if why:                lines.append(f"- Why it stops scroll: {why}")
         if ctx_type:           lines.append(f"- Context type: {ctx_type}")
+        if practical_tip:      lines.append(f"- Practical tip to show: {practical_tip}")
+        if concrete_use_case:  lines.append(f"- Concrete use case: {concrete_use_case}")
         if ai_tool:            lines.append(f"- AI tool to feature: {ai_tool}")
-        if ai_prompt_example:  lines.append(f"- Concrete AI prompt to show: {ai_prompt_example}")
-        if ai_result:          lines.append(f"- Concrete result to show: {ai_result}")
+        if ai_prompt_example:  lines.append(f"- Concrete AI prompt to display: {ai_prompt_example}")
+        if ai_result:          lines.append(f"- Result to show: {ai_result}")
         if source_title:       lines.append(f"- Real news source title: {source_title}")
         if source_label:       lines.append(f"- Source label (for display): {source_label}")
         if source_url:         lines.append(f"- Source URL (real, verified): {source_url}")
+        if source_score:       lines.append(f"- Source reliability: {source_score}/10")
         lines.append(
-            "→ The script must reflect this current event and emotional angle.\n"
-            "→ Reference the news source naturally in the pain or hook scene.\n"
-            "→ Show the concrete AI prompt and result as a live demo in the script.\n"
-            "→ NEVER invent statistics — only use what is in the source title above.\n"
+            "→ Anchor the hook or pain scene in the current event.\n"
+            "→ Use the key stat in the hook or pain (do not invent other stats).\n"
+            "→ Show the concrete AI prompt in overlay_lines.\n"
+            "→ The concrete use case is the payoff scene.\n"
+            "→ NEVER invent statistics or URLs.\n"
         )
     else:
-        lines = ["CONTEXTE DE L'IDÉE DU JOUR (intègre-le dans le script) :"]
+        lines = ["CONTEXTE DE L'IDÉE DU JOUR (ancre le script dans cette actualité) :"]
         if actu:               lines.append(f"- Actualité : {actu}")
+        if best_stat:          lines.append(f"- Stat clé à utiliser : \"{best_stat}\"")
+        if why_now:            lines.append(f"- Pourquoi maintenant : {why_now}")
         if emotion:            lines.append(f"- Émotion cible : {emotion}")
         if fmt:                lines.append(f"- Format : {fmt}")
         if hook:               lines.append(f"- Direction hook suggérée : {hook}")
         if why:                lines.append(f"- Pourquoi ça stoppe : {why}")
         if ctx_type:           lines.append(f"- Contexte : {ctx_type}")
+        if practical_tip:      lines.append(f"- Astuce concrète à montrer : {practical_tip}")
+        if concrete_use_case:  lines.append(f"- Cas d'usage concret : {concrete_use_case}")
         if ai_tool:            lines.append(f"- Outil IA à montrer : {ai_tool}")
-        if ai_prompt_example:  lines.append(f"- Prompt IA concret à afficher : {ai_prompt_example}")
+        if ai_prompt_example:  lines.append(f"- Prompt IA à afficher à l'écran : {ai_prompt_example}")
         if ai_result:          lines.append(f"- Résultat concret à montrer : {ai_result}")
         if source_title:       lines.append(f"- Titre de la source réelle : {source_title}")
-        if source_label:       lines.append(f"- Label source (affichage à l'écran) : {source_label}")
+        if source_label:       lines.append(f"- Label source (affichage) : {source_label}")
         if source_url:         lines.append(f"- URL source (réelle, vérifiée) : {source_url}")
+        if source_score:       lines.append(f"- Fiabilité source : {source_score}/10")
         lines.append(
-            "→ Le script doit ancrer cette actualité et cet angle émotionnel.\n"
-            "→ Référence la source naturellement dans la scène pain ou hook.\n"
-            "→ Montre le prompt IA concret et le résultat comme un exemple live dans le script.\n"
-            "→ N'INVENTE AUCUNE STAT — utilise uniquement ce qui est dans le titre source ci-dessus.\n"
+            "→ Ancre le hook OU la scène pain dans l'actualité et/ou la stat.\n"
+            "→ Utilise la stat clé dans le hook ou la tension — ne l'invente pas.\n"
+            "→ Montre le prompt IA concret dans les overlay_lines.\n"
+            "→ Le cas d'usage concret = le payoff du script.\n"
+            "→ N'INVENTE AUCUNE STAT, AUCUNE URL.\n"
         )
 
     return "\n".join(lines) + "\n"
@@ -1006,36 +1023,49 @@ Tu es un créateur de contenu Instagram pour @ownyourtime.ai en 2026.
 Audience : professionnels 25-45 ans (corporate, startup, solopreneurs, vie perso).
 Ton : direct, concret, jamais corporate.
 
-CONCEPT ÉDITORIAL :
-Chaque reel suit cette logique :
-  ACTUALITÉ RÉELLE → PROBLÈME QUE ÇA CRÉE → COMMENT L'IA AIDE CONCRÈTEMENT → EXEMPLE LIVE
+CONCEPT ÉDITORIAL — RÈGLE ABSOLUE :
+  ACTUALITÉ RÉELLE + STAT FIABLE → TENSION / PRISE DE CONSCIENCE → ASTUCE CONCRÈTE → CAS D'USAGE RÉEL → CTA
 
-Le viewer ne regarde pas pour apprendre "l'IA en général".
-Il regarde parce qu'une actu le touche aujourd'hui, et tu lui montres quoi faire avec l'IA maintenant.
+Exemples du niveau attendu :
+  Actu: "1 manager sur 3 utilise déjà l'IA au quotidien"
+  Hook: "Ton manager utilise déjà l'IA. Pas toi."
+  Astuce: "Prépare chaque réunion avec ce prompt en 2 min."
+  Cas concret: "Copie ordre du jour + objectifs + participants → Claude fait le brief."
 
-RÈGLE ABSOLUE — ZÉRO INVENTION :
-Tu reçois des signaux d'actualité réels (titres + URLs).
-Utilise-les pour ancrer chaque idée. Ne cite que des titres et URLs fournis dans la liste.
+  Actu: "Retour au bureau / pression productivité"
+  Hook: "On te demande 5 jours au bureau. Pas 5x plus de résultats."
+  Astuce: "Voilà l'automatisation qui te donne 45 min par jour."
 
-ANGLE IA CONCRET (OBLIGATOIRE) :
-Pour chaque idée, tu dois définir :
-- Le problème réel créé par l'actu (pro OU perso)
-- L'outil IA exact à utiliser (ChatGPT, Claude, Gemini, Perplexity, Copilot, etc.)
-- Un exemple de prompt concret (1-2 lignes, ce que le viewer taperait vraiment)
-- Le résultat obtenu (chiffré ou très concret)
+  Actu: "Inflation / pouvoir d'achat"
+  Hook: "Ton salaire suit. Pas ton pouvoir d'achat."
+  Astuce: "ChatGPT repère 3 fuites d'argent en 2 min."
+  Cas concret: "Uploader relevé bancaire → demander 3 dépenses récurrentes inutiles."
 
-DOMAINES (vie pro ET perso — varie entre les 3 idées) :
-Pro : réunions, emails, rapports, veille, recrutement, négociation, présentation
-Perso : budget familial, santé, voyage, formation, reconversion, side hustle
+FILTRE QUALITÉ STRICT — REJETTE :
+✗ Idée trop générique ("utilise l'IA", "sois productif", "l'IA peut t'aider")
+✗ Idée purement inspirationnelle sans astuce
+✗ Idée sans cas d'usage immédiatement imaginable
+✗ Idée sans ancrage actu ou stat réelle
+✗ Source inventée ou non fournie dans la liste
 
-STYLE :
-- Hook : parle au viewer — "Tu", "Ton", "Tes"
-- Concret et immédiat > abstrait et général
-- Sonne comme quelqu'un qui parle, pas un copywriter
+POUR CHAQUE IDÉE, OBLIGATOIRE :
+- best_stat   : stat/chiffre le plus accrocheur du signal (copié ou reformulé naturellement)
+- why_now     : pourquoi ce sujet résonne MAINTENANT (1 phrase courte)
+- practical_tip : l'astuce concrète que le viewer peut appliquer aujourd'hui (1 action)
+- concrete_use_case : le cas d'usage précis (sujet + outil + action + résultat)
+- ai_tool     : outil IA exact à montrer
+- ai_prompt_example : le prompt que le viewer taperait (naturel, 1-2 lignes)
+- ai_result   : résultat obtenu (chiffré ou très concret)
 
-FILTRE QUALITÉ :
-Note : scroll-stop (0-3) + commentaires (0-3) + IA concrète montrée (0-2) + actu ancrée (0-2)
-Minimum 7/10. Les 3 idées doivent toucher des situations différentes (pro / perso / mixte).
+DOMAINES — varie entre les 3 idées (pro / perso / mixte) :
+Pro : réunions, emails, rapports, données, CV, négociation, veille, présentation
+Perso : budget, santé, voyage, formation, reconversion, side hustle
+
+RÈGLES SOURCES :
+- source_title : titre EXACT du signal fourni (copié mot pour mot)
+- source_url   : URL EXACTE du signal (copiée telle quelle)
+- source_score : score de fiabilité fourni dans la liste (décimal, ex: 9.5)
+- N'invente AUCUNE URL, stat, chiffre absent de la liste fournie
 
 Tu réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après.
 """
@@ -1045,20 +1075,28 @@ Date du jour : {date}
 
 {signals_block}
 
-Génère 3 idées de reels pour @ownyourtime.ai.
-Chaque idée = une actualité réelle + comment l'IA aide concrètement + exemple live.
+Génère exactement 3 idées de reels pour @ownyourtime.ai.
+Chaque idée = actualité réelle + stat fiable + astuce concrète + cas d'usage imaginable.
 
-RÈGLES :
-- "idea" = titre court (5-8 mots) pour le générateur de script
-- "hook_preview" = hook max 8 mots, parlé, stoppe le scroll
-- "ai_tool" = outil exact (ChatGPT / Claude / Gemini / Perplexity / Copilot / autre)
-- "ai_prompt_example" = prompt concret que le viewer taperait (1-2 lignes, naturel)
-- "ai_result" = résultat concret obtenu (chiffré si possible, max 10 mots)
-- "context" = pro | perso | mixte
-- "source_title" = titre EXACT du signal utilisé (copié depuis la liste)
-- "source_label" = publication + date (ex: "Le Temps, 2025-04-20")
-- "source_url" = URL EXACTE du signal (copiée depuis la liste)
-- N'invente AUCUNE URL, AUCUNE stat, AUCUN chiffre absent des signaux
+STRUCTURE DE CHAQUE IDÉE :
+- "idea"              : titre court du reel (5-8 mots, accrocheur)
+- "context"           : "pro" | "perso" | "mixte"
+- "hook_preview"      : hook max 8 mots, parlé, stoppe le scroll
+- "emotion"           : "frustration" | "curiosité" | "FOMO" | "envie" | "surprise"
+- "actu_link"         : résumé 1 phrase de l'actualité utilisée
+- "best_stat"         : stat/chiffre le plus fort du signal (naturel, ex: "1 manager sur 3")
+- "why_now"           : pourquoi ce sujet est urgent maintenant (1 phrase courte)
+- "practical_tip"     : astuce concrète actionnable dès aujourd'hui (1 action simple)
+- "concrete_use_case" : cas précis — qui + outil + action + résultat (1-2 phrases)
+- "ai_tool"           : outil IA exact (ChatGPT | Claude | Gemini | Perplexity | Copilot)
+- "ai_prompt_example" : prompt concret que le viewer taperait (naturel, 1-2 lignes)
+- "ai_result"         : résultat obtenu — chiffré ou très concret (max 10 mots)
+- "source_title"      : titre EXACT copié depuis la liste de signaux
+- "source_label"      : publication + date (ex: "McKinsey, 2025-04-21")
+- "source_url"        : URL EXACTE copiée depuis la liste
+- "source_score"      : score de fiabilité du signal (copié depuis [Fiabilité: X.X/10])
+- "score"             : ton score editorial 0-10
+- "why"               : pourquoi ça stoppe le scroll — 1 phrase
 
 Retourne exactement ce JSON :
 {{
@@ -1068,25 +1106,40 @@ Retourne exactement ce JSON :
       "context": "<pro | perso | mixte>",
       "hook_preview": "<max 8 mots, parlé>",
       "emotion": "<frustration | curiosité | FOMO | envie | surprise>",
-      "actu_link": "<résumé actu du signal — 1 phrase>",
-      "ai_tool": "<outil IA exact>",
-      "ai_prompt_example": "<prompt concret que le viewer taperait>",
+      "actu_link": "<résumé actu — 1 phrase>",
+      "best_stat": "<stat accrocheur du signal>",
+      "why_now": "<pourquoi urgent maintenant — 1 phrase>",
+      "practical_tip": "<astuce concrète — 1 action>",
+      "concrete_use_case": "<qui + outil + action + résultat>",
+      "ai_tool": "<outil exact>",
+      "ai_prompt_example": "<prompt que le viewer taperait>",
       "ai_result": "<résultat concret — max 10 mots>",
       "source_title": "<titre exact du signal>",
       "source_label": "<publication + date>",
-      "source_url": "<URL exacte du signal>",
+      "source_url": "<URL exacte>",
+      "source_score": 0.0,
       "score": 0,
       "why": "<pourquoi ça stoppe — 1 phrase>"
     }},
-    {{ "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
-       "actu_link": "...", "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
-       "source_title": "...", "source_label": "...", "source_url": "...", "score": 0, "why": "..." }},
-    {{ "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
-       "actu_link": "...", "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
-       "source_title": "...", "source_label": "...", "source_url": "...", "score": 0, "why": "..." }}
+    {{
+      "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
+      "actu_link": "...", "best_stat": "...", "why_now": "...",
+      "practical_tip": "...", "concrete_use_case": "...",
+      "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
+      "source_title": "...", "source_label": "...", "source_url": "...",
+      "source_score": 0.0, "score": 0, "why": "..."
+    }},
+    {{
+      "idea": "...", "context": "...", "hook_preview": "...", "emotion": "...",
+      "actu_link": "...", "best_stat": "...", "why_now": "...",
+      "practical_tip": "...", "concrete_use_case": "...",
+      "ai_tool": "...", "ai_prompt_example": "...", "ai_result": "...",
+      "source_title": "...", "source_label": "...", "source_url": "...",
+      "source_score": 0.0, "score": 0, "why": "..."
+    }}
   ],
   "date": "{date}",
-  "note": "<angle actu dominant aujourd'hui — 1 phrase>"
+  "note": "<angle dominant des signaux aujourd'hui — 1 phrase>"
 }}
 """
 
@@ -1110,53 +1163,118 @@ EMOTION_COLORS = {
 }
 
 
+def validate_daily_idea(idea: dict) -> list[str]:
+    """
+    Valide une idée selon le filtre qualité éditorial.
+    Retourne une liste d'erreurs (vide = idée valide).
+    """
+    errors: list[str] = []
+    if not isinstance(idea, dict):
+        return ["not a dict"]
+
+    # Champs obligatoires
+    required = ["practical_tip", "concrete_use_case", "best_stat",
+                "hook_preview", "source_url"]
+    for field_name in required:
+        val = idea.get(field_name, "")
+        if not val or (isinstance(val, str) and len(val.strip()) < 8):
+            errors.append(f"champ '{field_name}' manquant ou trop court")
+
+    # Hook trop générique
+    generic_hooks = [
+        "l'ia peut t'aider", "utilise l'ia", "sois productif",
+        "améliore ta productivité", "use ai to", "be more productive",
+        "l'intelligence artificielle", "ia au travail"
+    ]
+    hook = idea.get("hook_preview", "").lower().strip()
+    if any(g in hook for g in generic_hooks):
+        errors.append("hook trop générique")
+
+    # practical_tip trop vague
+    generic_tips = ["utilise l'ia", "use ai", "sois plus efficace",
+                    "améliore", "optimise ta productivité"]
+    tip = idea.get("practical_tip", "").lower()
+    if any(g in tip for g in generic_tips):
+        errors.append("practical_tip trop vague")
+
+    return errors
+
+
 def generate_daily_ideas(date: str | None = None) -> dict:
     """
-    Génère 3 idées de reels du jour basées sur de vrais signaux d'actualité.
+    Génère 3 idées de reels du jour : actualité réelle + stat + astuce + cas concret.
 
     Flow :
-      1. fetch_daily_signals()  — RSS Google News + feeds directs
-      2. filter_relevant_signals() — score et filtre par pertinence
-      3. Claude reçoit les signaux réels et génère 3 idées ancrées dedans
-         (zéro invention de stats ou d'URLs)
+      1. fetch_daily_signals()         — RSS Google News + feeds directs
+      2. filter_relevant_signals()     — score et filtre par pertinence thématique
+      3. enrich_signals_for_prompt()   — score source, stat, blacklist, angle
+      4. Claude génère 3 idées enrichies (stat + astuce + cas concret)
+      5. validate_daily_idea()         — filtre qualité sur chaque idée
 
-    Retourne un dict avec "ideas" (list), "date", "signals_used", "note".
-    Chaque idée contient source_title + source_url copiés des vrais signaux.
+    Retourne un dict avec "ideas", "date", "note", "_signals_*".
     """
-    from utils.signals import fetch_daily_signals, filter_relevant_signals, signals_to_prompt_block
+    from utils.signals import (
+        fetch_daily_signals, filter_relevant_signals,
+        enrich_signals_for_prompt, signals_to_prompt_block
+    )
 
     if not date:
         date = datetime.now().strftime("%Y-%m-%d")
 
-    # 1. Fetch & filter real signals
+    # 1. Fetch & keyword-filter signals
     logger.info("Fetching daily signals…")
     raw_signals = fetch_daily_signals()
-    relevant    = filter_relevant_signals(raw_signals, top_n=12)
+    relevant    = filter_relevant_signals(raw_signals, top_n=20)
 
     if not relevant:
-        logger.warning("No relevant signals found — falling back to date-only prompt")
-        signals_block = "Aucun signal d'actualité disponible — base-toi sur les tendances IA/travail 2025."
+        logger.warning("No relevant signals — falling back to date-only prompt")
+        enriched_list = []
+        signals_block = (
+            "Aucun signal RSS disponible. "
+            "Génère 3 idées basées sur les tendances IA/travail actuelles de 2025-2026."
+        )
     else:
-        signals_block = signals_to_prompt_block(relevant, lang="fr")
-        logger.info(f"Injecting {len(relevant)} signals into prompt")
+        # 2. Enrich: blacklist + source scoring + stat extraction + angle detection
+        enriched_list, signals_block = enrich_signals_for_prompt(relevant, lang="fr")
+        logger.info(
+            f"Enriched pipeline: {len(enriched_list)}/{len(relevant)} signals "
+            f"(after blacklist filter)"
+        )
+        if not signals_block:
+            signals_block = signals_to_prompt_block(relevant, lang="fr")
 
-    # 2. Call Claude with real signals
-    # Escape any { } in signal titles to prevent KeyError in .format()
+    # 3. Call Claude — escape { } in signal content to prevent .format() KeyError
     signals_block_safe = signals_block.replace("{", "{{").replace("}", "}}")
     message = _call_with_retry(
         model=MODEL,
-        max_tokens=1600,
+        max_tokens=2200,
         system=_DAILY_IDEAS_SYSTEM,
         messages=[{
             "role": "user",
-            "content": _DAILY_IDEAS_PROMPT.format(date=date, signals_block=signals_block_safe),
+            "content": _DAILY_IDEAS_PROMPT.format(
+                date=date, signals_block=signals_block_safe
+            ),
         }],
     )
     result = _parse_json(message.content[0].text)
 
-    # 3. Attach raw signals for reference in the UI
-    result["_signals_fetched"] = len(raw_signals)
+    # 4. Quality filter — log but don't discard (UI can show warnings)
+    ideas = result.get("ideas", [])
+    for i, idea in enumerate(ideas):
+        errors = validate_daily_idea(idea)
+        if errors:
+            logger.warning(
+                f"Idea {i+1} quality issues: {'; '.join(errors)} "
+                f"— hook: {idea.get('hook_preview', '')[:50]}"
+            )
+            idea["_quality_warnings"] = errors
+        else:
+            idea["_quality_warnings"] = []
+
+    # 5. Attach pipeline metadata
+    result["_signals_fetched"]  = len(raw_signals)
     result["_signals_relevant"] = len(relevant)
+    result["_signals_enriched"] = len(enriched_list)
     return result
 
 

@@ -1493,14 +1493,21 @@ with tab_script:
                                 _idea_t           = str(_idea_item.get("idea", ""))
                                 _why              = str(_idea_item.get("why", ""))
                                 _actu             = str(_idea_item.get("actu_link", ""))
+                                _best_stat        = str(_idea_item.get("best_stat", ""))
+                                _why_now          = str(_idea_item.get("why_now", ""))
+                                _practical_tip    = str(_idea_item.get("practical_tip", ""))
+                                _concrete_uc      = str(_idea_item.get("concrete_use_case", ""))
                                 _source_title     = str(_idea_item.get("source_title", _idea_item.get("source_stat", "")))
                                 _source_label     = str(_idea_item.get("source_label", ""))
                                 _source_url       = str(_idea_item.get("source_url", ""))
+                                _source_score     = _idea_item.get("source_score", 0.0)
                                 _ai_tool          = str(_idea_item.get("ai_tool", ""))
                                 _ai_prompt        = str(_idea_item.get("ai_prompt_example", ""))
                                 _ai_result        = str(_idea_item.get("ai_result", ""))
                                 _ctx_type         = str(_idea_item.get("context", ""))
-                                # context badge: pro / perso / mixte
+                                _quality_warns    = _idea_item.get("_quality_warnings", [])
+
+                                # Context badge color
                                 _ctx_colors = {"pro": "#6366f1", "perso": "#10b981", "mixte": "#f59e0b"}
                                 _ctx_c = _ctx_colors.get(_ctx_type.lower(), "#9CA3AF")
                                 _ctx_badge = (
@@ -1508,43 +1515,101 @@ with tab_script:
                                     f'background:{_ctx_c}22;color:{_ctx_c};padding:.15rem .4rem;'
                                     f'border-radius:3px;text-transform:uppercase">{_ctx_type}</span>'
                                 ) if _ctx_type else ""
+
+                                # Source score label
+                                try:
+                                    from utils.source_scoring import score_label as _sl
+                                    _score_label = _sl(float(_source_score)) if _source_score else ""
+                                except Exception:
+                                    _score_label = f"{_source_score}/10" if _source_score else ""
+
+                                # Actu block
                                 _actu_html = (
-                                    '<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.4rem">'
+                                    f'<div style="font-size:.7rem;color:#60a5fa;margin-bottom:.3rem">'
                                     f'📡 {_actu}</div>'
                                 ) if _actu else ""
+
+                                # Stat block (highlighted)
+                                _stat_html = (
+                                    f'<div style="font-size:.8rem;font-weight:700;'
+                                    f'color:#f59e0b;margin:.3rem 0;'
+                                    f'background:#f59e0b11;border-left:3px solid #f59e0b;'
+                                    f'padding:.2rem .5rem;border-radius:0 4px 4px 0">'
+                                    f'💥 {_best_stat}</div>'
+                                ) if _best_stat else ""
+
+                                # Why now
+                                _why_now_html = (
+                                    f'<div style="font-size:.7rem;color:#a5b4fc;margin:.2rem 0">'
+                                    f'⏰ {_why_now}</div>'
+                                ) if _why_now else ""
+
+                                # AI block
                                 _ai_html = ""
                                 if _ai_tool or _ai_prompt or _ai_result:
-                                    _ai_tool_line   = f'<strong>{_ai_tool}</strong> ' if _ai_tool else ""
-                                    _ai_result_line = f'<br><em>→ {_ai_result}</em>' if _ai_result else ""
+                                    _ai_tool_line   = f'<strong>{_ai_tool}</strong>' if _ai_tool else ""
+                                    _ai_result_line = f'<div style="color:#34d399;margin-top:.2rem">✅ {_ai_result}</div>' if _ai_result else ""
                                     _ai_prompt_line = (
                                         f'<div style="font-family:monospace;font-size:.65rem;'
-                                        f'background:var(--surface-2);border-radius:4px;padding:.3rem .5rem;'
+                                        f'background:#0f172a;border-radius:4px;padding:.3rem .5rem;'
                                         f'margin:.3rem 0;color:#a5b4fc;white-space:pre-wrap">'
-                                        f'{_ai_prompt}</div>'
+                                        f'» {_ai_prompt}</div>'
                                     ) if _ai_prompt else ""
                                     _ai_html = (
                                         '<div style="border-top:1px solid var(--border);margin-top:.5rem;'
-                                        'padding-top:.5rem;font-size:.72rem;color:var(--text-muted)">'
+                                        'padding-top:.4rem;font-size:.72rem;color:var(--text-muted)">'
                                         f'🤖 {_ai_tool_line}{_ai_prompt_line}{_ai_result_line}'
                                         '</div>'
                                     )
+
+                                # Practical tip + use case block
+                                _tip_html = ""
+                                if _practical_tip or _concrete_uc:
+                                    _tip_line = (
+                                        f'<div style="color:#f0f0f0;margin-bottom:.2rem">'
+                                        f'💡 <strong>Astuce :</strong> {_practical_tip}</div>'
+                                    ) if _practical_tip else ""
+                                    _uc_line = (
+                                        f'<div style="color:var(--text-muted);font-style:italic">'
+                                        f'🎯 {_concrete_uc}</div>'
+                                    ) if _concrete_uc else ""
+                                    _tip_html = (
+                                        '<div style="border-top:1px solid var(--border);margin-top:.5rem;'
+                                        'padding-top:.4rem;font-size:.72rem">'
+                                        f'{_tip_line}{_uc_line}'
+                                        '</div>'
+                                    )
+
+                                # Source block with score
                                 _url_line = (
                                     f'<a href="{_source_url}" target="_blank" '
-                                    f'style="color:var(--text-faint);font-size:.68rem;'
+                                    f'style="color:var(--text-faint);font-size:.65rem;'
                                     f'word-break:break-all">{_source_url}</a>'
                                 ) if _source_url else ""
+                                _score_html = (
+                                    f'<span style="color:#f59e0b;font-size:.68rem;'
+                                    f'margin-left:.4rem">{_score_label}</span>'
+                                ) if _score_label else ""
                                 _source_html = (
-                                    '<div style="font-size:.72rem;color:var(--text-muted);'
+                                    '<div style="font-size:.7rem;color:var(--text-muted);'
                                     'border-top:1px solid var(--border);margin-top:.5rem;'
-                                    'padding-top:.5rem">'
-                                    f'🔗 <strong>{_source_label}</strong><br>'
-                                    f'<em>{_source_title}</em><br>'
+                                    'padding-top:.4rem">'
+                                    f'🔗 <strong>{_source_label}</strong>{_score_html}<br>'
+                                    f'<em style="font-size:.67rem">{_source_title}</em><br>'
                                     f'{_url_line}'
                                     '</div>'
                                 ) if (_source_title or _source_url) else ""
+
+                                # Quality warning (if any)
+                                _warn_html = (
+                                    f'<div style="font-size:.65rem;color:#f87171;margin-top:.3rem">'
+                                    f'⚠ {"; ".join(_quality_warns)}</div>'
+                                ) if _quality_warns else ""
+
                                 st.markdown(
                                     f'<div style="border:1px solid var(--border);border-radius:10px;'
                                     f'padding:1rem;background:var(--surface);height:100%">'
+                                    # Header row
                                     f'<div style="display:flex;justify-content:space-between;'
                                     f'align-items:center;margin-bottom:.5rem">'
                                     f'<span style="font-size:.75rem;font-weight:600;'
@@ -1555,17 +1620,27 @@ with tab_script:
                                     f'{_ctx_badge}'
                                     f'<span style="font-size:.7rem;font-weight:700;'
                                     f'color:{_emo_c};text-transform:uppercase">{_emo}</span>'
-                                    f'</div>'
-                                    f'</div>'
+                                    f'</div></div>'
+                                    # Hook
                                     f'<div style="font-size:.95rem;font-weight:700;'
                                     f'color:var(--text);margin:.5rem 0">{_hook}</div>'
+                                    # Idea title + why
                                     f'<div style="font-size:.78rem;color:var(--text-muted);'
-                                    f'margin-bottom:.4rem;font-style:italic">{_idea_t}</div>'
-                                    f'<div style="font-size:.75rem;color:var(--text-faint);'
-                                    f'margin-bottom:.4rem">{_why}</div>'
+                                    f'margin-bottom:.25rem;font-style:italic">{_idea_t}</div>'
+                                    f'<div style="font-size:.72rem;color:var(--text-faint);'
+                                    f'margin-bottom:.3rem">{_why}</div>'
+                                    # Actu + stat + why_now
                                     f'{_actu_html}'
+                                    f'{_stat_html}'
+                                    f'{_why_now_html}'
+                                    # AI demo
                                     f'{_ai_html}'
+                                    # Practical tip + use case
+                                    f'{_tip_html}'
+                                    # Source
                                     f'{_source_html}'
+                                    # Quality warnings
+                                    f'{_warn_html}'
                                     f'</div>',
                                     unsafe_allow_html=True,
                                 )
@@ -1641,24 +1716,34 @@ with tab_script:
         _sv_daily_ctx = st.session_state.get("sv_daily_context")
         if _sv_daily_ctx and sv_idea.strip():
             _ctx_actu      = _sv_daily_ctx.get("actu_link", "")
+            _ctx_stat      = _sv_daily_ctx.get("best_stat", "")
+            _ctx_why_now   = _sv_daily_ctx.get("why_now", "")
+            _ctx_tip       = _sv_daily_ctx.get("practical_tip", "")
             _ctx_fmt       = FORMAT_LABELS.get(_sv_daily_ctx.get("format", ""), ("", ""))[1]
             _ctx_emo       = _sv_daily_ctx.get("emotion", "")
             _ctx_ai_tool   = _sv_daily_ctx.get("ai_tool", "")
             _ctx_ai_result = _sv_daily_ctx.get("ai_result", "")
             _ctx_type      = _sv_daily_ctx.get("context", "")
-            if _ctx_actu or _ctx_fmt or _ctx_ai_tool:
+            _ctx_src_score = _sv_daily_ctx.get("source_score", 0.0)
+            _ctx_src_label = _sv_daily_ctx.get("source_label", "")
+            if _ctx_actu or _ctx_fmt or _ctx_ai_tool or _ctx_stat:
                 _ctx_parts = []
                 if _ctx_actu:      _ctx_parts.append(f'<span>📡 <strong>Actu :</strong> {_ctx_actu}</span>')
+                if _ctx_stat:      _ctx_parts.append(f'<span>💥 <strong>Stat :</strong> {_ctx_stat}</span>')
+                if _ctx_why_now:   _ctx_parts.append(f'<span>⏰ <strong>Pourquoi maintenant :</strong> {_ctx_why_now}</span>')
+                if _ctx_tip:       _ctx_parts.append(f'<span>💡 <strong>Astuce :</strong> {_ctx_tip}</span>')
                 if _ctx_fmt:       _ctx_parts.append(f'<span>🎭 <strong>Format :</strong> {_ctx_fmt}</span>')
-                if _ctx_emo:       _ctx_parts.append(f'<span>💥 <strong>Émotion :</strong> {_ctx_emo}</span>')
-                if _ctx_type:      _ctx_parts.append(f'<span>🎯 <strong>Contexte :</strong> {_ctx_type}</span>')
-                if _ctx_ai_tool:   _ctx_parts.append(f'<span>🤖 <strong>Outil IA :</strong> {_ctx_ai_tool}</span>')
+                if _ctx_emo:       _ctx_parts.append(f'<span>🎯 <strong>Émotion :</strong> {_ctx_emo}</span>')
+                if _ctx_type:      _ctx_parts.append(f'<span>👤 <strong>Contexte :</strong> {_ctx_type}</span>')
+                if _ctx_ai_tool:   _ctx_parts.append(f'<span>🤖 <strong>Outil :</strong> {_ctx_ai_tool}</span>')
                 if _ctx_ai_result: _ctx_parts.append(f'<span>✅ <strong>Résultat :</strong> {_ctx_ai_result}</span>')
+                if _ctx_src_label: _ctx_parts.append(f'<span>🔗 <strong>Source :</strong> {_ctx_src_label} [{_ctx_src_score}/10]</span>')
                 st.markdown(
-                    f'<div style="font-size:.8rem;color:var(--text-muted);'
+                    f'<div style="font-size:.78rem;color:var(--text-muted);'
                     f'background:var(--surface-2);border-radius:6px;'
-                    f'padding:.5rem .75rem;margin-bottom:.5rem;display:flex;gap:1rem;flex-wrap:wrap">'
-                    + "".join(_ctx_parts) +
+                    f'padding:.6rem .75rem;margin-bottom:.5rem;'
+                    f'display:flex;flex-direction:column;gap:.3rem">'
+                    + "".join(f'<div>{p}</div>' for p in _ctx_parts) +
                     f'</div>',
                     unsafe_allow_html=True,
                 )
