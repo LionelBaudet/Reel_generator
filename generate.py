@@ -139,20 +139,85 @@ Règles absolues :
 
 # ── Core ──────────────────────────────────────────────────────────────────────
 
+def _fix_json_strings(raw: str) -> str:
+    """
+    Corrige les newlines/tabs littéraux à l'intérieur des valeurs string JSON.
+    Claude insère parfois de vrais \\n dans un champ multiligne — JSON invalide.
+    Parcours char-par-char pour gérer correctement les séquences d'échappement.
+    """
+    result: list[str] = []
+    in_string = False
+    escape = False
+    for ch in raw:
+        if escape:
+            result.append(ch)
+            escape = False
+        elif ch == "\\":
+            result.append(ch)
+            escape = True
+        elif ch == '"':
+            in_string = not in_string
+            result.append(ch)
+        elif in_string and ch == "\n":
+            result.append("\\n")
+        elif in_string and ch == "\r":
+            pass   # skip CR
+        elif in_string and ch == "\t":
+            result.append("\\t")
+        else:
+            result.append(ch)
+    return "".join(result)
+
+
 def _parse_json(raw: str) -> object:
-    """Parse JSON robuste : nettoie markdown, virgules trailing, extrait le premier bloc JSON."""
+    """
+    Parse JSON robuste :
+    1. Nettoie blocs markdown
+    2. Extrait le premier objet/tableau JSON
+    3. Supprime les virgules trailing
+    4. Corrige les newlines littéraux dans les strings
+    5. En cas d'échec, tente une extraction partielle
+    """
     raw = raw.strip()
-    # Enlever blocs ```json ... ``` ou ``` ... ```
+
+    # 1. Enlever blocs ```json ... ``` ou ``` ... ```
     raw = re.sub(r"^```(?:json)?\s*\n?", "", raw, flags=re.IGNORECASE)
     raw = re.sub(r"\n?```\s*$", "", raw)
     raw = raw.strip()
-    # Extraire le premier objet/tableau JSON si du texte précède
+
+    # 2. Extraire le premier objet/tableau JSON
     match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)
     if match:
         raw = match.group(1)
-    # Nettoyer virgules trailing
+
+    # 3. Virgules trailing
     raw = re.sub(r",\s*\]", "]", raw)
     raw = re.sub(r",\s*\}", "}", raw)
+
+    # 4. Essai direct
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+
+    # 5. Corriger newlines/tabs littéraux dans les strings
+    fixed = _fix_json_strings(raw)
+    fixed = re.sub(r",\s*\]", "]", fixed)
+    fixed = re.sub(r",\s*\}", "}", fixed)
+    try:
+        return json.loads(fixed)
+    except json.JSONDecodeError:
+        pass
+
+    # 6. Dernier recours : tronquer au dernier } ou ] complet valide
+    for end in range(len(fixed) - 1, 0, -1):
+        if fixed[end] in ('}', ']'):
+            try:
+                return json.loads(fixed[:end + 1])
+            except json.JSONDecodeError:
+                continue
+
+    # 7. Échec total — relancer l'exception originale avec le texte pour debug
     return json.loads(raw)
 
 
@@ -1247,7 +1312,7 @@ def generate_daily_ideas(date: str | None = None) -> dict:
     signals_block_safe = signals_block.replace("{", "{{").replace("}", "}}")
     message = _call_with_retry(
         model=MODEL,
-        max_tokens=2200,
+        max_tokens=3500,
         system=_DAILY_IDEAS_SYSTEM,
         messages=[{
             "role": "user",
