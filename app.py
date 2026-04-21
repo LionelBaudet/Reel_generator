@@ -1714,39 +1714,42 @@ with tab_script:
 
         # Contexte riche venant de "Ideas du jour" (actu, émotion, format…)
         _sv_daily_ctx = st.session_state.get("sv_daily_context")
-        if _sv_daily_ctx and sv_idea.strip():
-            _ctx_actu      = _sv_daily_ctx.get("actu_link", "")
-            _ctx_stat      = _sv_daily_ctx.get("best_stat", "")
-            _ctx_why_now   = _sv_daily_ctx.get("why_now", "")
-            _ctx_tip       = _sv_daily_ctx.get("practical_tip", "")
-            _ctx_fmt       = FORMAT_LABELS.get(_sv_daily_ctx.get("format", ""), ("", ""))[1]
-            _ctx_emo       = _sv_daily_ctx.get("emotion", "")
-            _ctx_ai_tool   = _sv_daily_ctx.get("ai_tool", "")
-            _ctx_ai_result = _sv_daily_ctx.get("ai_result", "")
-            _ctx_type      = _sv_daily_ctx.get("context", "")
-            _ctx_src_score = _sv_daily_ctx.get("source_score", 0.0)
-            _ctx_src_label = _sv_daily_ctx.get("source_label", "")
-            if _ctx_actu or _ctx_fmt or _ctx_ai_tool or _ctx_stat:
-                _ctx_parts = []
-                if _ctx_actu:      _ctx_parts.append(f'<span>📡 <strong>Actu :</strong> {_ctx_actu}</span>')
-                if _ctx_stat:      _ctx_parts.append(f'<span>💥 <strong>Stat :</strong> {_ctx_stat}</span>')
-                if _ctx_why_now:   _ctx_parts.append(f'<span>⏰ <strong>Pourquoi maintenant :</strong> {_ctx_why_now}</span>')
-                if _ctx_tip:       _ctx_parts.append(f'<span>💡 <strong>Astuce :</strong> {_ctx_tip}</span>')
-                if _ctx_fmt:       _ctx_parts.append(f'<span>🎭 <strong>Format :</strong> {_ctx_fmt}</span>')
-                if _ctx_emo:       _ctx_parts.append(f'<span>🎯 <strong>Émotion :</strong> {_ctx_emo}</span>')
-                if _ctx_type:      _ctx_parts.append(f'<span>👤 <strong>Contexte :</strong> {_ctx_type}</span>')
-                if _ctx_ai_tool:   _ctx_parts.append(f'<span>🤖 <strong>Outil :</strong> {_ctx_ai_tool}</span>')
-                if _ctx_ai_result: _ctx_parts.append(f'<span>✅ <strong>Résultat :</strong> {_ctx_ai_result}</span>')
-                if _ctx_src_label: _ctx_parts.append(f'<span>🔗 <strong>Source :</strong> {_ctx_src_label} [{_ctx_src_score}/10]</span>')
-                st.markdown(
-                    f'<div style="font-size:.78rem;color:var(--text-muted);'
-                    f'background:var(--surface-2);border-radius:6px;'
-                    f'padding:.6rem .75rem;margin-bottom:.5rem;'
-                    f'display:flex;flex-direction:column;gap:.3rem">'
-                    + "".join(f'<div>{p}</div>' for p in _ctx_parts) +
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+        try:
+            if _sv_daily_ctx and isinstance(_sv_daily_ctx, dict) and sv_idea.strip():
+                _ctx_actu      = str(_sv_daily_ctx.get("actu_link", "") or "")
+                _ctx_stat      = str(_sv_daily_ctx.get("best_stat", "") or "")
+                _ctx_why_now   = str(_sv_daily_ctx.get("why_now", "") or "")
+                _ctx_tip       = str(_sv_daily_ctx.get("practical_tip", "") or "")
+                _ctx_fmt       = FORMAT_LABELS.get(str(_sv_daily_ctx.get("format", "") or ""), ("", ""))[1]
+                _ctx_emo       = str(_sv_daily_ctx.get("emotion", "") or "")
+                _ctx_ai_tool   = str(_sv_daily_ctx.get("ai_tool", "") or "")
+                _ctx_ai_result = str(_sv_daily_ctx.get("ai_result", "") or "")
+                _ctx_type      = str(_sv_daily_ctx.get("context", "") or "")
+                _ctx_src_score = _sv_daily_ctx.get("source_score", 0.0) or 0.0
+                _ctx_src_label = str(_sv_daily_ctx.get("source_label", "") or "")
+                if _ctx_actu or _ctx_fmt or _ctx_ai_tool or _ctx_stat:
+                    _ctx_parts = []
+                    if _ctx_actu:      _ctx_parts.append(f'<span>📡 <strong>Actu :</strong> {_ctx_actu}</span>')
+                    if _ctx_stat:      _ctx_parts.append(f'<span>💥 <strong>Stat :</strong> {_ctx_stat}</span>')
+                    if _ctx_why_now:   _ctx_parts.append(f'<span>⏰ <strong>Pourquoi maintenant :</strong> {_ctx_why_now}</span>')
+                    if _ctx_tip:       _ctx_parts.append(f'<span>💡 <strong>Astuce :</strong> {_ctx_tip}</span>')
+                    if _ctx_fmt:       _ctx_parts.append(f'<span>🎭 <strong>Format :</strong> {_ctx_fmt}</span>')
+                    if _ctx_emo:       _ctx_parts.append(f'<span>🎯 <strong>Émotion :</strong> {_ctx_emo}</span>')
+                    if _ctx_type:      _ctx_parts.append(f'<span>👤 <strong>Contexte :</strong> {_ctx_type}</span>')
+                    if _ctx_ai_tool:   _ctx_parts.append(f'<span>🤖 <strong>Outil :</strong> {_ctx_ai_tool}</span>')
+                    if _ctx_ai_result: _ctx_parts.append(f'<span>✅ <strong>Résultat :</strong> {_ctx_ai_result}</span>')
+                    if _ctx_src_label: _ctx_parts.append(f'<span>🔗 <strong>Source :</strong> {_ctx_src_label} [{_ctx_src_score}/10]</span>')
+                    st.markdown(
+                        '<div style="font-size:.78rem;color:var(--text-muted);'
+                        'background:var(--surface-2);border-radius:6px;'
+                        'padding:.6rem .75rem;margin-bottom:.5rem;'
+                        'display:flex;flex-direction:column;gap:.3rem">'
+                        + "".join(f'<div>{p}</div>' for p in _ctx_parts) +
+                        '</div>',
+                        unsafe_allow_html=True,
+                    )
+        except Exception as _banner_exc:
+            st.session_state.pop("sv_daily_context", None)
 
         if sv_clicked and sv_idea.strip():
             if sv_mode == "ab":
