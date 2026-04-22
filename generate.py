@@ -883,7 +883,7 @@ def optimize_script_hooks(sv: dict, history_path: str | Path | None = None,
 def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     """
     Construit le bloc contexte à injecter dans le prompt de script
-    quand l'idée vient de generate_daily_ideas().
+    quand l'idée vient de generate_daily_ideas() ou d'un signal trend.
     """
     if not context:
         return ""
@@ -904,6 +904,8 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
     why_now           = context.get("why_now", "")
     practical_tip     = context.get("practical_tip", "")
     concrete_use_case = context.get("concrete_use_case", "")
+    claim_type        = context.get("claim_type", "verified")   # verified | plausible | speculative
+    trend_sources     = context.get("trend_sources", [])
 
     if lang == "en":
         lines = ["CONTEXT FROM TODAY'S IDEA SELECTION (anchor the script to this):"]
@@ -924,6 +926,16 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
         if source_label:       lines.append(f"- Source label (for display): {source_label}")
         if source_url:         lines.append(f"- Source URL (real, verified): {source_url}")
         if source_score:       lines.append(f"- Source reliability: {source_score}/10")
+        # ── Credibility framing for trend/social signals ───────────────────────
+        if claim_type in ("speculative", "plausible") or "reddit" in trend_sources:
+            lines.append(
+                "⚠ CREDIBILITY RULE (this idea comes from a social signal, not confirmed journalism):\n"
+                "→ In the shift/pain scene: frame as 'this is spreading fast' or 'thousands are debating this'\n"
+                "→ NEVER write 'confirmed source' or 'Reddit confirms' — Reddit ≠ journalistic confirmation\n"
+                "→ NEVER use upvote counts as proof\n"
+                "→ The script angle: show HOW TO USE THIS SIGNAL (detect trends, act early) — not THAT it's true\n"
+                "→ The credible fear = 'this signal is real and growing', not 'this specific claim is proven'"
+            )
         lines.append(
             "→ Anchor the hook or pain scene in the current event.\n"
             "→ Use the key stat in the hook or pain (do not invent other stats).\n"
@@ -950,6 +962,16 @@ def _build_daily_context_block(context: dict, lang: str = "fr") -> str:
         if source_label:       lines.append(f"- Label source (affichage) : {source_label}")
         if source_url:         lines.append(f"- URL source (réelle, vérifiée) : {source_url}")
         if source_score:       lines.append(f"- Fiabilité source : {source_score}/10")
+        # ── Règles de crédibilité pour les signaux trend/sociaux ───────────────
+        if claim_type in ("speculative", "plausible") or "reddit" in trend_sources:
+            lines.append(
+                "⚠ RÈGLE CRÉDIBILITÉ (idée issue d'un signal social, non confirmée journalistiquement) :\n"
+                "→ Dans la scène shift/pain : 'ce sujet explose' ou 'des milliers en débattent' — pas 'source confirmée'\n"
+                "→ JAMAIS 'Reddit confirme' ou 'X upvotes' comme preuve — Reddit ≠ source journalistique\n"
+                "→ JAMAIS de chiffres de votes/upvotes dans le script\n"
+                "→ L'angle du reel : COMMENT utiliser ce signal (détecter, agir tôt) — pas AFFIRMER que la claim est vraie\n"
+                "→ La peur crédible = 'ce signal est réel et fort', pas 'ce fait précis est prouvé'"
+            )
         lines.append(
             "→ Ancre le hook OU la scène pain dans l'actualité et/ou la stat.\n"
             "→ Utilise la stat clé dans le hook ou la tension — ne l'invente pas.\n"

@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Per-topic performance aggregates. Keyed by normalized topic string. Updated by MemoryManager.update_topic_stats()."
+  },
+  "topics": {
+    "ai_salary_negotiation": {
+      "runs": 2,
+      "avg_score": 8.85,
+      "best_score": 8.9,
+      "best_angle": "concrete money amount + timeframe",
+      "best_emotion": "fear",
+      "best_idea_type": "career_work",
+      "score_history": [
+        8.8,
+        8.9
+      ]
+    },
+    "meta_espionne_chaque_clic_employé_pour_entraîner_lia": {
+      "runs": 1,
+      "avg_score": 7.3,
+      "best_score": 7.3,
+      "best_angle": "the exact prompt as the value prop — show the output, not just the tool",
+      "best_emotion": "curiosity",
+      "best_idea_type": "prompt_reveal",
+      "score_history": [
+        7.3
+      ]
+    },
+    "tim_cook_quitte_apple_après_15_ans": {
+      "runs": 1,
+      "avg_score": 0,
+      "best_score": 0,
+      "best_angle": "the exact prompt as the value prop — show the output, not just the tool",
+      "best_emotion": "curiosity",
+      "best_idea_type": "prompt_reveal",
+      "score_history": [
+        0
+      ]
+    }
+  }
+}

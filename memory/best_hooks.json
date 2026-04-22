@@ -1,0 +1,126 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Top 5 hooks per idea_type, by avg_score. Auto-rebuilt by MemoryManager.rebuild_best_hooks().",
+    "last_rebuilt": "2026-04-22"
+  },
+  "by_type": {
+    "budget_finance": [
+      {
+        "text": "Tu perds CHF 400 sans le voir",
+        "pattern": "loss",
+        "avg_score": 9.74
+      },
+      {
+        "text": "Tu bosses. L'argent part.",
+        "pattern": "contrast",
+        "avg_score": 9.4
+      },
+      {
+        "text": "Ton argent fuit déjà",
+        "pattern": "loss",
+        "avg_score": 8.66
+      },
+      {
+        "text": "CHF 400 perdus ce mois",
+        "pattern": "loss",
+        "avg_score": 8.56
+      },
+      {
+        "text": "Tu crois gérer ton budget ?",
+        "pattern": "user_pain",
+        "avg_score": 7.5
+      }
+    ],
+    "career_work": [
+      {
+        "text": "Ton patron croit que c'est toi",
+        "pattern": "social_tension",
+        "avg_score": 9.14
+      }
+    ],
+    "before_after_time": [
+      {
+        "text": "Tu perds 1h par jour sur ça",
+        "pattern": "user_pain",
+        "avg_score": 8.8
+      },
+      {
+        "text": "Tu perds 1h par jour sur ca",
+        "pattern": "user_pain",
+        "avg_score": 8.8
+      },
+      {
+        "text": "J'ai automatisé mes emails en 10 min",
+        "pattern": "transformation",
+        "avg_score": 7.92
+      }
+    ],
+    "prompt_reveal": [
+      {
+        "text": "Tu signes sans savoir que tes données partent",
+        "pattern": "pain_loss_1",
+        "avg_score": 8.0
+      },
+      {
+        "text": "Tu perds 3h à lire des rumeurs Apple inutiles",
+        "pattern": "pain_loss_1",
+        "avg_score": 7.8
+      },
+      {
+        "text": "C'est quoi le prompt qui économise CHF 400 ?",
+        "pattern": "discovery",
+        "avg_score": 4.9
+      }
+    ],
+    "educational_explainer": [
+      {
+        "text": "Comment économiser avec l'IA",
+        "pattern": "generic",
+        "avg_score": 3.04
+      }
+    ]
+  },
+  "top_patterns": [
+    {
+      "pattern": "contrast",
+      "avg_score": 9.4,
+      "sample_count": 1
+    },
+    {
+      "pattern": "social_tension",
+      "avg_score": 9.14,
+      "sample_count": 1
+    },
+    {
+      "pattern": "loss",
+      "avg_score": 8.99,
+      "sample_count": 3
+    },
+    {
+      "pattern": "user_pain",
+      "avg_score": 8.37,
+      "sample_count": 3
+    },
+    {
+      "pattern": "transformation",
+      "avg_score": 7.92,
+      "sample_count": 1
+    },
+    {
+      "pattern": "pain_loss_1",
+      "avg_score": 7.9,
+      "sample_count": 2
+    },
+    {
+      "pattern": "discovery",
+      "avg_score": 4.9,
+      "sample_count": 1
+    },
+    {
+      "pattern": "generic",
+      "avg_score": 2.27,
+      "sample_count": 3
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "description": "Trend performance history — tracks which real-world trends produced the best reels",
+    "created": "2026-04-22"
+  },
+  "trends": [
+    {
+      "run_id": "20260422_100145",
+      "date": "2026-04-22",
+      "topic": "Meta espionne chaque clic employé pour entraîner l'IA",
+      "sources": [
+        "reddit",
+        "news"
+      ],
+      "virality_score": 10,
+      "reel_score": 7.3,
+      "hook_used": "Une IA a vidé le compte de 17 876 hommes avec une fausse copine.",
+      "angle_type": "automation",
+      "trend_mode": "trend"
+    },
+    {
+      "run_id": "20260422_102922",
+      "date": "2026-04-22",
+      "topic": "Tim Cook quitte Apple après 15 ans",
+      "sources": [
+        "reddit",
+        "news"
+      ],
+      "virality_score": 10,
+      "reel_score": 0,
+      "hook_used": "Apple sans Tim Cook en pleine guerre commerciale : ton iPhone en danger.",
+      "angle_type": "prediction",
+      "trend_mode": "trend"
+    }
+  ]
+}

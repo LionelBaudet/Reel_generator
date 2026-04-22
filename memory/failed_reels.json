@@ -1,0 +1,7 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Failed pipeline runs with error context. Used by PlannerAgent to avoid repeating failure patterns."
+  },
+  "failures": []
+}

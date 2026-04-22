@@ -1,0 +1,115 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "One record per completed pipeline run. Appended by MemoryManager.update_reel_record()."
+  },
+  "runs": [
+    {
+      "run_id": "test_run_001",
+      "date": "2026-04-21",
+      "topic": "AI salary negotiation",
+      "idea_type": "career_work",
+      "best_hook": "Tu perds 1h par jour sur ca",
+      "optimization_score": 8.8,
+      "video_path": "output/reel_test.mp4",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_0",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 5.8,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_1",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 5.8,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_2",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 5.8,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_3",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 4.5,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_4",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 4.5,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "low_run_5",
+      "date": "2026-04-21",
+      "topic": "weak content test",
+      "idea_type": "educational_explainer",
+      "best_hook": "Voici une astuce",
+      "optimization_score": 4.5,
+      "video_path": "",
+      "strategy_mode": "single",
+      "n_variants_generated": 5
+    },
+    {
+      "run_id": "20260422_100145",
+      "date": "2026-04-22",
+      "topic": "Meta espionne chaque clic employé pour entraîner l'IA",
+      "idea_type": "prompt_reveal",
+      "best_hook": "Tu signes sans savoir que tes données partent",
+      "hook_pattern": "pain_loss_1",
+      "optimization_score": 7.3,
+      "hook_score": 7.5,
+      "script_score": 7.0,
+      "video_path": "",
+      "strategy_mode": "ab_test",
+      "n_variants_generated": 5,
+      "video_status": "skipped"
+    },
+    {
+      "run_id": "20260422_102922",
+      "date": "2026-04-22",
+      "topic": "Tim Cook quitte Apple après 15 ans",
+      "idea_type": "prompt_reveal",
+      "best_hook": "Tu perds 3h à lire des rumeurs Apple inutiles",
+      "hook_pattern": "pain_loss_1",
+      "optimization_score": 0,
+      "hook_score": 7.8,
+      "script_score": 0,
+      "video_path": "",
+      "strategy_mode": "ab_test",
+      "n_variants_generated": 5,
+      "video_status": "skipped"
+    }
+  ]
+}

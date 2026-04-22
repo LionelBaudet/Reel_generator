@@ -1,0 +1,343 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Aggregated hook performance. engagement_score is computed from (likes + comments*3) / views, normalized 0-10. local_score is from hook_engine deterministic rules. avg_score is weighted: 0.6 * engagement + 0.4 * local.",
+    "seeded_from": "assets/hook_history.json",
+    "seeded_at": "2026-04-21"
+  },
+  "hooks": [
+    {
+      "text": "Tu perds CHF 400 sans le voir",
+      "idea_type": "budget_finance",
+      "pattern": "loss",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 1200,
+        "likes": 60,
+        "comments": 20
+      },
+      "engagement_score": 9.9,
+      "local_score": 9.5,
+      "avg_score": 9.74,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 9.74,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "Ton argent fuit déjà",
+      "idea_type": "budget_finance",
+      "pattern": "loss",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 980,
+        "likes": 45,
+        "comments": 15
+      },
+      "engagement_score": 9.1,
+      "local_score": 8.0,
+      "avg_score": 8.66,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 8.66,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Tu bosses. L'argent part.",
+      "idea_type": "budget_finance",
+      "pattern": "contrast",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 1050,
+        "likes": 52,
+        "comments": 18
+      },
+      "engagement_score": 10.0,
+      "local_score": 8.5,
+      "avg_score": 9.4,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 9.4,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "CHF 400 perdus ce mois",
+      "idea_type": "budget_finance",
+      "pattern": "loss",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 850,
+        "likes": 38,
+        "comments": 12
+      },
+      "engagement_score": 8.6,
+      "local_score": 8.5,
+      "avg_score": 8.56,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 8.56,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Tu crois gérer ton budget ?",
+      "idea_type": "budget_finance",
+      "pattern": "user_pain",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 420,
+        "likes": 18,
+        "comments": 6
+      },
+      "engagement_score": 8.5,
+      "local_score": 6.0,
+      "avg_score": 7.5,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 7.5,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Ton patron croit que c'est toi",
+      "idea_type": "career_work",
+      "pattern": "social_tension",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 1500,
+        "likes": 75,
+        "comments": 25
+      },
+      "engagement_score": 9.9,
+      "local_score": 8.0,
+      "avg_score": 9.14,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "seed_002",
+          "score": 9.14,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "J'ai automatisé mes emails en 10 min",
+      "idea_type": "before_after_time",
+      "pattern": "transformation",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 780,
+        "likes": 35,
+        "comments": 10
+      },
+      "engagement_score": 8.2,
+      "local_score": 7.5,
+      "avg_score": 7.92,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_003",
+          "score": 7.92,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Tu perds 1h par jour sur ça",
+      "idea_type": "before_after_time",
+      "pattern": "user_pain",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 920,
+        "likes": 42,
+        "comments": 14
+      },
+      "engagement_score": 9.0,
+      "local_score": 8.5,
+      "avg_score": 8.8,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "seed_003",
+          "score": 8.8,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "C'est quoi le prompt qui économise CHF 400 ?",
+      "idea_type": "prompt_reveal",
+      "pattern": "discovery",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 250,
+        "likes": 8,
+        "comments": 2
+      },
+      "engagement_score": 5.5,
+      "local_score": 4.0,
+      "avg_score": 4.9,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 4.9,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Comment économiser avec l'IA",
+      "idea_type": "educational_explainer",
+      "pattern": "generic",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 180,
+        "likes": 5,
+        "comments": 1
+      },
+      "engagement_score": 4.4,
+      "local_score": 2.0,
+      "avg_score": 3.04,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 3.04,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Voici une astuce budget",
+      "idea_type": "budget_finance",
+      "pattern": "generic",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 120,
+        "likes": 3,
+        "comments": 0
+      },
+      "engagement_score": 2.5,
+      "local_score": 1.5,
+      "avg_score": 2.1,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 2.1,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Guide pour réduire ses dépenses",
+      "idea_type": "budget_finance",
+      "pattern": "generic",
+      "language": "fr",
+      "raw_engagement": {
+        "views": 95,
+        "likes": 2,
+        "comments": 0
+      },
+      "engagement_score": 2.1,
+      "local_score": 1.0,
+      "avg_score": 1.66,
+      "times_generated": 1,
+      "times_selected": 0,
+      "runs": [
+        {
+          "run_id": "seed_001",
+          "score": 1.66,
+          "selected_as_best": false
+        }
+      ]
+    },
+    {
+      "text": "Tu perds 1h par jour sur ca",
+      "idea_type": "before_after_time",
+      "pattern": "user_pain",
+      "language": "fr",
+      "raw_engagement": null,
+      "engagement_score": null,
+      "local_score": null,
+      "avg_score": 8.8,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "test_run_001",
+          "score": 8.8,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "Tu signes sans savoir que tes données partent",
+      "idea_type": "prompt_reveal",
+      "pattern": "pain_loss_1",
+      "language": "fr",
+      "raw_engagement": null,
+      "engagement_score": null,
+      "local_score": null,
+      "avg_score": 8.0,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "20260422_100145",
+          "score": 8.0,
+          "selected_as_best": true
+        }
+      ]
+    },
+    {
+      "text": "Tu perds 3h à lire des rumeurs Apple inutiles",
+      "idea_type": "prompt_reveal",
+      "pattern": "pain_loss_1",
+      "language": "fr",
+      "raw_engagement": null,
+      "engagement_score": null,
+      "local_score": null,
+      "avg_score": 7.8,
+      "times_generated": 1,
+      "times_selected": 1,
+      "runs": [
+        {
+          "run_id": "20260422_102922",
+          "score": 7.8,
+          "selected_as_best": true
+        }
+      ]
+    }
+  ]
+}

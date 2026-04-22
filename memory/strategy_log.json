@@ -1,0 +1,303 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Full audit trail of every PlannerAgent decision. One entry per run. Never truncated — full history preserved."
+  },
+  "decisions": [
+    {
+      "run_id": "test_run_001",
+      "timestamp": "2026-04-21T13:52:16",
+      "strategy_mode": "single",
+      "n_hook_variants": 5,
+      "n_script_variants": 1,
+      "topic_angle_hint": "concrete time savings",
+      "reasoning": "No prior data for this topic. Defaulting to single mode."
+    },
+    {
+      "run_id": "20260421_140102",
+      "timestamp": "2026-04-21T14:01:02",
+      "strategy_mode": "single",
+      "n_hook_variants": 5,
+      "n_script_variants": 1,
+      "idea_type": "career_work",
+      "topic_angle_hint": "leverage AI to get a concrete career outcome (salary, promotion, time freed)",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Ton patron croit que c'est toi",
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": false,
+      "content_calendar_note": "Post before salary review season (Oct–Nov, Feb–Mar) for max resonance.",
+      "reasoning": "Recent avg score 8.8 is acceptable. Single mode with 5 hook variants. Boosting ['loss', 'user_pain'] patterns based on historical data."
+    },
+    {
+      "run_id": "20260421_140102",
+      "timestamp": "2026-04-21T14:01:02",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "budget_finance",
+      "topic_angle_hint": "name a specific money amount saved or lost — make it feel real",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part.",
+        "Ton argent fuit déjà"
+      ],
+      "force_rewrite": false,
+      "content_calendar_note": "Post start or end of month — aligns with budget review cycles.",
+      "reasoning": "Parallel mode requested. Running A/B test with 5 hook variants and 3 scripts for maximum variant coverage."
+    },
+    {
+      "run_id": "20260421_140102",
+      "timestamp": "2026-04-21T14:01:02",
+      "strategy_mode": "single",
+      "n_hook_variants": 5,
+      "n_script_variants": 1,
+      "idea_type": "career_work",
+      "topic_angle_hint": "concrete money amount + timeframe",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Ton patron croit que c'est toi",
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": false,
+      "content_calendar_note": "Post before salary review season (Oct–Nov, Feb–Mar) for max resonance.",
+      "reasoning": "Topic 'AI salary negotiation' has a proven best score of 8.9. Reusing best angle: 'concrete money amount + timeframe'. Single mode to maintain consistency with what worked."
+    },
+    {
+      "run_id": "20260421_140112",
+      "timestamp": "2026-04-21T14:01:12",
+      "strategy_mode": "single",
+      "n_hook_variants": 5,
+      "n_script_variants": 1,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": false,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 6.5 is acceptable. Single mode with 5 hook variants. Boosting ['loss', 'user_pain'] patterns based on historical data."
+    },
+    {
+      "run_id": "20260421_140135",
+      "timestamp": "2026-04-21T14:01:35",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 5.0 is 1.5 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    },
+    {
+      "run_id": "20260422_095643",
+      "timestamp": "2026-04-22T09:56:43",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 5.0 is 1.5 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    },
+    {
+      "run_id": "20260422_100145",
+      "timestamp": "2026-04-22T10:01:45",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.295,
+        "contrast": 1.0,
+        "user_pain": 1.206,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu perds CHF 400 sans le voir",
+        "Tu bosses. L'argent part."
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 5.0 is 1.5 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    },
+    {
+      "run_id": "20260422_102922",
+      "timestamp": "2026-04-22T10:29:22",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.281,
+        "contrast": 1.0,
+        "user_pain": 1.193,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5,
+        "pain_loss_1": 1.0
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu signes sans savoir que tes données partent",
+        "Tu perds CHF 400 sans le voir"
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 5.3 is 1.2 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    },
+    {
+      "run_id": "20260422_110136",
+      "timestamp": "2026-04-22T11:01:36",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.271,
+        "contrast": 1.0,
+        "user_pain": 1.184,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5,
+        "pain_loss_1": 1.118
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu signes sans savoir que tes données partent",
+        "Tu perds 3h à lire des rumeurs Apple inutiles"
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 4.2 is 2.3 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    },
+    {
+      "run_id": "20260422_115031",
+      "timestamp": "2026-04-22T11:50:31",
+      "strategy_mode": "ab_test",
+      "n_hook_variants": 5,
+      "n_script_variants": 3,
+      "idea_type": "prompt_reveal",
+      "topic_angle_hint": "the exact prompt as the value prop — show the output, not just the tool",
+      "hook_style_boost": {
+        "loss": 1.271,
+        "contrast": 1.0,
+        "user_pain": 1.184,
+        "social_tension": 1.0,
+        "transformation": 1.0,
+        "discovery": 1.0,
+        "generic": 0.5,
+        "pain_loss_1": 1.118
+      },
+      "avoid_patterns": [
+        "generic"
+      ],
+      "reference_hooks": [
+        "Tu signes sans savoir que tes données partent",
+        "Tu perds 3h à lire des rumeurs Apple inutiles"
+      ],
+      "force_rewrite": true,
+      "content_calendar_note": "Best posted Monday–Wednesday when professionals are looking for work shortcuts.",
+      "reasoning": "Recent avg score 4.2 is 2.3 pts below threshold 6.5. Switching to A/B test mode (5 hooks, 3 scripts) to find a higher-scoring variant. force_rewrite=True to break out of low-scoring hook patterns."
+    }
+  ]
+}
