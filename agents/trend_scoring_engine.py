@@ -67,6 +67,20 @@ _CATEGORY_BOOST = {
 # Max accumulated keyword weight before we cap at 4.0
 _KW_CAP = 4.0
 
+# Penalty keywords — subtract from score after keyword boost
+# US-only political content with no European impact
+_US_POLITICAL: list[str] = [
+    "maga", "trump", "gop", "republican party", "democrat party",
+    "congress", "senate", "white house", "biden", "harris",
+]
+# Celebrity/gossip without structural stakes
+_CELEBRITY_GOSSIP: list[str] = [
+    "unmasked", "exposed as", "fake persona", "influencer drama",
+    "kardashian", "celebrity", "viral meme", "tiktok drama",
+]
+_US_ONLY_PENALTY   = -1.5   # score points deducted
+_CELEBRITY_PENALTY = -1.0
+
 
 class TrendScoringEngine:
     """
@@ -94,8 +108,9 @@ class TrendScoringEngine:
         nov_score  = self._novelty_score(item)
         cat_boost  = self._category_boost(item)
 
-        raw = kw_score + eng_score + nov_score + cat_boost
-        return round(min(raw, 10.0), 2)
+        penalty   = self._penalty_score(text)
+        raw = kw_score + eng_score + nov_score + cat_boost + penalty
+        return round(max(min(raw, 10.0), 0.0), 2)
 
     def score_batch(self, items: list[dict]) -> list[dict]:
         """
@@ -192,6 +207,24 @@ class TrendScoringEngine:
             if val in _CATEGORY_BOOST:
                 return _CATEGORY_BOOST[val]
         return 0.0
+
+    def _penalty_score(self, text: str) -> float:
+        """
+        Subtract points for US-only political content and celebrity gossip.
+        Both penalties can stack if both patterns appear.
+        """
+        penalty = 0.0
+        if any(kw in text for kw in _US_POLITICAL):
+            # Rescue if European context is also present
+            has_eu = any(eu in text for eu in ("europe", "france", "suisse", "switzerland", "belgium", "uk", "global"))
+            if not has_eu:
+                penalty += _US_ONLY_PENALTY
+        if any(kw in text for kw in _CELEBRITY_GOSSIP):
+            # Rescue if a structural tech/economy angle exists
+            has_stakes = any(s in text for s in ("ai", "intelligence artificielle", "licenciement", "layoff", "économie", "economy", "data"))
+            if not has_stakes:
+                penalty += _CELEBRITY_PENALTY
+        return penalty
 
     def filter_noise(self, items: list[dict], min_score: float = 3.0) -> list[dict]:
         """Remove items scoring below min_score. Assumes score_batch already called."""
