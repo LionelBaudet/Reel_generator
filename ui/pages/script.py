@@ -966,13 +966,35 @@ def _render_script_result(
     hr()
     # ── Script ─────────────────────────────────────────────────────────────────
     st.markdown("### 2. Script")
-    script = sv.get("script", {})
-    for label, key, color in [
+
+    # Check if QC rewrote the script
+    _qc = st.session_state.get("sv_qc_result", {})
+    _qc_rewritten = isinstance(_qc, dict) and _qc.get("status") == "rewritten"
+    if _qc_rewritten:
+        _orig  = _qc.get("original_score", "?")
+        _final = _qc.get("final_score", "?")
+        _weak  = ", ".join(_qc.get("weak_dimensions", []))
+        _flags = " · ".join(_qc.get("boring_flags", []))
+        st.markdown(
+            f'<div style="background:#FFF7ED;border-left:4px solid #fb923c;border-radius:0 8px 8px 0;'
+            f'padding:.6rem 1rem;margin-bottom:.75rem;font-size:.82rem">'
+            f'<span style="font-weight:700;color:#fb923c">🔄 QC Auto-rewrite</span> '
+            f'<span style="color:#92400E">Score {_orig}/10 → <b>{_final}/10</b></span>'
+            + (f'<div style="color:#B45309;margin-top:2px">Détecté : {_flags}</div>' if _flags else "")
+            + f'</div>',
+            unsafe_allow_html=True,
+        )
+        script = _qc.get("script", sv.get("script", {}))
+    else:
+        script = sv.get("script", {})
+
+    _scene_keys = [
         ("Hook", "hook", "#f87171"), ("Tension", "tension", "#fb923c"),
         ("Shift", "shift", "#facc15"), ("Proof", "proof", "#a78bfa"),
         ("Solution", "solution", "#4ade80"), ("Résultat", "result", "#60a5fa"),
         ("CTA", "cta", "#c084fc"),
-    ]:
+    ]
+    for label, key, color in _scene_keys:
         text = script.get(key, "")
         if text:
             st.markdown(
