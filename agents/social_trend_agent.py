@@ -40,7 +40,54 @@ REDDIT_SUBREDDITS = [
 GOOGLE_TRENDS_FEEDS = [
     {"geo": "FR", "region": "France",      "label": "Google Trends FR"},
     {"geo": "CH", "region": "Switzerland", "label": "Google Trends CH"},
+    {"geo": "BE", "region": "Belgium",     "label": "Google Trends BE"},
 ]
+
+# ── Language + topic filters (applied before scoring — zero LLM cost) ─────────
+
+# German/Italian words that indicate the topic is not French-language
+_NON_FRENCH_INDICATORS = [
+    "unfall", "härkingen", "horgen", "zürich", "bern", "basel", "luzern",
+    "aarau", "winterthur", "thun", "biel", "schaffhausen", "frauenfeld",
+    "incidente", "kezia", "der ", "die ", "das ", "und ", "von ", "mit ",
+    "einen", "wurde", "beim", "nach ", "über ", "durch",
+]
+
+# Local accident/fait-divers patterns with zero creator angle
+_LOCAL_ACCIDENT_PATTERNS = [
+    "unfall", "accident à ", "accident de la route", "accident mortel",
+    "faits divers", "fait divers", "incendie à ", "meurtre à ",
+    "crime à ", "vol à ", "cambriolage",
+    "arbeitsunfall", "verkehrsunfall", "tödlicher",
+]
+
+
+def _is_french_and_relevant(item: dict) -> bool:
+    """
+    Returns False if the item is non-French or a local fait-divers with no creator angle.
+    Applied as a pre-filter before scoring — no LLM cost.
+    """
+    text = (
+        item.get("title", "") + " " +
+        item.get("summary", "") + " " +
+        item.get("category", "")
+    ).lower()
+
+    # Reject German/Italian language topics
+    if any(indicator in text for indicator in _NON_FRENCH_INDICATORS):
+        return False
+
+    # Reject pure local accident/fait-divers with no systemic angle
+    if any(pat in text for pat in _LOCAL_ACCIDENT_PATTERNS):
+        # Rescue if there's a structural angle (AI, economy, policy)
+        has_angle = any(kw in text for kw in [
+            "ia", "intelligence artificielle", "économie", "emploi", "politique",
+            "ai ", "tech", "travail", "santé", "gouvernement",
+        ])
+        if not has_angle:
+            return False
+
+    return True
 
 _FETCH_TIMEOUT   = 15   # seconds
 _MAX_REDDIT_POSTS = 15  # per subreddit before scoring
@@ -211,7 +258,9 @@ def fetch_all_social(max_workers: int = 7) -> list[dict]:
             except Exception as e:
                 log.warning(f"[social_trend] Worker error: {e}")
 
-    log.info(f"[social_trend] Total raw items: {len(all_items)}")
+    before = len(all_items)
+    all_items = [item for item in all_items if _is_french_and_relevant(item)]
+    log.info(f"[social_trend] Raw: {before} → after language/relevance filter: {len(all_items)}")
     return all_items
 
 

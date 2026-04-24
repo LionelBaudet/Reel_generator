@@ -33,6 +33,14 @@ You receive pre-scored social trends from Reddit and Google Trends (already filt
 - Financial market movements with personal impact
 - Political decisions that affect everyday people
 
+## Language filter (mandatory — applied before anything else)
+
+**Only process French-language topics.** If the title or summary is in German, Italian, or any non-French language → **exclude entirely**, do not rewrite, do not include.
+
+Examples to exclude: "Unfall Härkingen", "Arbeitsunfall Horgen", "Zürich Verkehr", "der Bundesrat", "tödlicher Unfall"
+
+The target audience is French-speaking: Switzerland (Romandie), France, Belgium. A topic in German has zero value for them.
+
 ## Deprioritise (score max 5/10 for these)
 
 - US-only politics (MAGA, Trump, GOP, Congress) with **zero European/global economic impact**

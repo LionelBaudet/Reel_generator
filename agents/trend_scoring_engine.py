@@ -78,8 +78,16 @@ _CELEBRITY_GOSSIP: list[str] = [
     "unmasked", "exposed as", "fake persona", "influencer drama",
     "kardashian", "celebrity", "viral meme", "tiktok drama",
 ]
-_US_ONLY_PENALTY   = -1.5   # score points deducted
-_CELEBRITY_PENALTY = -1.0
+_US_ONLY_PENALTY      = -1.5
+_CELEBRITY_PENALTY    = -1.0
+_LOCAL_ACCIDENT_PENALTY = -2.0   # local fait-divers: no creator angle possible
+
+# German/Italian language signals (hard derank)
+_NON_FRENCH_LANG: list[str] = [
+    "unfall", "arbeitsunfall", "verkehrsunfall", "tödlich",
+    "der ", "die ", "das ", "und ", "von ", "mit ", "wurde",
+    "incidente", "morto", "ferito",
+]
 
 
 class TrendScoringEngine:
@@ -210,20 +218,37 @@ class TrendScoringEngine:
 
     def _penalty_score(self, text: str) -> float:
         """
-        Subtract points for US-only political content and celebrity gossip.
-        Both penalties can stack if both patterns appear.
+        Subtract points for:
+        - US-only political content
+        - Celebrity gossip without structural stakes
+        - Non-French language (German/Italian topics)
+        - Local accident/fait-divers with no creator angle
         """
         penalty = 0.0
+
+        # Non-French language → hard derank
+        if any(kw in text for kw in _NON_FRENCH_LANG):
+            penalty -= 3.0
+
+        # US-only politics (rescue if EU context present)
         if any(kw in text for kw in _US_POLITICAL):
-            # Rescue if European context is also present
             has_eu = any(eu in text for eu in ("europe", "france", "suisse", "switzerland", "belgium", "uk", "global"))
             if not has_eu:
                 penalty += _US_ONLY_PENALTY
+
+        # Celebrity gossip (rescue if structural tech/economy angle)
         if any(kw in text for kw in _CELEBRITY_GOSSIP):
-            # Rescue if a structural tech/economy angle exists
             has_stakes = any(s in text for s in ("ai", "intelligence artificielle", "licenciement", "layoff", "économie", "economy", "data"))
             if not has_stakes:
                 penalty += _CELEBRITY_PENALTY
+
+        # Local accident/fait-divers (rescue if systemic angle)
+        _accident_kw = ["unfall", "accident à", "accident mortel", "incendie à", "crime à", "arbeitsunfall"]
+        if any(kw in text for kw in _accident_kw):
+            has_angle = any(s in text for s in ("ia", "politique", "emploi", "économie", "santé", "tech"))
+            if not has_angle:
+                penalty += _LOCAL_ACCIDENT_PENALTY
+
         return penalty
 
     def filter_noise(self, items: list[dict], min_score: float = 3.0) -> list[dict]:
