@@ -1005,38 +1005,50 @@ def _render_script_result(
             )
 
     # ── Quality score + Viral Simulator ───────────────────────────────────────
-    _q_score = sv.get("quality_score", sv.get("score", {}).get("total"))
-    _v_scores = sv.get("viral_scores", {})
+    _q_score  = sv.get("quality_score", sv.get("score", {}).get("total"))
+    _vp       = sv.get("viral_prediction", sv.get("viral_scores", {}))
     _sv_status = sv.get("status", "")
 
-    if _q_score or _v_scores:
+    if _q_score or _vp:
         _q_color = "#4ade80" if (_q_score or 0) >= 8 else "#fb923c" if (_q_score or 0) >= 6 else "#f87171"
+        _global  = _vp.get("global_score", 0) if _vp else 0
+        _g_color = "#4ade80" if _global >= 8 else "#fb923c" if _global >= 6 else "#f87171"
         _status_badge = (
-            '<span style="background:#dcfce7;color:#166534;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:12px">✓ validé</span>'
+            '<span style="background:#dcfce7;color:#166534;font-size:.7rem;font-weight:700;'
+            'padding:2px 8px;border-radius:12px">✓ validé</span>'
             if _sv_status == "validated" else
-            '<span style="background:#FFF7ED;color:#92400E;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:12px">🔄 réécrit</span>'
+            '<span style="background:#FFF7ED;color:#92400E;font-size:.7rem;font-weight:700;'
+            'padding:2px 8px;border-radius:12px">🔄 réécrit</span>'
             if _sv_status == "rewritten" else ""
         )
-        _viral_html = ""
-        if _v_scores:
-            _viral_items = [
-                ("Stop", "scroll_stop"), ("Curiosité", "curiosity"),
-                ("Émotion", "emotion"), ("Rétention", "retention"),
-            ]
-            _viral_html = '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.4rem">' + "".join(
-                f'<span style="font-size:.75rem;color:#6B6B8A">{lbl} '
-                f'<b style="color:{"#4ade80" if _v_scores.get(k,0)>=7 else "#f87171"}">'
-                f'{_v_scores.get(k,0)}/10</b></span>'
-                for lbl, k in _viral_items
-            ) + "</div>"
+        _vp_items = [
+            ("Stop scroll", "scroll_stop"), ("Watch time", "watch_time"),
+            ("Partage",     "shareability"), ("Commentaire", "comment_trigger"),
+            ("Pertinence",  "relevance"),
+        ]
+        _vp_html = ""
+        if _vp:
+            _vp_html = (
+                '<div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem;padding-top:.5rem;'
+                'border-top:1px solid #E5E5EA">'
+                + "".join(
+                    f'<div style="text-align:center;min-width:60px">'
+                    f'<div style="font-size:1rem;font-weight:800;color:{"#4ade80" if _vp.get(k,0)>=7 else "#fb923c" if _vp.get(k,0)>=5 else "#f87171"}">'
+                    f'{_vp.get(k,0)}</div>'
+                    f'<div style="font-size:.65rem;color:#6B6B8A;margin-top:1px">{lbl}</div></div>'
+                    for lbl, k in _vp_items
+                )
+                + "</div>"
+            )
         st.markdown(
             f'<div style="background:#F5F5F7;border-radius:10px;padding:.6rem 1rem;margin-top:.5rem">'
-            f'<div style="display:flex;align-items:center;gap:.75rem">'
-            f'<span style="font-size:1.4rem;font-weight:900;color:{_q_color}">{_q_score}/10</span>'
-            f'<span style="font-size:.8rem;color:#6B6B8A">Qualité</span>'
-            f'{_status_badge}</div>'
-            f'{_viral_html}'
-            f'</div>',
+            f'<div style="display:flex;align-items:center;gap:1rem">'
+            f'<div><div style="font-size:.65rem;color:#6B6B8A;margin-bottom:1px">Qualité</div>'
+            f'<span style="font-size:1.4rem;font-weight:900;color:{_q_color}">{_q_score}/10</span></div>'
+            + (f'<div><div style="font-size:.65rem;color:#6B6B8A;margin-bottom:1px">Viral score</div>'
+               f'<span style="font-size:1.4rem;font-weight:900;color:{_g_color}">{_global}/10</span></div>'
+               if _global else "")
+            + f'{_status_badge}</div>{_vp_html}</div>',
             unsafe_allow_html=True,
         )
 

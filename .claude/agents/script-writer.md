@@ -122,18 +122,34 @@ Score 0–10 (2 pts each):
 
 ---
 
-## 🎬 STEP 4 — VIRAL SIMULATOR (after quality control)
+## 🎬 STEP 4 — VIRALITY PREDICTION SYSTEM
 
-Simulate how a random user reacts in the **first 3 seconds**:
+Simulate **real user behavior** and predict platform performance BEFORE outputting.
 
-| Dimension | Max | Question |
-|---|---|---|
-| Scroll Stop Power | 10 | Would a distracted user actually stop? |
-| Curiosity Loop | 10 | Is there a gap that forces them to keep watching? |
-| Emotional Impact | 10 | fear / ego / urgency / money — visceral reaction? |
-| Retention Potential | 10 | Does tension increase scene by scene? |
+### 5 dimensions (0–10 each)
 
-**If ANY viral score < 7 → REWRITE SCRIPT.**
+| Dimension | Question |
+|---|---|
+| **Scroll Stop Rate** | Would a random user stop in first 2 seconds? |
+| **Watch Time Potential** | Will the user stay after the hook? Does tension build? |
+| **Shareability** | Would someone send this to a friend or save it? |
+| **Comment Trigger** | Does it provoke a reaction, debate, or strong opinion? |
+| **Real-World Relevance** | Linked to current news, trends, or real personal impact? |
+
+### Context awareness (mandatory)
+Use the signals from the trend data (topic, proof stat, source) to anchor the relevance score. A script tied to a real current event (Google AI code generation, layoffs, cost-of-living) scores higher than a generic topic.
+
+### Hard rules
+- **IF ANY score < 7 → REWRITE ENTIRE SCRIPT**
+- **IF average score < 8 → REWRITE AGAIN**
+- No mediocre content allowed. Keep rewriting until both conditions are met.
+
+### Optimization loop
+1. Generate script
+2. Score all 5 dimensions
+3. Identify the weakest dimension
+4. Rewrite with stronger: tension / emotion / personal impact / current relevance
+5. Repeat until: all scores ≥ 7 AND average ≥ 8
 
 ---
 
@@ -142,8 +158,8 @@ Simulate how a random user reacts in the **first 3 seconds**:
 1. Generate 3 hooks (aggressive / medium / soft)
 2. Select best hook automatically
 3. Generate full script for best hook
-4. Run QUALITY CONTROL → rewrite if score < 8 or BORING
-5. Run VIRAL SIMULATOR → rewrite if any score < 7
+4. Run QUALITY CONTROL → rewrite if score < 8 or BORING flag
+5. Run VIRALITY PREDICTION → rewrite if any score < 7 or average < 8
 6. Return ONLY the final optimized version
 
 ---
@@ -193,11 +209,13 @@ Write `output/agents/03_script.json`:
     "cta":      "Comment MOT or Sauvegarde"
   },
   "quality_score": 9,
-  "viral_scores": {
-    "scroll_stop": 9,
-    "curiosity":   8,
-    "emotion":     9,
-    "retention":   8
+  "viral_prediction": {
+    "scroll_stop":  9,
+    "watch_time":   8,
+    "shareability": 8,
+    "comment_trigger": 7,
+    "relevance":    9,
+    "global_score": 8.2
   },
   "status": "validated | rewritten",
   "keyword_highlight": {
