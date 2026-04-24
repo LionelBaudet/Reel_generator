@@ -1061,6 +1061,44 @@ def _render_script_result(
         )
 
     hr()
+    # ── Voiceover ──────────────────────────────────────────────────────────────
+    st.markdown("### 🎤 Voiceover")
+    _vo_stored = st.session_state.get("sv_audio_path", sv.get("audio_path"))
+    _vo_dur    = sv.get("audio_duration", 0)
+    _vo_c1, _vo_c2 = st.columns([1, 3])
+    with _vo_c1:
+        if st.button("Générer le voiceover", type="secondary", use_container_width=True, key="btn_sv_voice"):
+            with st.spinner("Génération audio…"):
+                try:
+                    from agents.voice_agent import VoiceAgent as _VA
+                    _script_body = sv.get("script", {})
+                    _lang_vo = st.session_state.get("sv_lang", "fr")
+                    _vo_result = _VA().generate(_script_body, lang=_lang_vo)
+                    st.session_state["sv_audio_path"] = _vo_result.get("audio_path")
+                    st.session_state["sv_audio_dur"]  = _vo_result.get("duration", 0)
+                    _vo_stored = _vo_result.get("audio_path")
+                    _vo_dur    = _vo_result.get("duration", 0)
+                    st.rerun()
+                except Exception as _ve:
+                    st.error(f"Voiceover error : {_ve}")
+    with _vo_c2:
+        if _vo_stored and Path(_vo_stored).exists():
+            _dur_s = st.session_state.get("sv_audio_dur", _vo_dur)
+            st.markdown(
+                f'<div style="font-size:.8rem;color:#6B6B8A;margin-bottom:.3rem">'
+                f'MP3 · {_dur_s:.1f}s · ElevenLabs / gTTS</div>',
+                unsafe_allow_html=True,
+            )
+            with open(_vo_stored, "rb") as _f:
+                st.audio(_f.read(), format="audio/mp3")
+        else:
+            st.markdown(
+                '<div style="font-size:.8rem;color:#aaa;padding:.5rem 0">'
+                'Génère le voiceover pour l\'écouter avant de lancer le montage.</div>',
+                unsafe_allow_html=True,
+            )
+
+    hr()
     # ── Caption ────────────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">📣 Étape 2 — Caption Instagram</div>', unsafe_allow_html=True)
     _cap_lang   = st.session_state.get("sv_lang", "fr")

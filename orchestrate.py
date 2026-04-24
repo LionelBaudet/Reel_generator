@@ -76,6 +76,14 @@ except ImportError as _trend_err:
     _TREND_AGENTS_AVAILABLE = False
     logging.getLogger(__name__).warning(f"trend agents not found: {_trend_err}")
 
+# ── VoiceAgent import (graceful fallback) ─────────────────────────────────────
+try:
+    from agents.voice_agent import VoiceAgent
+    _VOICE_AGENT_AVAILABLE = True
+except ImportError as _voice_err:
+    _VOICE_AGENT_AVAILABLE = False
+    logging.getLogger(__name__).warning(f"voice_agent not found: {_voice_err}")
+
 # ── Hook variant hints for parallel generation ────────────────────────────────
 # Each of the 5 variants is biased toward a different copywriting framework.
 # This guarantees hook diversity across the parallel batch.
@@ -159,6 +167,7 @@ STEPS = [
     "trend-research",
     "hook-generator",
     "script-writer",
+    "voice-agent",
     "scene-builder",
     "video-assembler",
     "caption-generator",
@@ -1178,6 +1187,21 @@ def _deduplicate_hooks(hooks: list[dict], similarity_threshold: float = 0.75) ->
 
 # ── End parallel section ──────────────────────────────────────────────────────
 
+def run_voice_agent(script: dict, lang: str = "fr") -> dict:
+    log.info("=== STEP voice: VoiceAgent ===")
+    if not _VOICE_AGENT_AVAILABLE:
+        log.warning("[voice] VoiceAgent not available — skipping")
+        return {"audio_path": None, "duration": 0, "error": "VoiceAgent not available"}
+    try:
+        agent  = VoiceAgent()
+        result = agent.generate(script, lang=lang)
+        log.info(f"[voice] audio={result.get('audio_path')} duration={result.get('duration')}s")
+        return result
+    except Exception as exc:
+        log.warning(f"[voice] Failed (non-fatal): {exc}")
+        return {"audio_path": None, "duration": 0, "error": str(exc)}
+
+
 def run_scene_builder(script: dict, lang: str) -> Path:
     log.info("=== STEP 4: SceneBuilderAgent ===")
 
@@ -1763,6 +1787,11 @@ def run_pipeline(
         else:
             script = run_script_writer(trends, hooks, lang)
 
+    voice_result: dict = {}
+    if "voice-agent" in steps_to_run:
+        _script_body = (script or {}).get("script", script or {})
+        voice_result = run_voice_agent(_script_body, lang=lang)
+
     if "scene-builder" in steps_to_run:
         config_path = run_scene_builder(script, lang)
 
@@ -1832,6 +1861,8 @@ def run_pipeline(
         "caption":     (caption or {}).get("caption", ""),
         "score":       optimization.get("overall_score", 0),
         "video_path":  (video_result or {}).get("output_path"),
+        "audio_path":  voice_result.get("audio_path"),
+        "audio_duration": voice_result.get("duration", 0),
         "news":        news_summary,
         "social":      social_trends,
         "trends":      trend_intelligence,
@@ -2038,6 +2069,8 @@ Examples:
                         help="Output language (default: fr)")
     parser.add_argument("--skip-video", action="store_true",
                         help="Skip video rendering (generate YAML + caption only)")
+    parser.add_argument("--voice", action="store_true",
+                        help="Generate voiceover MP3 via ElevenLabs (or gTTS fallback)")
     parser.add_argument("--from-step", choices=_all_resumable, metavar="STEP",
                         help=f"Resume pipeline from this step. Choices: {', '.join(_all_resumable)}")
     parser.add_argument("--list-steps", action="store_true",
