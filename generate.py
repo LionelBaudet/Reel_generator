@@ -445,6 +445,7 @@ Retourne ce JSON exact :
   "script": {{
     "hook":     "<meilleur hook — max 8 mots>",
     "tension":  "<douleur urgente — fragments courts — ex: 'Ton poste. Automatisé. Cette année.'>",
+    "proof":    "<fait vérifié ou stat sourcée — ex: 'Goldman Sachs : 300M emplois automatisables'>",
     "shift":    "<retournement inattendu — max 6 mots>",
     "solution": "<action simple et concrète — max 6 mots>",
     "result":   "<résultat chiffré si possible — max 6 mots>",
@@ -775,9 +776,10 @@ Retourne ce JSON exact :
       "script": {{
         "hook":     "<même texte que hook.text>",
         "tension":  "<fragments courts urgents — ex: 'Ton poste. Automatisé. Cette année.'>",
-        "shift":    "<retournement — max 6 mots>",
-        "solution": "<action concrète — max 6 mots>",
-        "result":   "<résultat chiffré — max 6 mots>",
+        "shift":    "<retournement inattendu — max 8 mots>",
+        "proof":    "<fait vérifié sourcé — ex: 'Goldman Sachs : 300M emplois automatisables'>",
+        "solution": "<une seule action concrète — max 8 mots>",
+        "result":   "<résultat chiffré ou émotionnel — jamais vague>",
         "cta":      "<déclencheur commentaire — max 8 mots>"
       }},
       "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
@@ -790,9 +792,10 @@ Retourne ce JSON exact :
       "script": {{
         "hook":     "<même texte que hook.text>",
         "tension":  "<fragments courts urgents>",
-        "shift":    "<max 6 mots>",
-        "solution": "<max 6 mots>",
-        "result":   "<max 6 mots>",
+        "shift":    "<max 8 mots>",
+        "proof":    "<fait vérifié sourcé>",
+        "solution": "<une seule action concrète>",
+        "result":   "<mesurable ou émotionnel>",
         "cta":      "<max 8 mots>"
       }},
       "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
@@ -805,9 +808,10 @@ Retourne ce JSON exact :
       "script": {{
         "hook":     "<même texte que hook.text>",
         "tension":  "<fragments courts urgents — maximum urgence>",
-        "shift":    "<max 6 mots>",
-        "solution": "<max 6 mots>",
-        "result":   "<max 6 mots>",
+        "shift":    "<max 8 mots>",
+        "proof":    "<fait vérifié sourcé — le plus percutant>",
+        "solution": "<une seule action concrète>",
+        "result":   "<mesurable ou émotionnel>",
         "cta":      "<max 8 mots>"
       }},
       "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],

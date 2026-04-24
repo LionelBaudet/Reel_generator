@@ -802,8 +802,9 @@ def _render_ab_result(ab_result: dict, generate_montage_plan) -> None:
     _type_bg     = {"safe": "#EFF6FF", "curiosity": "#FEFCE8", "aggressive": "#FFF1F2"}
     _type_labels = {"safe": "A — SAFE", "curiosity": "B — CURIOSITÉ", "aggressive": "C — AGRESSIF"}
     _script_keys = [("Hook","hook","#f87171"),("Tension","tension","#fb923c"),
-                    ("Shift","shift","#facc15"),("Solution","solution","#4ade80"),
-                    ("Résultat","result","#60a5fa"),("CTA","cta","#c084fc")]
+                    ("Shift","shift","#facc15"),("Proof","proof","#a78bfa"),
+                    ("Solution","solution","#4ade80"),("Résultat","result","#60a5fa"),
+                    ("CTA","cta","#c084fc")]
 
     tab_a, tab_b, tab_c = st.tabs(["A — Safe", "B — Curiosité", "C — Agressif"])
     for tab, version in zip([tab_a, tab_b, tab_c], versions):
@@ -968,8 +969,9 @@ def _render_script_result(
     script = sv.get("script", {})
     for label, key, color in [
         ("Hook", "hook", "#f87171"), ("Tension", "tension", "#fb923c"),
-        ("Shift", "shift", "#facc15"), ("Solution", "solution", "#4ade80"),
-        ("Résultat", "result", "#60a5fa"), ("CTA", "cta", "#c084fc"),
+        ("Shift", "shift", "#facc15"), ("Proof", "proof", "#a78bfa"),
+        ("Solution", "solution", "#4ade80"), ("Résultat", "result", "#60a5fa"),
+        ("CTA", "cta", "#c084fc"),
     ]:
         text = script.get(key, "")
         if text:
@@ -979,6 +981,27 @@ def _render_script_result(
                 f'<span style="color:#1A1A2E;font-size:.92rem">{text}</span></div>',
                 unsafe_allow_html=True,
             )
+
+    # ── Script score display ───────────────────────────────────────────────────
+    _score_data = sv.get("score", {})
+    if isinstance(_score_data, dict) and _score_data.get("total"):
+        _total = _score_data.get("total", 0)
+        _color = "#4ade80" if _total >= 8 else "#fb923c" if _total >= 6 else "#f87171"
+        _dims = [
+            ("Hook", "hook_strength"), ("Tension", "emotional_tension"),
+            ("Curiosité", "curiosity_gap"), ("Clarté", "clarity"), ("Impact", "impact"),
+        ]
+        _dim_html = "".join(
+            f'<span style="font-size:.75rem;color:#6B6B8A">{lbl} <b style="color:#1A1A2E">{_score_data.get(k,0)}/2</b></span>'
+            for lbl, k in _dims
+        )
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:1.5rem;background:#F5F5F7;border-radius:10px;padding:.6rem 1rem;margin-top:.5rem">'
+            f'<span style="font-size:1.5rem;font-weight:900;color:{_color}">{_total}/10</span>'
+            f'<div style="display:flex;gap:1rem;flex-wrap:wrap">{_dim_html}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     why = sv.get("why_it_performs", "")
     if why:
