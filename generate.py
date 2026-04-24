@@ -444,7 +444,7 @@ Retourne ce JSON exact :
   }},
   "script": {{
     "hook":     "<meilleur hook — max 8 mots>",
-    "pain":     "<tension / douleur réelle — max 6 mots>",
+    "tension":  "<douleur urgente — fragments courts — ex: 'Ton poste. Automatisé. Cette année.'>",
     "shift":    "<retournement inattendu — max 6 mots>",
     "solution": "<action simple et concrète — max 6 mots>",
     "result":   "<résultat chiffré si possible — max 6 mots>",
@@ -523,7 +523,7 @@ MONTAGE_SYSTEM = _MONTAGE_SYSTEM_FR
 
 MONTAGE_JSON_TEMPLATE = """
 Retourne ce JSON exact (sans markdown, sans texte autour) :
-{"total_duration": 18, "pexels_queries": ["man working late laptop dark", "person thinking at screen", "minimal desk typing calm"], "background": {"style": "slow ambient", "transitions": "smooth crossfade", "overlay_opacity": 0.55, "motion": "minimal"}, "scenes": [{"id": 1, "type": "hook", "duration": 3.2, "text": "...", "keyword_highlight": "...", "text_animation": "impact_in", "font_size": "xl", "emphasis": true}, {"id": 2, "type": "pain", "duration": 2.8, "text": "...", "keyword_highlight": "", "text_animation": "slide_up", "font_size": "lg", "emphasis": false}, {"id": 3, "type": "shift", "duration": 2.8, "text": "...", "keyword_highlight": "...", "text_animation": "slide_up", "font_size": "lg", "emphasis": true}, {"id": 4, "type": "solution", "duration": 3.0, "text": "...", "keyword_highlight": "", "text_animation": "typing", "font_size": "lg", "emphasis": false}, {"id": 5, "type": "result", "duration": 3.0, "text": "...", "keyword_highlight": "...", "text_animation": "pop", "font_size": "lg", "emphasis": true}, {"id": 6, "type": "cta", "duration": 3.2, "text": "...", "keyword_highlight": "", "text_animation": "pop", "font_size": "xl", "emphasis": true}], "validation": {"hook_visible_frame_0": true, "all_scenes_min_2s8": true, "text_readable_mobile": true, "bg_calm": true}}
+{"total_duration": 18, "pexels_queries": ["man working late laptop dark", "person thinking at screen", "minimal desk typing calm"], "background": {"style": "slow ambient", "transitions": "smooth crossfade", "overlay_opacity": 0.55, "motion": "minimal"}, "scenes": [{"id": 1, "type": "hook", "duration": 3.2, "text": "...", "keyword_highlight": "...", "text_animation": "impact_in", "font_size": "xl", "emphasis": true}, {"id": 2, "type": "tension", "duration": 2.8, "text": "...", "keyword_highlight": "", "text_animation": "slide_up", "font_size": "lg", "emphasis": false}, {"id": 3, "type": "shift", "duration": 2.8, "text": "...", "keyword_highlight": "...", "text_animation": "slide_up", "font_size": "lg", "emphasis": true}, {"id": 4, "type": "solution", "duration": 3.0, "text": "...", "keyword_highlight": "", "text_animation": "typing", "font_size": "lg", "emphasis": false}, {"id": 5, "type": "result", "duration": 3.0, "text": "...", "keyword_highlight": "...", "text_animation": "pop", "font_size": "lg", "emphasis": true}, {"id": 6, "type": "cta", "duration": 3.2, "text": "...", "keyword_highlight": "", "text_animation": "pop", "font_size": "xl", "emphasis": true}], "validation": {"hook_visible_frame_0": true, "all_scenes_min_2s8": true, "text_readable_mobile": true, "bg_calm": true}}
 
 Remplace les ... par les vraies valeurs selon le script fourni.
 Règles de durée :
@@ -552,8 +552,8 @@ def generate_montage_plan(script: dict, lang: str = "fr", idea_type: str = "") -
     script_lines = "\n".join([
         "Script to transform into a dynamic video montage config:\n",
         f"Hook    : {script.get('hook', '')}",
-        f"Pain    : {script.get('pain', '')}",
-        f"Twist   : {script.get('twist', '')}",
+        f"Tension : {script.get('tension', script.get('pain', ''))}",
+        f"Shift   : {script.get('shift', script.get('twist', ''))}",
         f"Solution: {script.get('solution', '')}",
         f"Result  : {script.get('result', '')}",
         f"CTA     : {script.get('cta', '')}",
@@ -774,7 +774,7 @@ Retourne ce JSON exact :
       "hook": {{"text": "<max 8 mots — clair, accessible>", "score": 0}},
       "script": {{
         "hook":     "<même texte que hook.text>",
-        "pain":     "<tension — max 6 mots>",
+        "tension":  "<fragments courts urgents — ex: 'Ton poste. Automatisé. Cette année.'>",
         "shift":    "<retournement — max 6 mots>",
         "solution": "<action concrète — max 6 mots>",
         "result":   "<résultat chiffré — max 6 mots>",
@@ -788,12 +788,12 @@ Retourne ce JSON exact :
       "type": "curiosity",
       "hook": {{"text": "<max 8 mots — gap d'information, intrigue>", "score": 0}},
       "script": {{
-        "hook": "<même texte que hook.text>",
-        "pain": "<max 6 mots>",
-        "shift": "<max 6 mots>",
+        "hook":     "<même texte que hook.text>",
+        "tension":  "<fragments courts urgents>",
+        "shift":    "<max 6 mots>",
         "solution": "<max 6 mots>",
-        "result": "<max 6 mots>",
-        "cta": "<max 8 mots>"
+        "result":   "<max 6 mots>",
+        "cta":      "<max 8 mots>"
       }},
       "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
       "tone": "<description du ton en 3 mots>"
@@ -803,12 +803,12 @@ Retourne ce JSON exact :
       "type": "aggressive",
       "hook": {{"text": "<max 8 mots — provocation, contradiction, pattern interrupt>", "score": 0}},
       "script": {{
-        "hook": "<même texte que hook.text>",
-        "pain": "<max 6 mots>",
-        "shift": "<max 6 mots>",
+        "hook":     "<même texte que hook.text>",
+        "tension":  "<fragments courts urgents — maximum urgence>",
+        "shift":    "<max 6 mots>",
         "solution": "<max 6 mots>",
-        "result": "<max 6 mots>",
-        "cta": "<max 8 mots>"
+        "result":   "<max 6 mots>",
+        "cta":      "<max 8 mots>"
       }},
       "overlay_lines": ["<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>","<max 6 mots>"],
       "tone": "<description du ton en 3 mots>"

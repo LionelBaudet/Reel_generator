@@ -801,7 +801,7 @@ def _render_ab_result(ab_result: dict, generate_montage_plan) -> None:
     _type_colors = {"safe": "#60a5fa", "curiosity": "#facc15", "aggressive": "#f87171"}
     _type_bg     = {"safe": "#EFF6FF", "curiosity": "#FEFCE8", "aggressive": "#FFF1F2"}
     _type_labels = {"safe": "A — SAFE", "curiosity": "B — CURIOSITÉ", "aggressive": "C — AGRESSIF"}
-    _script_keys = [("Hook","hook","#f87171"),("Tension","pain","#fb923c"),
+    _script_keys = [("Hook","hook","#f87171"),("Tension","tension","#fb923c"),
                     ("Shift","shift","#facc15"),("Solution","solution","#4ade80"),
                     ("Résultat","result","#60a5fa"),("CTA","cta","#c084fc")]
 
@@ -967,7 +967,7 @@ def _render_script_result(
     st.markdown("### 2. Script")
     script = sv.get("script", {})
     for label, key, color in [
-        ("Hook", "hook", "#f87171"), ("Tension", "pain", "#fb923c"),
+        ("Hook", "hook", "#f87171"), ("Tension", "tension", "#fb923c"),
         ("Shift", "shift", "#facc15"), ("Solution", "solution", "#4ade80"),
         ("Résultat", "result", "#60a5fa"), ("CTA", "cta", "#c084fc"),
     ]:
