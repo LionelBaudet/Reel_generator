@@ -1004,23 +1004,38 @@ def _render_script_result(
                 unsafe_allow_html=True,
             )
 
-    # ── Script score display ───────────────────────────────────────────────────
-    _score_data = sv.get("score", {})
-    if isinstance(_score_data, dict) and _score_data.get("total"):
-        _total = _score_data.get("total", 0)
-        _color = "#4ade80" if _total >= 8 else "#fb923c" if _total >= 6 else "#f87171"
-        _dims = [
-            ("Hook", "hook_strength"), ("Tension", "emotional_tension"),
-            ("Curiosité", "curiosity_gap"), ("Clarté", "clarity"), ("Impact", "impact"),
-        ]
-        _dim_html = "".join(
-            f'<span style="font-size:.75rem;color:#6B6B8A">{lbl} <b style="color:#1A1A2E">{_score_data.get(k,0)}/2</b></span>'
-            for lbl, k in _dims
+    # ── Quality score + Viral Simulator ───────────────────────────────────────
+    _q_score = sv.get("quality_score", sv.get("score", {}).get("total"))
+    _v_scores = sv.get("viral_scores", {})
+    _sv_status = sv.get("status", "")
+
+    if _q_score or _v_scores:
+        _q_color = "#4ade80" if (_q_score or 0) >= 8 else "#fb923c" if (_q_score or 0) >= 6 else "#f87171"
+        _status_badge = (
+            '<span style="background:#dcfce7;color:#166534;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:12px">✓ validé</span>'
+            if _sv_status == "validated" else
+            '<span style="background:#FFF7ED;color:#92400E;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:12px">🔄 réécrit</span>'
+            if _sv_status == "rewritten" else ""
         )
+        _viral_html = ""
+        if _v_scores:
+            _viral_items = [
+                ("Stop", "scroll_stop"), ("Curiosité", "curiosity"),
+                ("Émotion", "emotion"), ("Rétention", "retention"),
+            ]
+            _viral_html = '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.4rem">' + "".join(
+                f'<span style="font-size:.75rem;color:#6B6B8A">{lbl} '
+                f'<b style="color:{"#4ade80" if _v_scores.get(k,0)>=7 else "#f87171"}">'
+                f'{_v_scores.get(k,0)}/10</b></span>'
+                for lbl, k in _viral_items
+            ) + "</div>"
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:1.5rem;background:#F5F5F7;border-radius:10px;padding:.6rem 1rem;margin-top:.5rem">'
-            f'<span style="font-size:1.5rem;font-weight:900;color:{_color}">{_total}/10</span>'
-            f'<div style="display:flex;gap:1rem;flex-wrap:wrap">{_dim_html}</div>'
+            f'<div style="background:#F5F5F7;border-radius:10px;padding:.6rem 1rem;margin-top:.5rem">'
+            f'<div style="display:flex;align-items:center;gap:.75rem">'
+            f'<span style="font-size:1.4rem;font-weight:900;color:{_q_color}">{_q_score}/10</span>'
+            f'<span style="font-size:.8rem;color:#6B6B8A">Qualité</span>'
+            f'{_status_badge}</div>'
+            f'{_viral_html}'
             f'</div>',
             unsafe_allow_html=True,
         )

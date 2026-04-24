@@ -99,20 +99,52 @@ Direct. Actionable. No fluff.
 
 ---
 
-## 📊 SELF-SCORING SYSTEM (mandatory)
+## 📊 STEP 3 — QUALITY CONTROL (after writing script)
 
-After writing the script, score it 0–10:
+Score 0–10 (2 pts each):
 
-| Criterion | Max | Question to ask |
+| Criterion | Max | Question |
 |---|---|---|
-| Hook strength | 2 | Does it stop a distracted thumb in < 2s? |
-| Emotional tension | 2 | Does the viewer feel fear, urgency, or personal stakes? |
-| Curiosity gap | 2 | Is there an open loop that demands resolution? |
-| Clarity | 2 | Is every scene understood in < 3s with zero context? |
-| Impact | 2 | Will this be saved or shared? |
+| Hook strength | 2 | Stops a distracted thumb in < 2s? |
+| Emotional tension | 2 | Fear / ego / money / urgency present? |
+| Curiosity gap | 2 | Something withheld that forces continuation? |
+| Personal impact | 2 | Uses "tu", viewer's job/money/time at stake? |
+| Clarity & concreteness | 2 | Number, %, timeframe, or named source present? |
 
-**If total score < 8 → REWRITE automatically before outputting.**
-Keep rewriting until score ≥ 8. Never output a script below 8.
+**BORING DETECTOR — flag if ANY of these:**
+- No tension in first 2 lines (hook + tension)
+- No consequence (no risk, no loss, no urgency)
+- No emotional trigger
+- No curiosity gap
+- Too abstract or vague ("améliore", "optimise", "révolutionne")
+
+**If quality score < 8 OR BORING flag → REWRITE FULL SCRIPT.**
+
+---
+
+## 🎬 STEP 4 — VIRAL SIMULATOR (after quality control)
+
+Simulate how a random user reacts in the **first 3 seconds**:
+
+| Dimension | Max | Question |
+|---|---|---|
+| Scroll Stop Power | 10 | Would a distracted user actually stop? |
+| Curiosity Loop | 10 | Is there a gap that forces them to keep watching? |
+| Emotional Impact | 10 | fear / ego / urgency / money — visceral reaction? |
+| Retention Potential | 10 | Does tension increase scene by scene? |
+
+**If ANY viral score < 7 → REWRITE SCRIPT.**
+
+---
+
+## 🔄 Generation flow (strict order)
+
+1. Generate 3 hooks (aggressive / medium / soft)
+2. Select best hook automatically
+3. Generate full script for best hook
+4. Run QUALITY CONTROL → rewrite if score < 8 or BORING
+5. Run VIRAL SIMULATOR → rewrite if any score < 7
+6. Return ONLY the final optimized version
 
 ---
 
@@ -160,14 +192,14 @@ Write `output/agents/03_script.json`:
     "result":   "measurable or emotional — never vague",
     "cta":      "Comment MOT or Sauvegarde"
   },
-  "score": {
-    "hook_strength": 2,
-    "emotional_tension": 2,
-    "curiosity_gap": 2,
-    "clarity": 2,
-    "impact": 2,
-    "total": 10
+  "quality_score": 9,
+  "viral_scores": {
+    "scroll_stop": 9,
+    "curiosity":   8,
+    "emotion":     9,
+    "retention":   8
   },
+  "status": "validated | rewritten",
   "keyword_highlight": {
     "hook": "2-3 words to highlight in gold",
     "result": "1-2 words to highlight"
