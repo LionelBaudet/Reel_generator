@@ -20,6 +20,10 @@ jobs:
       - name: Tests
         run: python -m pytest
       - name: Lint
-        run: ruff check src tests
+        run: |
+          ruff check src tests --fix
+          ruff format src tests
+          git diff -- src tests
+          git diff --exit-code -- src tests
       - name: Formatting
         run: ruff format --check src tests
