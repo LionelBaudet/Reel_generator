@@ -235,10 +235,8 @@ def print_banner():
         print(banner)
 
 
-def main():
-    """Point d'entrée principal."""
-    print_banner()
-
+def build_parser() -> argparse.ArgumentParser:
+    """Build the legacy CLI parser without executing environment checks."""
     parser = argparse.ArgumentParser(
         description="Générateur automatique de Reels Instagram pour @ownyourtime.ai",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -259,7 +257,7 @@ Exemples:
     )
 
     # Arguments mutuellement exclusifs: --config ou --batch
-    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group = parser.add_mutually_exclusive_group(required=False)
     mode_group.add_argument(
         "--config", "-c",
         type=str,
@@ -274,7 +272,7 @@ Exemples:
     parser.add_argument(
         "--output", "-o",
         type=str,
-        required=True,
+        required=False,
         help="Chemin de sortie (fichier MP4 ou dossier)"
     )
     parser.add_argument(
@@ -298,17 +296,30 @@ Exemples:
         help="Affichage détaillé des logs"
     )
 
+    return parser
+
+
+def main():
+    """Point d'entrée principal."""
+    print_banner()
+    parser = build_parser()
     args = parser.parse_args()
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    # Vérifier l'environnement
-    setup_environment()
-
     if args.setup:
+        setup_environment()
         logger.info("Configuration de l'environnement terminée.")
         sys.exit(0)
+
+    if not args.config and not args.batch:
+        parser.error("one of --config or --batch is required unless --setup is used")
+    if not args.output:
+        parser.error("--output is required unless --setup is used")
+
+    # Vérifier l'environnement
+    setup_environment()
 
     # Mode batch
     if args.batch:
