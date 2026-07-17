@@ -31,9 +31,7 @@ class CreateReelWorkflowTests(unittest.TestCase):
             self.assertTrue((run.output_directory / "script.json").exists())
             self.assertTrue((run.output_directory / "quality.json").exists())
 
-            saved = json.loads(
-                (run.output_directory / "run.json").read_text(encoding="utf-8")
-            )
+            saved = json.loads((run.output_directory / "run.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["run_id"], run.run_id)
             self.assertEqual(saved["status"], "needs_review")
 

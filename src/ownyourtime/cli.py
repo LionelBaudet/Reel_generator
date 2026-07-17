@@ -15,7 +15,6 @@ from ownyourtime.settings import load_settings
 from ownyourtime.store import ArtifactStore
 from ownyourtime.workflow import CreateReelWorkflow
 
-
 DEFAULT_CONFIG = Path("config/v2/app.yaml")
 
 
