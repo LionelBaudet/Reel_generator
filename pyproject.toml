@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ownyourtime-content-os"
+version = "0.1.0"
+description = "Reliable content generation pipeline for @ownyourtime.ai"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.10,<3",
+  "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "ruff>=0.9,<1",
+]
+legacy = [
+  "anthropic>=0.86.0",
+  "feedparser>=6.0.0",
+  "gTTS>=2.3.2",
+  "moviepy==1.0.3",
+  "mutagen>=1.47.0",
+  "numpy>=1.24.0",
+  "pandas>=2.0.0",
+  "Pillow>=10.0.0",
+  "pydub>=0.25.1",
+  "python-dotenv>=1.0.0",
+  "requests>=2.31.0",
+  "streamlit>=1.32.0",
+  "tqdm>=4.65.0",
+]
+reflex = ["reflex>=0.8.0"]
+
+[project.scripts]
+oyt = "ownyourtime.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

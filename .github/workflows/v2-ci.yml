@@ -1,0 +1,25 @@
+name: V2 CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master, "codex/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install V2
+        run: python -m pip install -e '.[dev]'
+      - name: Tests
+        run: pytest
+      - name: Lint
+        run: ruff check src tests
+      - name: Formatting
+        run: ruff format --check src tests

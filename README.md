@@ -4,6 +4,28 @@ Générateur automatique de Reels Instagram pour la marque **@ownyourtime.ai** �
 
 Génère des vidéos verticales 1080×1920px (15–30s) directement depuis un fichier YAML, sans édition manuelle.
 
+> **V2 en cours :** la branche `codex/v2-foundation` introduit un noyau structuré et
+> testable sous `src/ownyourtime/`. L'ancien générateur reste disponible pendant la migration.
+
+## OwnYourTime Content OS V2
+
+La V2 commence par un workflow hors-ligne, traçable et sans consommation d'API. Elle génère
+un package contenant le script, le contrôle qualité et l'état du run.
+
+```bash
+python -m pip install -e '.[dev]'
+oyt doctor
+oyt generate \
+  --topic "Automatiser un reporting Power BI" \
+  --dry-run
+```
+
+Les artifacts sont créés dans `output/v2/<run_id>/`. Consultez
+[`docs/v2-architecture.md`](docs/v2-architecture.md) pour la cible et les prochaines étapes.
+
+La V2 requiert Python 3.11 ou plus récent. Les instructions ci-dessous concernent le
+générateur historique.
+
 ---
 
 ## Aperçu du template "Prompt Reveal"

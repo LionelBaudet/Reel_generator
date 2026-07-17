@@ -8,6 +8,9 @@
 output/*.mp4
 output/*.png
 output/_*.yaml
+output/v2/
+output/agents/
+output/audio/
 
 # Python
 __pycache__/
@@ -18,3 +21,10 @@ venv/
 # Streamlit cache local
 .streamlit/cache/
 .env* 
+
+# V2 tooling
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/

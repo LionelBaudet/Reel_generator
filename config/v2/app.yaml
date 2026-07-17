@@ -1,0 +1,4 @@
+brand: "@ownyourtime.ai"
+output_directory: "output/v2"
+quality:
+  minimum_score: 7.5
